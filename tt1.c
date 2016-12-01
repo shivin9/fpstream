@@ -3,19 +3,22 @@
 int main(int argc, char* argv[])
 {
     if(argc == 1){
-        printf("Please enter filename!\n");
+        printf("format is ./exe <filename><sleepTime><batchSize>\n");
         exit(-1);
     }
 
-    int batch_no = 0, stream_batch = 0, sleepTime, tree_to_prune, sz, batch_size, cnt, item_ready, i;
+    struct timeval t1, t2;
+    double elapsedTime;
+    gettimeofday(&t1, NULL);
 
-    if(argc == 2)
-        sleepTime = 100;
+    int batch_no = 0, stream_batch = 0, sleepTime = 100, tree_to_prune, sz, batch_size, cnt, item_ready, i, leavecnt = 1;
 
-    else
+    if(argc == 3)
         sleepTime = atoi(argv[2]);
 
-    double t1 = time(NULL);
+    else if(argc == 4)
+        leavecnt = atoi(argv[3]);
+
     omp_set_num_threads(4);
 
     curr_tree = 0;
@@ -97,7 +100,6 @@ int main(int argc, char* argv[])
             end = end->next;
             end->itemset = d;
             end->next = NULL;
-            // fp_print_data_node(end->itemset);
             leave_as_buffer = 1;
             item_ready = 1;
         }
@@ -126,12 +128,12 @@ int main(int argc, char* argv[])
                     // printf("Releasing Item no. %d\n", cnt);
                     leave_as_buffer = 1;
                     // sleepTime = rand()%100;
+                    cnt += leavecnt;
                     usleep(sleepTime);
                     item_ready = 0;
-                    cnt++;
                 // }
             }
-            printf("Released all items\n");
+            printf("Released All Items\n");
             item_ready = -1;
             end = NULL;
         }
@@ -167,7 +169,7 @@ int main(int argc, char* argv[])
                     if(T2==0 && fp_size_of_tree(ftree1->root) > SIZE_LMT)
                     {
                         // direct away the stream
-                        // printf("\nCHANGING TREE 1->2; SIZE = %d; count = %d\n", fp_size_of_tree(ftree1->root), stream_batch);
+                        printf("\nCHANGING TREE 1->2; SIZE = %d; count = %d\n", fp_size_of_tree(ftree1->root), stream_batch);
                         # pragma omp critical
                         {
                             curr_tree = 1;
@@ -205,7 +207,7 @@ int main(int argc, char* argv[])
 
                     if(T1==0 && fp_size_of_tree(ftree2->root) > SIZE_LMT)
                     {
-                        // printf("\nCHANGING TREE 2->1; SIZE = %d; count = %d\n", fp_size_of_tree(ftree2->root), stream_batch);
+                        printf("\nCHANGING TREE 2->1; SIZE = %d; count = %d\n", fp_size_of_tree(ftree2->root), stream_batch);
                         // direct away the stream
                         # pragma omp critical
                         {
@@ -295,7 +297,6 @@ int main(int argc, char* argv[])
         else
             temp = ftree2;
 
-        fp_delete_header_table(temp->head_table);
         temp = fp_convert_to_CP(temp);
         fp_sort_header_table(temp->head_table, arr);
         fp_sort_data(sorted, arr);
@@ -308,6 +309,8 @@ int main(int argc, char* argv[])
         fp1 = fopen("output", "a");
         fprintf(fp1, "After batch %d:\n",batch_ready);
         fclose(fp1);
+        // temp = get_fptree(ptree);
+        // fp_mine_frequent_itemsets(temp, sorted, NULL, 1);
         fp_delete_fptree(temp);
     }
 
@@ -331,11 +334,16 @@ int main(int argc, char* argv[])
 
     fp_delete_fptree(temp);
     fp_delete_data_node(sorted);
-    free(ftree1);
-    free(ftree2);
+
+    // free(ftree1);
+    // free(ftree2);
     free(arr);
 
-    double t2 = time(NULL);
-    printf("total time taken = %lf\n", (t2-t1));
+    gettimeofday(&t2, NULL);
+
+    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+
+    printf("total time taken = %lf ms\n", elapsedTime);
     return 1;
 }

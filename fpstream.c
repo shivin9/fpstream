@@ -67,6 +67,7 @@ void process_batch(patterntree tree, int batch_num)
         // printf("inserting in ptree\n");
         // fp_print_data_node(d);
         insert_itemset(tree, d, batch_num, freq);
+        fp_delete_data_node(d);
         cnt++;
     }
 

@@ -156,17 +156,6 @@ int main(int argc, char* argv[])
     fptree ctree = fp_convert_to_CP(ftree);
     fp_sort_data(sorted, funcarr);
     sorted = fp_reverse_data(sorted);
-    // fp_print_data_node(sorted);
-    // fp_print_header_table(ctree->head_table);
-
-    // fp_print_tree(ctree->root);
-
-    // fp_delete_fptree(ftree);
-    // fptree ctree = ftree;
-
-    // fp = fopen("intermediate", "w");
-    // fclose(fp);
-
     gettimeofday(&t1, NULL);
     fp_mine_frequent_itemsets(ctree, sorted, NULL, 0);
     gettimeofday(&t2, NULL);
@@ -203,5 +192,5 @@ int main(int argc, char* argv[])
     fp_delete_data_node(sorted);
     free(arr);
     free(funcarr);
-    return 0;
+    return 1;
 }
