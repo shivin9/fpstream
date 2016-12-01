@@ -115,7 +115,7 @@ int fp_size_of_tree(fpnode curr)
     return size;
 }
 
-//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 // creates a new node and inserts it into current_node
 void fp_create_and_insert_new_child(fpnode current_node, data d)
@@ -379,6 +379,9 @@ fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
 // sorts the I-list in descending order
 void fp_sort_header_table(header_table htable, int* table)
 {
+    if(htable == NULL)
+        return;
+
     header_table temp = htable, nxt;
     fpnode tnode;
     int tcnt;
@@ -438,7 +441,7 @@ void fp_sort_data(data head, int* arr)
             if(arr == NULL && temp->data_item > nxt->data_item)
                 flag = 1;
 
-            else if(arr && arr[temp->data_item + 1] > arr[nxt->data_item + 1])
+            else if(arr && arr[temp->data_item + 1] < arr[nxt->data_item + 1])
                 flag = 1;
 
             if(flag)
@@ -502,7 +505,7 @@ void fp_fix_touched(fpnode node){
 void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int end)
 {
     // curr is leaf node
-    if((curr->children == NULL) && curr->freq > 0)
+    if((curr->touched == -1 || curr->children == NULL) && curr->freq > 0)
     {
         collected[end] = curr->data_item;
         data head = fp_array_to_datalist(collected, end);
@@ -510,7 +513,7 @@ void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int
         // fp_print_data_node(head);
         fp_sort_data(head, arr);
         cptree = fp_insert_itemset(cptree, head);
-        // fp_delete_data_node(head);
+        fp_delete_data_node(head);
         curr->freq--;
         // just above the leaf node
         curr = curr->parent;
@@ -553,17 +556,7 @@ void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int
             }
             child = child->next;
         }
-        // curr->touched = 1;
-        curr->children = NULL;
-        // free(child);
-        // free(first);
-        // curr->children = NULL;
-        // child = curr->children;
-        // while(child){
-        //     first = child;
-        //     child = child->next;
-        //     fp_delete_tree_structure(first->tree_node);
-        // }
+        curr->touched = -1;
     }
 }
 
@@ -574,20 +567,25 @@ fptree fp_convert_to_CP(fptree tree)
     int* collected = (int*) malloc(DICT_SIZE*sizeof(int));
     int end = 0;
 
+    for(end = 0; end < 100; end++)
+        arr[end] = 0;
+
     if(tree->head_table == NULL)
         fp_create_header_table(tree);
 
     fp_sort_header_table(tree->head_table, arr);
-    header_table htable = tree->head_table;
     // int sleepTime = rand()%1000;
     // usleep(sleepTime);
-
+    end = 0;
     fptree cptree = fp_create_fptree();
-    cptree->head_table = htable;
     fp_convert_helper(curr, cptree, arr, collected, end);
+    fp_create_header_table(cptree);
+
     fp_fix_touched(cptree->root);
     fp_sort_header_table(cptree->head_table, arr);
-    fp_delete_tree_structure(tree->root);
+    fp_delete_fptree(tree);
+    free(arr);
+    free(collected);
     return cptree;
 }
 
