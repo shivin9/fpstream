@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
         // removes duplicates items also
         // fp_print_data_node(d);
         fp_sort_data(d, NULL);
-        // fp_print_data_node(d);
+        fp_print_data_node(d);
         ftree = fp_insert_itemset(ftree, d);
         fp_delete_data_node(d);
         cnt++;
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
     // printf("\n\nfinal pattern tree:\n\n");
     // print_tree(ptree->root);
     // printf("\nresulting fp-tree:\n\n");
-    // fp_print_tree(ftree->root);
+    fp_print_tree(ftree->root);
     printf("sizeof fp tree = %d\n", fp_size_of_tree(ftree->root));
     // printf("\n");
     // fp_print_tree(ftree->root);
@@ -153,9 +153,13 @@ int main(int argc, char* argv[])
 
     printf("total time taken by FP tree = %lf ms\n", elapsedTime);
 
+    printf("\n*********alter clearing********\n\n");
     fp_empty_buffers(ftree);
+    // fp_print_tree(ftree->root);
 
     fptree ctree = fp_convert_to_CP(ftree);
+    fp_empty_buffers(ftree);
+
     fp_sort_data(sorted, funcarr);
     sorted = fp_reverse_data(sorted);
     gettimeofday(&t1, NULL);
@@ -168,10 +172,10 @@ int main(int argc, char* argv[])
     printf("total time taken by CP tree = %lf ms\n", elapsedTime);
 
     // printf("\nresulting cp-tree:\n");
-    fp_print_tree(ctree->root);
     // printf("\n");
     printf("\nsizeof cp tree = %d\n", fp_size_of_tree(ctree->root));
 
+    fp_print_tree(ctree->root);
     child = ctree->root->children;
     for(cnt = 0; cnt < 100; cnt++)
         arr[cnt] = 0;

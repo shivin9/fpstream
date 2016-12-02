@@ -7,7 +7,7 @@ fptree fp_create_fptree();
 
 void fp_create_and_insert_new_child(fpnode, data);
 void fp_insert_new_child(fpnode, fpnode, data);
-fpnode fp_insert_itemset_helper(fpnode, data);
+fpnode fp_insert_itemset_helper(fpnode, data, int len, int depth);
 fptree fp_insert_itemset(fptree, data);
 void fp_delete_tree_structure(fpnode);
 void fp_delete_data_node(data);
