@@ -54,7 +54,6 @@ typedef struct fpnode_list_node* fpnode_list;
 struct fp_node{
     fpnode_list children;
     data item_list;
-    data buffer;
     buffer itembuffer;
     int bufferSize;
     int freq;

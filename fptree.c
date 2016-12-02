@@ -852,6 +852,14 @@ void fp_print_node(fpnode node)
         printf("data_item = %d, freq = %d, parent = %d, touched = %d, children = %d \n", node->data_item, node->freq, node->parent->data_item, node->touched, c);
     else
         printf("data_item = %d, freq = %d, parent = NULL, touched = %d, children = %d \n", node->data_item, node->freq, node->touched, c);
+    printf("BUFFER:\n");
+
+    buffer buff = node->itembuffer;
+    while(buff){
+        fp_print_data_node(buff->itemset);
+        buff = buff->next;
+    }
+
 }
 
 

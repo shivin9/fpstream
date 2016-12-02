@@ -3,7 +3,7 @@
 int main(int argc, char* argv[])
 {
     if(argc == 1){
-        printf("format is ./exe <filename><sleepTime><batchSize>\n");
+        printf("format is ./exe <filename><sleepTime(in microseconds)><batchSize>\n");
         exit(-1);
     }
 
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
                     if(T2==0 && fp_size_of_tree(ftree1->root) > SIZE_LMT)
                     {
                         // direct away the stream
-                        printf("\nCHANGING TREE 1->2; SIZE = %d; count = %d\n", fp_size_of_tree(ftree1->root), stream_batch);
+                        // printf("\nCHANGING TREE 1->2; SIZE = %d; count = %d\n\n", fp_size_of_tree(ftree1->root), stream_batch);
                         # pragma omp critical
                         {
                             curr_tree = 1;
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 
                     if(T1==0 && fp_size_of_tree(ftree2->root) > SIZE_LMT)
                     {
-                        printf("\nCHANGING TREE 2->1; SIZE = %d; count = %d\n", fp_size_of_tree(ftree2->root), stream_batch);
+                        // printf("\nCHANGING TREE 2->1; SIZE = %d; count = %d\n\n", fp_size_of_tree(ftree2->root), stream_batch);
                         // direct away the stream
                         # pragma omp critical
                         {
@@ -249,6 +249,22 @@ int main(int argc, char* argv[])
                     {
                         fp_mine_frequent_itemsets(temp, sorted, NULL, 0);
                         process_batch(ptree, ++batch_ready);
+                        // printf("Done Servicing TREE_%d\n\n", tree_to_prune + 1);
+
+                        if(tree_to_prune)
+                        {
+                            // printf("deleting tree2\n");
+                            // fp_delete_fptree(ftree2);
+                            ftree2 = fp_create_fptree();
+                            T2 = 0;
+                        }
+                        else{
+                            // printf("deleting tree1\n");
+                            // fp_delete_fptree(ftree1);
+                            ftree1 = fp_create_fptree();
+                            T1 = 0;
+                        }
+
                     }
 
                     FILE *fp1;
@@ -260,21 +276,6 @@ int main(int argc, char* argv[])
                     temp = get_fptree(ptree);
                     fp_mine_frequent_itemsets(temp, sorted, NULL, 1);
                     fp_delete_fptree(temp);
-
-                    if(tree_to_prune)
-                    {
-                        // printf("deleting tree2\n");
-                        // fp_delete_fptree(ftree2);
-                        ftree2 = fp_create_fptree();
-                        T2 = 0;
-                    }
-                    else{
-                        // printf("deleting tree1\n");
-                        // fp_delete_fptree(ftree1);
-                        ftree1 = fp_create_fptree();
-                        T1 = 0;
-                    }
-                    // printf("\nDone Servicing TREE_%d\n", tree_to_prune + 1);
                 }
             }while(stream_batch <= batch_no);
         }
@@ -304,6 +305,7 @@ int main(int argc, char* argv[])
 
         fp_mine_frequent_itemsets(temp, sorted, NULL, 0);
         process_batch(ptree, ++batch_ready);
+        printf("Done with leftover Tree_%d!\n", i);
 
         FILE *fp1;
         fp1 = fopen("output", "a");
@@ -318,7 +320,6 @@ int main(int argc, char* argv[])
     fp_mine_frequent_itemsets(temp, sorted, NULL, 1);
     delete_pattern_tree(ptree);
 
-    printf("Done with leftover tree!\n");
 
     // printf("\nresulting fp-tree1:\n\n");
     // fp_print_tree(ftree1->root);

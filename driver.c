@@ -153,6 +153,8 @@ int main(int argc, char* argv[])
 
     printf("total time taken by FP tree = %lf ms\n", elapsedTime);
 
+    fp_empty_buffers(ftree);
+
     fptree ctree = fp_convert_to_CP(ftree);
     fp_sort_data(sorted, funcarr);
     sorted = fp_reverse_data(sorted);
@@ -166,7 +168,7 @@ int main(int argc, char* argv[])
     printf("total time taken by CP tree = %lf ms\n", elapsedTime);
 
     // printf("\nresulting cp-tree:\n");
-    // fp_print_tree(ctree->root);
+    fp_print_tree(ctree->root);
     // printf("\n");
     printf("\nsizeof cp tree = %d\n", fp_size_of_tree(ctree->root));
 
