@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
                     // usleep(sleepTime*10);
                     // printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 1, T1, T2);
                     // fp_print_data_node(curr->itemset);
-                    ftree1 = fp_insert_itemset(ftree1, curr->itemset);
+                    ftree1 = fp_insert_itemset(ftree1, curr->itemset, 0);
                     // printf("leave_as_buffer = %d\n", leave_as_buffer);
                     stream_batch++;
                     if(curr->next){
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
                             curr_tree = 1;
                             T1 = -1;
                         }
-                        // fp_empty_buffers(ftree1);
+                        // fp_empty_buffers(ftree1->root);
                         ftree1 = fp_convert_to_CP(ftree1);
                         // printf("finished converting TREE_1\n");
                         T1 = 1;
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
                 {
                     // printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 2, T1, T2);
                     // fp_print_data_node(curr->itemset);
-                    ftree2 = fp_insert_itemset(ftree2, curr->itemset);
+                    ftree2 = fp_insert_itemset(ftree2, curr->itemset, 0);
 
                     stream_batch++;
                     if(curr->next){
@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
                             curr_tree = 0;
                             T2 = -1;
                         }
-                        // fp_empty_buffers(ftree2);
+                        // fp_empty_buffers(ftree2->root);
                         ftree2 = fp_convert_to_CP(ftree2);
                         // printf("finished converting TREE_2\n");
                         T2 = 1;
@@ -285,13 +285,13 @@ int main(int argc, char* argv[])
     while(curr->next){
         printf("LATE INSERT item no.: %d in TREE_1... T1 = %d, T2 = %d\n", stream_batch, T1, T2);
         stream_batch++;
-        ftree1 = fp_insert_itemset(ftree1, curr->itemset);
+        ftree1 = fp_insert_itemset(ftree1, curr->itemset, 0);
         curr = curr->next;
     }
 
     // printf("Tree_%d is still left with %d transactions; SIZE = %d\n", tree_to_prune+1, cnt, fp_size_of_tree(temp->root));
 
-    // fp_empty_buffers(temp);
+    // fp_empty_buffers(temp->root);
     for(i = 0; i < 2; i++){
         if(i)
             temp = ftree1;

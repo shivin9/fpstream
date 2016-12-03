@@ -150,7 +150,7 @@ void fpstream(char* fname)
         }
         fp_sort_data(d, NULL);
         fp_print_data_node(d);
-        ftree = fp_insert_itemset(ftree, d);
+        ftree = fp_insert_itemset(ftree, d, 0);
         cnt++;
     }
     fclose(fp);
