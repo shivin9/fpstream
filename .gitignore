@@ -2,4 +2,5 @@
 intermediate
 output
 *.out
-./data/
+./data/*
+./exe

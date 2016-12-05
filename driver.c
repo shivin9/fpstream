@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     // print_tree(ptree->root);
     // printf("\nresulting fp-tree:\n\n");
     // printf("\n");
-    fp_print_tree(ftree->root);
+    // fp_print_tree(ftree->root);
     int* arr = (int*) malloc(DICT_SIZE * sizeof(int));
     int* funcarr = (int*) malloc(DICT_SIZE * sizeof(int));
 
@@ -136,7 +136,6 @@ int main(int argc, char* argv[])
 
     printf("total time taken by FP tree = %lf ms\n", elapsedTime);
 
-    printf("\n*********alter clearing********\n\n");
     // fp_print_tree(ftree->root);
 
     fptree ctree = fp_convert_to_CP(ftree);

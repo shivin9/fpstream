@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
     curr_tree = 0;
     T1 = 0;
     T2 = 0;
-    leave_as_buffer = 0;
+    extern int leave_as_buffer;
     batch_ready = 0;
     tree_to_prune = -1;
     data curr_itemset;

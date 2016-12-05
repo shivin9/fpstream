@@ -16,7 +16,7 @@
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned
 
 // FLAGS
-static int leave_as_buffer;
+int leave_as_buffer;
 static int curr_tree;
 
 // -1: something in between
