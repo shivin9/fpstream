@@ -279,14 +279,18 @@ int main(int argc, char* argv[])
                 }
             }while(stream_batch <= batch_no);
         }
-    # pragma omp barrier
+        # pragma omp barrier
+        # pragma omp join
     }
 
     while(curr->next){
         printf("LATE INSERT item no.: %d in TREE_1... T1 = %d, T2 = %d\n", stream_batch, T1, T2);
         stream_batch++;
         ftree1 = fp_insert_itemset(ftree1, curr->itemset);
+        stream = curr;
         curr = curr->next;
+        fp_delete_data_node(curr->itemset);
+        free(stream);
     }
 
     // printf("Tree_%d is still left with %d transactions; SIZE = %d\n", tree_to_prune+1, cnt, fp_size_of_tree(temp->root));
@@ -339,7 +343,7 @@ int main(int argc, char* argv[])
     // free(ftree1);
     // free(ftree2);
     free(arr);
-
+    free(fp);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;

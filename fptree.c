@@ -740,7 +740,6 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
             while(t >= 0)
             {
                 fprintf(fp, " %d", arr[t]);
-                // printf(" %d", arr[t]);
                 t--;
             }
             if(pattern == 0){
