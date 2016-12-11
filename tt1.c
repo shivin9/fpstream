@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     curr_tree = 0;
     T1 = 0;
     T2 = 0;
-    leave_as_buffer = 0;
+    extern int leave_as_buffer;
     batch_ready = 0;
     tree_to_prune =-1;
     data curr_itemset;
@@ -94,7 +94,6 @@ int main(int argc, char* argv[])
             }
 
             batch_no++;
-            // printf("NEW ITEM: Batch: %d in TREE_%d ... ", batch_no, curr_tree+1);
             fp_sort_data(d, NULL);
             end->next = (buffer) malloc(sizeof(struct buffer_node));
             end = end->next;
@@ -126,10 +125,11 @@ int main(int argc, char* argv[])
                 // {
                     item_ready = 1;
                     // printf("Releasing Item no. %d\n", cnt);
-                    leave_as_buffer = 1;
+                    leave_as_buffer = 0;
                     // sleepTime = rand()%100;
                     cnt += leavecnt;
                     usleep(sleepTime);
+                    leave_as_buffer = 1;
                     item_ready = 0;
                 // }
             }
@@ -156,8 +156,9 @@ int main(int argc, char* argv[])
                     // usleep(sleepTime*10);
                     // printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 1, T1, T2);
                     // fp_print_data_node(curr->itemset);
-                    ftree1 = fp_insert_itemset(ftree1, curr->itemset);
-                    // printf("leave_as_buffer = %d\n", leave_as_buffer);
+                    // printf("leave_as_buffer before = %d\n", leave_as_buffer);
+                    ftree1 = fp_insert_itemset(ftree1, curr->itemset, 1);
+                    // printf("leave_as_buffer after = %d\n", leave_as_buffer);
                     stream_batch++;
                     if(curr->next){
                         stream = curr;
@@ -169,16 +170,18 @@ int main(int argc, char* argv[])
                     if(T2==0 && fp_size_of_tree(ftree1->root) > SIZE_LMT)
                     {
                         // direct away the stream
-                        // printf("\nCHANGING TREE 1->2; SIZE = %d; count = %d\n\n", fp_size_of_tree(ftree1->root), stream_batch);
+                        printf("\nCHANGING TREE 1->2; SIZE = %d; count = %d\n\n", fp_size_of_tree(ftree1->root), stream_batch);
                         # pragma omp critical
                         {
                             curr_tree = 1;
                             T1 = -1;
-                        }
-                        // fp_empty_buffers(ftree1);
+                        // fp_print_tree(ftree1->root);
+                        fp_empty_buffers(ftree1->root);
+                        // exit(0);
                         ftree1 = fp_convert_to_CP(ftree1);
                         // printf("finished converting TREE_1\n");
                         T1 = 1;
+                        }
                     }
                 }
             }while(stream_batch <= batch_no);
@@ -195,7 +198,7 @@ int main(int argc, char* argv[])
                 {
                     // printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 2, T1, T2);
                     // fp_print_data_node(curr->itemset);
-                    ftree2 = fp_insert_itemset(ftree2, curr->itemset);
+                    ftree2 = fp_insert_itemset(ftree2, curr->itemset, 1);
 
                     stream_batch++;
                     if(curr->next){
@@ -213,11 +216,11 @@ int main(int argc, char* argv[])
                         {
                             curr_tree = 0;
                             T2 = -1;
-                        }
-                        // fp_empty_buffers(ftree2);
+                        fp_empty_buffers(ftree2->root);
                         ftree2 = fp_convert_to_CP(ftree2);
                         // printf("finished converting TREE_2\n");
                         T2 = 1;
+                        }
                     }
                 }
             }while(stream_batch <= batch_no);
@@ -286,8 +289,7 @@ int main(int argc, char* argv[])
     while(curr->next){
         printf("LATE INSERT item no.: %d in TREE_1... T1 = %d, T2 = %d\n", stream_batch, T1, T2);
         stream_batch++;
-        ftree1 = fp_insert_itemset(ftree1, curr->itemset);
-        stream = curr;
+        ftree1 = fp_insert_itemset(ftree1, curr->itemset, 0);
         curr = curr->next;
         fp_delete_data_node(curr->itemset);
         free(stream);
@@ -295,13 +297,14 @@ int main(int argc, char* argv[])
 
     // printf("Tree_%d is still left with %d transactions; SIZE = %d\n", tree_to_prune+1, cnt, fp_size_of_tree(temp->root));
 
-    // fp_empty_buffers(temp);
+    // fp_empty_buffers(temp->root);
     for(i = 0; i < 2; i++){
         if(i)
             temp = ftree1;
         else
             temp = ftree2;
 
+        fp_empty_buffers(temp->root);
         temp = fp_convert_to_CP(temp);
         fp_sort_header_table(temp->head_table, arr);
         fp_sort_data(sorted, arr);

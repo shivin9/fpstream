@@ -1,6 +1,5 @@
 #include "fptree.h"
 
-
 int min(int a, int b)
 {
     if(a < b)    return a;
@@ -42,6 +41,7 @@ fptree fp_create_fptree()
     node->parent = NULL;
     node->next_similar = NULL;
     node->itembuffer = NULL;
+    node->bufferSize = 0;
 
     new_tree->root = node;
     new_tree->head_table = NULL;
@@ -64,14 +64,17 @@ void fp_delete_tree_structure(fpnode current_node)
         fpnode this_child = current_child_ptr->tree_node;
         fp_delete_tree_structure(this_child);
         free(this_child);
+        this_child = NULL;
 
         fpnode_list temp_list = current_child_ptr;
         current_child_ptr = current_child_ptr->next;
         free(temp_list);
+        temp_list = NULL;
 
         data temp_data = current_data_ptr;
         current_data_ptr = current_data_ptr->next;
         free(temp_data);
+        temp_data = NULL;
     }
 }
 
@@ -81,6 +84,7 @@ void fp_delete_data_node(data d){
         temp = d;
         d = d->next;
         free(temp);
+        temp = NULL;
     }
 }
 
@@ -89,6 +93,7 @@ void fp_delete_header_table(header_table h)
     if(h == NULL)    return;
     fp_delete_header_table(h->next);
     free(h);
+    h = NULL;
 }
 
 
@@ -97,8 +102,10 @@ void fp_delete_fptree(fptree tree)
     if(tree == NULL)    return;
     fp_delete_tree_structure(tree->root);
     free(tree->root);
+    tree->root = NULL;
     fp_delete_header_table(tree->head_table);
     free(tree);
+    tree = NULL;
 }
 
 int fp_size_of_tree(fpnode curr)
@@ -107,6 +114,19 @@ int fp_size_of_tree(fpnode curr)
         return 0;
     fpnode_list child = curr->children;
     int size = sizeof(&curr);
+    buffer buff = curr->itembuffer;
+    data temp;
+
+    while(buff){
+        size += sizeof(buff);
+        temp = buff->itemset;
+        while(temp){
+            size += sizeof(temp);
+            temp = temp->next;
+        }
+        buff = buff->next;
+    }
+
     while(child != NULL)
     {
         size += fp_size_of_tree(child->tree_node);
@@ -128,6 +148,8 @@ void fp_create_and_insert_new_child(fpnode current_node, data d)
     new_node->freq = new_node->touched = 0;
     new_node->data_item = d->data_item;
     new_node->parent = current_node;
+    new_node->itembuffer = NULL;
+    new_node->bufferSize = 0;
 
     fpnode_list new_list_node = malloc(sizeof(struct fpnode_list_node));
     new_list_node->tree_node = new_node;
@@ -191,26 +213,43 @@ int fp_no_dataitem(fpnode current_node)
     return no_dataitem;
 }
 
-fpnode fp_insert_itemset_helper(fpnode current_node, data d)
+fpnode fp_insert_itemset_helper(fpnode current_node, data d, int put_in_buffer)
 {
+    // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
     // if the flag is up then we insert the remaining itemset into the bufferlist of that node and reset the flag
-    if(leave_as_buffer)
-    {
-        printf("leaving as buffer...\n");
-        buffer buff = current_node->itembuffer;
-        buffer new = (buffer) malloc(sizeof(struct buffer_node));
-        new->itemset = d;
-        new->next = buff;
-        current_node->itembuffer = new;
-        current_node->bufferSize++;
-        leave_as_buffer = 0;
-    }
-
+    extern int leave_as_buffer;
     assert(current_node != NULL);
     //increment frequency of this node of fp-tree
     current_node->freq++;
     if(d == NULL)    return current_node;    //terminate when all items have been inserted
+
+    if(put_in_buffer == 1 && leave_as_buffer)
+    {
+        printf("leaving in buffer at node %d: ", current_node->data_item);
+        fp_print_data_node(d);
+        buffer buff = current_node->itembuffer;
+        buffer new = (buffer) malloc(sizeof(struct buffer_node));
+
+        data temp;
+        new->itemset = (data) malloc(sizeof(struct data_node));
+        new->itemset->data_item = d->data_item;
+        temp = new->itemset;
+        d = d->next;
+        while(d){
+            temp->next = (data) malloc(sizeof(struct data_node));
+            temp = temp->next;
+            temp->data_item = d->data_item;
+            d = d->next;
+        }
+        temp->next = NULL;
+        new->next = buff;
+        current_node->itembuffer = new;
+        current_node->bufferSize++;
+        leave_as_buffer = 0;
+        return current_node;
+    }
+
 
     //iterate through children
     //if the next data item has already occurred earlier, go along that child
@@ -227,7 +266,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, data d)
         if(is_equal(this_data_item, d))
         {
             // printf("found match %d\n", d->data_item);
-            fpnode after_insert = fp_insert_itemset_helper(this_child, d->next);
+            fpnode after_insert = fp_insert_itemset_helper(this_child, d->next, put_in_buffer);
 
             return current_node;
         }
@@ -236,7 +275,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, data d)
         current_data_ptr = current_data_ptr->next;
     }
 
-    // printf("could not find appropriate child :(\n");
+    // printf("could not find appropriate child for %d:(\n", current_node->data_item);
 
     //data item has to be inserted as new child
     assert(current_data_ptr == NULL);
@@ -254,7 +293,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, data d)
 
         if(is_equal(this_data_item, d))
         {
-            fpnode after_insert = fp_insert_itemset_helper(this_child, d->next);
+            fpnode after_insert = fp_insert_itemset_helper(this_child, d->next, put_in_buffer);
             current_child_ptr->tree_node = after_insert;
             return current_node;
         }
@@ -262,15 +301,19 @@ fpnode fp_insert_itemset_helper(fpnode current_node, data d)
         current_child_ptr = current_child_ptr->next;
         current_data_ptr = current_data_ptr->next;
     }
-    // assert(0);
 }
 
 
-fptree fp_insert_itemset(fptree tree, data d)
+fptree fp_insert_itemset(fptree tree, data d, int put_in_buffer)
 {
-    leave_as_buffer = 0;
-    tree->root = fp_insert_itemset_helper(tree->root, d);
-    // fp_delete_data_node(d);
+    // extern int leave_as_buffer = 0;
+    int len = 0;
+    data temp = d;
+    while(temp){
+        len++;
+        temp = temp->next;
+    }
+    tree->root = fp_insert_itemset_helper(tree->root, d, put_in_buffer);
     return tree;
 }
 
@@ -347,6 +390,8 @@ fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
     new_node->freq = node->touched;
     new_node->data_item = node->data_item;
     new_node->next_similar = NULL;
+    new_node->itembuffer = NULL;
+    new_node->bufferSize = 0;
 
     if(new_node->data_item == highest_priority_data_item)
     {
@@ -358,11 +403,9 @@ fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
     data temp_data = node->item_list;
     while(temp_child_list != NULL)
     {
-
         fpnode this_child = temp_child_list->tree_node;
         if(this_child->touched > 0)
         {
-
             fpnode new_child = fp_dfs(this_child, highest_priority_data_item);
             if(new_child == NULL)    continue;
             fp_insert_new_child(new_node, new_child, temp_data);
@@ -512,7 +555,7 @@ void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int
         // need to sort the item using the values in arr
         // fp_print_data_node(head);
         fp_sort_data(head, arr);
-        cptree = fp_insert_itemset(cptree, head);
+        cptree = fp_insert_itemset(cptree, head, 0);
         fp_delete_data_node(head);
         curr->freq--;
         // just above the leaf node
@@ -576,11 +619,9 @@ fptree fp_convert_to_CP(fptree tree)
     fp_sort_header_table(tree->head_table, arr);
     // int sleepTime = rand()%1000;
     // usleep(sleepTime);
-    end = 0;
     fptree cptree = fp_create_fptree();
-    fp_convert_helper(curr, cptree, arr, collected, end);
+    fp_convert_helper(curr, cptree, arr, collected, 0);
     fp_create_header_table(cptree);
-
     fp_fix_touched(cptree->root);
     fp_sort_header_table(cptree->head_table, arr);
     fp_delete_fptree(tree);
@@ -589,34 +630,40 @@ fptree fp_convert_to_CP(fptree tree)
     return cptree;
 }
 
-void fp_empty_buffers_helper(fpnode curr)
+void fp_empty_buffers(fpnode curr)
 {
     if(curr == NULL)
         return;
-
-    if(curr->bufferSize > 0)
+    if(curr->itembuffer)
     {
-        buffer buff = curr->itembuffer;
+        assert(curr->bufferSize > 0);
+        // printf("\nat node %d", curr->data_item);
+        buffer buff = curr->itembuffer, temp;
         while(buff)
         {
-            fp_insert_itemset_helper(curr, buff->itemset);
+            printf("buffer emptied at %d: ", curr->data_item);
+            fp_print_data_node(buff->itemset);
+            curr = fp_insert_itemset_helper(curr, buff->itemset, 0);
             curr->bufferSize--;
-            buff = buff->next;
+            curr->freq--;
+            fp_delete_data_node(buff->itemset);
+            buff->itemset = NULL;
+            temp = buff->next;
+            free(buff);
+            buff = NULL;
+            buff = temp;
         }
-        fpnode_list child = curr->children;
-        while(child)
-        {
-            fp_empty_buffers_helper(child->tree_node);
-            child = child->next;
-        }
+        curr->itembuffer = NULL;
+    }
+    fpnode_list child = curr->children;
+    while(child)
+    {
+        // printf("\nemptying child: %d of %d", child->tree_node->data_item, curr->data_item);
+        fp_empty_buffers(child->tree_node);
+        child = child->next;
     }
 }
 
-void fp_empty_buffers(fptree ftree)
-{
-    fpnode root = ftree->root;
-    fp_empty_buffers_helper(root);
-}
 
 fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, int minsup)
 {
@@ -633,7 +680,8 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, int minsu
         curr_head_table_node = curr_head_table_node->next;
     }
 
-    if(curr_head_table_node == NULL || curr_head_table_node->cnt < minsup)    return NULL;
+    if(curr_head_table_node == NULL || curr_head_table_node->cnt < minsup)
+        return NULL;
     if(node == NULL)    return NULL;
 
     // printf("%d\n", curr_head_table_node->cnt);
@@ -845,20 +893,19 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
 void fp_print_node(fpnode node)
 {
     if(node == NULL)    return;
-    int c = fp_no_children(node);
+    int c = fp_no_children(node), b = node->bufferSize;
 
     if(node->data_item != -1)
-        printf("data_item = %d, freq = %d, parent = %d, touched = %d, children = %d \n", node->data_item, node->freq, node->parent->data_item, node->touched, c);
+        printf("data_item = %d, freq = %d, parent = %d, touched = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->parent->data_item, node->touched, c, b);
     else
-        printf("data_item = %d, freq = %d, parent = NULL, touched = %d, children = %d \n", node->data_item, node->freq, node->touched, c);
-    printf("BUFFER:\n");
+        printf("data_item = %d, freq = %d, parent = NULL, touched = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->touched, c, b);
 
+    printf("BUFFER:\n");
     buffer buff = node->itembuffer;
     while(buff){
         fp_print_data_node(buff->itemset);
         buff = buff->next;
     }
-
 }
 
 
