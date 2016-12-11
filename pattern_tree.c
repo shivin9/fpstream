@@ -71,7 +71,7 @@ void create_and_insert_new_child(pattern_node current_node, data d)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_num, int add)
+pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_num, float add)
 {
 
     assert(current_node != NULL);
@@ -156,7 +156,7 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
 }
 
 
-patterntree insert_itemset(patterntree tree, data d, int batch_num, int add)
+patterntree insert_itemset(patterntree tree, data d, int batch_num, float add)
 {
     tree->root = insert_itemset_helper(tree->root, d, batch_num, add);
     return tree;
@@ -166,7 +166,7 @@ patterntree insert_itemset(patterntree tree, data d, int batch_num, int add)
 //////////////////////////////////////////////////////////////////////////////
 
 
-tilted_tw_table create_new_tilted_tw_table(int starting_batch, int ending_batch, int add)
+tilted_tw_table create_new_tilted_tw_table(int starting_batch, int ending_batch, float add)
 {
     tilted_tw_table new_table = malloc(sizeof(struct tilted_tw_table));
     new_table->next = NULL;
@@ -177,7 +177,7 @@ tilted_tw_table create_new_tilted_tw_table(int starting_batch, int ending_batch,
     return new_table;
 }
 
-tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int ending_batch, int add)
+tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int ending_batch, float add)
 {
 
     if(table == NULL)
@@ -217,7 +217,7 @@ tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int endi
 
         int combined_tw_ending_batch = min(table->ending_batch, table->buffer_ending_batch);
 
-        int new_add = table->freq + table->buffer_freq;
+        float new_add = table->freq + table->buffer_freq;
 
         table->next = insert_batch(table->next, combined_tw_starting_batch, combined_tw_ending_batch, new_add);
 
@@ -231,7 +231,7 @@ tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int endi
 }
 
 
-void update_tilted_tw_table(pattern_node node, int batch_num, int add)
+void update_tilted_tw_table(pattern_node node, int batch_num, float add)
 {
     node->table = insert_batch(node->table, batch_num, batch_num, add);
 }
@@ -244,7 +244,7 @@ void update_tilted_tw_table(pattern_node node, int batch_num, int add)
 fpnode dfs(pattern_node current_node)
 {
 
-    int f = 0;
+    float f = 0.0;
     tilted_tw_table curr_table = current_node->table;
     while(curr_table != NULL)
     {
@@ -313,7 +313,7 @@ void tail_prune(pattern_node current_node)
 
     tilted_tw_table prev = curr;
     curr = curr->next;
-    int sum = prev->freq;
+    float sum = prev->freq;
     while(curr != NULL)
     {
 
@@ -359,7 +359,7 @@ void print_node(pattern_node node)
         d = d->next;
     }
 
-    int f = 0;
+    float f = 0;
     tilted_tw_table curr_table = node->table;
     while(curr_table != NULL)
     {
@@ -367,7 +367,7 @@ void print_node(pattern_node node)
         curr_table = curr_table->next;
     }
 
-    printf("data_item = %d, children = %d tot_freq = %d\n", node->data_item, c, f);
+    printf("data_item = %d, children = %d tot_freq = %lf\n", node->data_item, c, f);
 }
 
 

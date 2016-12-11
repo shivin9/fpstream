@@ -8,12 +8,22 @@
 #include <time.h>
 #include <malloc.h>
 #include <omp.h>
+#include <math.h>
+
 
 #define MINSUP_SEMIFREQ 16   //minimum support for semi-frequent itemsets
 #define MINSUP_FREQ 18    //minimum support for frequent itemsets
 #define SUP_ERROR 50 //max error for sub-frequent itemsets
 #define DICT_SIZE 100 // max. number of items
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned
+
+
+#define DECAY 1
+#define NUM_ITEMS 100
+#define N 100 //window size
+#define EPS 0.001
+#define SUP 0.01
+#define BATCH 15
 
 // FLAGS
 int leave_as_buffer;
@@ -56,7 +66,7 @@ struct fp_node{
     data item_list;
     buffer itembuffer;
     int bufferSize;
-    int freq;
+    float freq;
     data_type data_item;
     struct fp_node* next_similar;
     struct fp_node* parent;
@@ -73,7 +83,8 @@ struct fpnode_list_node{
 struct header_table_node{
     data_type data_item;
     fpnode first;
-    int cnt;
+    float cnt;
+    int tid;
     struct header_table_node* next;
 };
 typedef struct header_table_node* header_table;
@@ -91,7 +102,7 @@ struct tilted_tw_table{
 
     int starting_batch;
     int ending_batch;
-    int freq;
+    float freq;
 
     int buffer_empty;
     int buffer_starting_batch;

@@ -457,7 +457,8 @@ void fp_sort_header_table(header_table htable, int* table)
         table[temp->data_item + 1] = temp->cnt;
 }
 
-data fp_reverse_data(data head){
+data fp_reverse_data(data head)
+{
     data prev = NULL, curr = head, temp;
     while(curr)
     {
@@ -664,6 +665,149 @@ void fp_empty_buffers(fpnode curr)
     }
 }
 
+void prune_infrequent_I_patterns(header_table htable, data_type data_item)
+{
+    fpnode fir = htable->first;
+    htable->first = NULL;
+    while(fir != NULL)
+    {
+        fpnode_list temp1 = fir->children;
+        if(fir->parent->children->tree_node == fir)
+        {
+            fir->parent->children = fir->parent->children->next;
+        }
+        else
+        {
+            fpnode_list temp = fir->parent->children;
+            while(temp->next != NULL)
+            {
+                if(temp->next->tree_node == fir)
+                {
+                    temp->next = temp->next->next;
+                    break;
+                }
+                temp = temp->next;
+            }
+        }
+        while(temp1 != NULL)
+        {
+            merge(fir->parent, temp1);
+            temp1 = temp1->next;
+        }
+        fpnode temp2 = fir;
+        fir = fir->next_similar;
+        free(temp2);
+        temp2 = NULL;
+    }
+}
+
+void prune_infrequent_II_patterns(header_table htable, data_type data_item)
+{
+    prune_infrequent_I_patterns(htable,data_item);
+}
+
+void prune_obsolete_II_patterns(header_table htable, data_type data_item)
+{
+    fpnode fir=htable->first;
+    while(fir!=NULL)
+    {
+        if(fir->data_item<=data_item-N)
+        {
+            update_ancestor(fir);
+            fpnode to_free=fir;
+            fir=fir->next_similar;
+            if(to_free->parent->children->tree_node==to_free)
+            {
+                to_free->parent->children=to_free->parent->children->next;
+            }
+            else
+            {
+                fpnode_list temp=to_free->parent->children;
+                while(temp->next!=NULL)
+                {
+                    if(temp->next->tree_node==to_free)
+                    {
+                        temp->next=temp->next->next;
+                        break;
+                    }
+                    temp=temp->next;
+                }
+            }
+            free_subtree(to_free);
+        }
+        else
+        {
+            fir=fir->next_similar;
+        }
+    }
+
+}
+
+void prune_obsolete_I_patterns(header_table htable,data_type data_item)
+{
+    fpnode fir = htable->first;
+    while(fir != NULL)
+    {
+        if((fir)->freq*pow(DECAY,data_item-fir->data_item) >= EPS*N)
+        {
+            update_ancestor(fir);
+        }
+        fpnode to_free=fir;
+        fir=fir->next_similar;
+        if(to_free->parent->children->tree_node==to_free)
+        {
+            to_free->parent->children=to_free->parent->children->next;
+        }
+        else
+        {
+            fpnode_list temp=to_free->parent->children;
+            while(temp->next!=NULL)
+            {
+                if(temp->next->tree_node==to_free)
+                {
+                    temp->next=temp->next->next;
+                    break;
+                }
+                temp=temp->next;
+            }
+        }
+        free_subtree(to_free);
+    }
+    htable->cnt=0;
+    htable->first=NULL;
+}
+
+void prune(fptree ftree, data_type data_item)
+{
+    header_table htable=ftree->head_table;
+    header_table prev=NULL;
+    while(htable!=NULL)
+    {
+        if(htable->first!=NULL)
+        {
+            if(htable->data_item<=data_item-N)
+            {
+                prune_obsolete_I_patterns(htable,data_item);
+            }
+            else if(htable->data_item<data_item-N+SUP*N)
+            {
+                prune_infrequent_I_patterns(htable,data_item);
+            }
+            else if(htable->data_item>=data_item-N+SUP*N&&ineq7(htable,data_item))
+            {
+                //printf("22----------\n");
+                prune_infrequent_II_patterns(htable,data_item);
+            }
+            else
+            {
+                //printf("24-------\n");
+                prune_obsolete_II_patterns(htable,data_item);
+            }
+        }
+        htable=htable->next;
+    }
+}
+
 
 fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, int minsup)
 {
@@ -791,7 +935,7 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
                 t--;
             }
             if(pattern == 0){
-                fprintf(fp, " %d", curr_header_node->cnt);
+                fprintf(fp, " %lf", curr_header_node->cnt);
                 // printf(" %d", curr_header_node->cnt);
             }
             // printf("\n");
@@ -896,9 +1040,9 @@ void fp_print_node(fpnode node)
     int c = fp_no_children(node), b = node->bufferSize;
 
     if(node->data_item != -1)
-        printf("data_item = %d, freq = %d, parent = %d, touched = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->parent->data_item, node->touched, c, b);
+        printf("data_item = %d, freq = %lf, parent = %d, touched = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->parent->data_item, node->touched, c, b);
     else
-        printf("data_item = %d, freq = %d, parent = NULL, touched = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->touched, c, b);
+        printf("data_item = %d, freq = %lf, parent = NULL, touched = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->touched, c, b);
 
     printf("BUFFER:\n");
     buffer buff = node->itembuffer;
@@ -931,7 +1075,7 @@ void fp_print_header_table(header_table h)
     // z is the size of the table
     while(h != NULL)
     {
-        printf("%d %d\n", h->data_item, h->cnt);
+        printf("%d %lf\n", h->data_item, h->cnt);
         fpnode node = h->first;
         while(node != NULL)
         {
@@ -957,27 +1101,6 @@ void fp_print_data_node(data d)
 void fp_print_dots(int num){
     while(num--)
         printf("|");
-}
-
-void fp_print_tree_data(fpnode_list qhead, fpnode_list qtail){
-    fpnode_list child, temp;
-    fpnode curr = qhead->tree_node;
-    int size = 1;
-    while(size > 0){
-        child = curr->children;
-        printf("%d, %d->", curr->data_item, curr->freq);
-        while(child){
-            qtail->next = (fpnode_list) malloc(sizeof(struct fpnode_list_node));
-            qtail = qtail->next;
-            printf("%d, %d->", qtail->tree_node->data_item, qtail->tree_node->freq);
-            size++;
-        }
-        curr = qhead->tree_node;
-        if(qhead->next){
-            qhead = qhead->next;
-            size--;
-        }
-    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
