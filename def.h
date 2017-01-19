@@ -66,9 +66,11 @@ struct fp_node{
     data item_list;
     buffer itembuffer;
     int bufferSize;
-    float freq;
+    int tid; // time stamp
+    double freq;
     data_type data_item;
     struct fp_node* next_similar;
+    struct fp_node* prev_similar;
     struct fp_node* parent;
     int touched;
 };
@@ -83,7 +85,7 @@ struct fpnode_list_node{
 struct header_table_node{
     data_type data_item;
     fpnode first;
-    float cnt;
+    double cnt;
     int tid;
     struct header_table_node* next;
 };
@@ -102,7 +104,7 @@ struct tilted_tw_table{
 
     int starting_batch;
     int ending_batch;
-    float freq;
+    double freq;
 
     int buffer_empty;
     int buffer_starting_batch;

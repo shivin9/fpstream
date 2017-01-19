@@ -19,10 +19,10 @@ int  fp_no_dataitem(fpnode);
 void fp_create_header_table_helper(fpnode, header_table*);
 void fp_create_header_table(fptree);
 
-void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int end);
+void fp_convert_helper(fpnode curr, fptree cptree, double* srtd_freqs, int* collected, int end);
 fptree fp_convert_to_CP(fptree tree);
-void fp_sort_data(data head, int* arr);
-void fp_sort_header_table(header_table htable, int* table);
+void fp_sort_data(data head, double* arr);
+void fp_sort_header_table(header_table htable, double* table);
 void fp_empty_buffers(fpnode curr);
 data fp_array_to_datalist(int* arr, int end);
 void fp_free_data_node(data d);
@@ -46,7 +46,7 @@ void prune(fptree, data_type);
 void update_ancestor(fpnode);
 void merge(fpnode, fpnode_list);
 void free_subtree(fptree);
-float ineq7(header_table, data_type);
+int ineq7(header_table, data_type);
 
 
 #endif //FPTREE

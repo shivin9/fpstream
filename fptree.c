@@ -35,11 +35,13 @@ fptree fp_create_fptree()
 
     node->children = NULL;
     node->item_list = NULL;
-    node->freq = 0;
+    node->freq = 0.0;
+    node->tid = 0;
     node->data_item = -1;
     node->touched = 0;
     node->parent = NULL;
     node->next_similar = NULL;
+    node->prev_similar = NULL;
     node->itembuffer = NULL;
     node->bufferSize = 0;
 
@@ -145,7 +147,10 @@ void fp_create_and_insert_new_child(fpnode current_node, data d)
     new_node->children = NULL;
     new_node->item_list = NULL;
     new_node->next_similar = NULL;
-    new_node->freq = new_node->touched = 0;
+    new_node->prev_similar = NULL;
+    new_node->freq = 0.0;
+    new_node->tid = 0;
+    new_node->touched = 0;
     new_node->data_item = d->data_item;
     new_node->parent = current_node;
     new_node->itembuffer = NULL;
@@ -203,8 +208,8 @@ int fp_no_children(fpnode current_node)
 int fp_no_dataitem(fpnode current_node)
 {
     data current_data_ptr = current_node->item_list;
-
     int no_dataitem = 0;
+
     while(current_data_ptr)
     {
         no_dataitem++;
@@ -218,10 +223,10 @@ fpnode fp_insert_itemset_helper(fpnode current_node, data d, int put_in_buffer)
     // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
     // if the flag is up then we insert the remaining itemset into the bufferlist of that node and reset the flag
-    extern int leave_as_buffer;
     assert(current_node != NULL);
+    extern int leave_as_buffer;
     //increment frequency of this node of fp-tree
-    current_node->freq++;
+    current_node->freq = current_node->freq + 1;
     if(d == NULL)    return current_node;    //terminate when all items have been inserted
 
     if(put_in_buffer == 1 && leave_as_buffer)
@@ -306,13 +311,6 @@ fpnode fp_insert_itemset_helper(fpnode current_node, data d, int put_in_buffer)
 
 fptree fp_insert_itemset(fptree tree, data d, int put_in_buffer)
 {
-    // extern int leave_as_buffer = 0;
-    int len = 0;
-    data temp = d;
-    while(temp){
-        len++;
-        temp = temp->next;
-    }
     tree->root = fp_insert_itemset_helper(tree->root, d, put_in_buffer);
     return tree;
 }
@@ -332,7 +330,6 @@ void fp_create_header_table_helper(fpnode root, header_table* h)
     {
         if(curr_header_node->data_item == this_data)
         {
-
             //append to the head of the linked list for this data item
             root->next_similar = curr_header_node->first;
             curr_header_node->first = root;
@@ -387,9 +384,11 @@ fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
     new_node->children = NULL;
     new_node->item_list = NULL;
     new_node->touched = 0;
-    new_node->freq = node->touched;
+    new_node->freq = 0.0;
+    new_node->tid = 0;
     new_node->data_item = node->data_item;
     new_node->next_similar = NULL;
+    new_node->prev_similar = NULL;
     new_node->itembuffer = NULL;
     new_node->bufferSize = 0;
 
@@ -419,15 +418,15 @@ fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
     return new_node;
 }
 
-// sorts the I-list in descending order
-void fp_sort_header_table(header_table htable, int* table)
+// sorts the I-list in DESCENDING order
+void fp_sort_header_table(header_table htable, double* table)
 {
     if(htable == NULL)
         return;
 
     header_table temp = htable, nxt;
     fpnode tnode;
-    int tcnt;
+    double tcnt;
     data_type tdata_item;
 
     // insertion sorting the header table
@@ -471,7 +470,7 @@ data fp_reverse_data(data head)
 }
 
 // removes duplicate items also
-void fp_sort_data(data head, int* arr)
+void fp_sort_data(data head, double* arr)
 {
     data temp = head, nxt, temp1, prev;
     data_type tdt, ori;
@@ -496,7 +495,9 @@ void fp_sort_data(data head, int* arr)
             }
         }
     }
-
+    /*
+        Removing duplicate items here
+    */
     ori = head->data_item;
     for(prev = head, temp = head->next; temp != NULL; temp = temp->next)
     {
@@ -546,7 +547,7 @@ void fp_fix_touched(fpnode node){
     }
 }
 
-void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int end)
+void fp_convert_helper(fpnode curr, fptree cptree, double* srtd_freqs, int* collected, int end)
 {
     // curr is leaf node
     if((curr->touched == -1 || curr->children == NULL) && curr->freq > 0)
@@ -555,16 +556,16 @@ void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int
         data head = fp_array_to_datalist(collected, end);
         // need to sort the item using the values in arr
         // fp_print_data_node(head);
-        fp_sort_data(head, arr);
+        fp_sort_data(head, srtd_freqs);
         cptree = fp_insert_itemset(cptree, head, 0);
         fp_delete_data_node(head);
-        curr->freq--;
+        curr->freq = curr->freq-1;
         // just above the leaf node
         curr = curr->parent;
 
         while(curr)
         {
-            curr->freq--;
+            curr->freq = curr->freq-1;
             curr = curr->parent;
         }
     }
@@ -574,7 +575,7 @@ void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int
 
         fpnode_list child = curr->children;
         fpnode_list first = child;
-        int no_children = 0, counter = curr->freq;
+        int no_children = 0;
 
         while(child)
         {
@@ -589,7 +590,7 @@ void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int
 
             if(child->tree_node->freq > 0)
             {
-                fp_convert_helper(child->tree_node, cptree, arr, collected, end + 1);
+                fp_convert_helper(child->tree_node, cptree, srtd_freqs, collected, end + 1);
             }
 
             else if(child->tree_node->freq <= 0)
@@ -607,26 +608,27 @@ void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int
 fptree fp_convert_to_CP(fptree tree)
 {
     fpnode curr = tree->root;
-    int* arr = (int*) malloc(DICT_SIZE*sizeof(int));
+    double* srtd_freqs = (double*) malloc(DICT_SIZE*sizeof(double));
+
     int* collected = (int*) malloc(DICT_SIZE*sizeof(int));
     int end = 0;
 
     for(end = 0; end < 100; end++)
-        arr[end] = 0;
+        srtd_freqs[end] = 0.0;
 
     if(tree->head_table == NULL)
         fp_create_header_table(tree);
 
-    fp_sort_header_table(tree->head_table, arr);
+    fp_sort_header_table(tree->head_table, srtd_freqs);
     // int sleepTime = rand()%1000;
     // usleep(sleepTime);
     fptree cptree = fp_create_fptree();
-    fp_convert_helper(curr, cptree, arr, collected, 0);
+    fp_convert_helper(curr, cptree, srtd_freqs, collected, 0);
     fp_create_header_table(cptree);
     fp_fix_touched(cptree->root);
-    fp_sort_header_table(cptree->head_table, arr);
+    fp_sort_header_table(cptree->head_table, srtd_freqs);
     fp_delete_fptree(tree);
-    free(arr);
+    free(srtd_freqs);
     free(collected);
     return cptree;
 }
@@ -646,7 +648,7 @@ void fp_empty_buffers(fpnode curr)
             fp_print_data_node(buff->itemset);
             curr = fp_insert_itemset_helper(curr, buff->itemset, 0);
             curr->bufferSize--;
-            curr->freq--;
+            curr->freq = curr->freq-1;
             fp_delete_data_node(buff->itemset);
             buff->itemset = NULL;
             temp = buff->next;
@@ -663,6 +665,35 @@ void fp_empty_buffers(fpnode curr)
         fp_empty_buffers(child->tree_node);
         child = child->next;
     }
+}
+
+int ineq7(header_table head, int tid)
+{
+    double s = N-tid+head->tid;
+    double num = pow(DECAY,s-SUP*N)-pow(DECAY,s-2)-(SUP-EPS)*N*(1-DECAY);
+    double den = (1-DECAY)*pow(DECAY,s-SUP*N)-(SUP-EPS)*N*pow((1-DECAY),2);
+    if((double)tid<=num/den)
+        return 1;
+    else
+        return 0;
+}
+
+void free_subtree(fpnode to_free)
+{
+    if(to_free==NULL)
+        return;
+    int i;
+    for(i=1;i <= DICT_SIZE;i++)
+    {
+        free_subtree(to_free->child[i],t);
+    }
+    if((to_free->node)->previous!=NULL)
+        (((to_free->node)->previous)->node)->next=(to_free->node)->next;
+    else
+        t->next=(to_free->node)->next;
+    if((to_free->node)->next!=NULL)
+        (((to_free->node)->next)->node)->previous=(to_free->node)->previous;
+    free(to_free);
 }
 
 void prune_infrequent_I_patterns(header_table htable, data_type data_item)
@@ -708,13 +739,14 @@ void prune_infrequent_II_patterns(header_table htable, data_type data_item)
 
 void prune_obsolete_II_patterns(header_table htable, data_type data_item)
 {
-    fpnode fir=htable->first;
+    fpnode fir = htable->first;
+    fpnode to_free = NULL;
     while(fir!=NULL)
     {
-        if(fir->data_item<=data_item-N)
+        if(fir->data_item <= data_item - N)
         {
             update_ancestor(fir);
-            fpnode to_free=fir;
+            to_free=fir;
             fir=fir->next_similar;
             if(to_free->parent->children->tree_node==to_free)
             {
@@ -725,7 +757,7 @@ void prune_obsolete_II_patterns(header_table htable, data_type data_item)
                 fpnode_list temp=to_free->parent->children;
                 while(temp->next!=NULL)
                 {
-                    if(temp->next->tree_node==to_free)
+                    if(temp->next->tree_node == to_free)
                     {
                         temp->next=temp->next->next;
                         break;
@@ -743,71 +775,80 @@ void prune_obsolete_II_patterns(header_table htable, data_type data_item)
 
 }
 
-void prune_obsolete_I_patterns(header_table htable,data_type data_item)
+void prune_obsolete_I_patterns(header_table htable, int tid)
 {
-    fpnode fir = htable->first;
+    fpnode fir = htable->first, to_free = NULL;
     while(fir != NULL)
     {
-        if((fir)->freq*pow(DECAY,data_item-fir->data_item) >= EPS*N)
+        if(fir->freq * pow(DECAY, tid - fir->tid) >= EPS*N)
         {
             update_ancestor(fir);
         }
-        fpnode to_free=fir;
-        fir=fir->next_similar;
-        if(to_free->parent->children->tree_node==to_free)
+        to_free = fir;
+        fir = fir->next_similar;
+        if(to_free->parent->children->tree_node ==to_free)
         {
-            to_free->parent->children=to_free->parent->children->next;
+            to_free->parent->children = to_free->parent->children->next;
         }
         else
         {
-            fpnode_list temp=to_free->parent->children;
-            while(temp->next!=NULL)
+            fpnode_list temp = to_free->parent->children;
+            while(temp->next != NULL)
             {
-                if(temp->next->tree_node==to_free)
+                if(temp->next->tree_node == to_free)
                 {
-                    temp->next=temp->next->next;
+                    temp->next = temp->next->next;
                     break;
                 }
-                temp=temp->next;
+                temp = temp->next;
             }
         }
         free_subtree(to_free);
     }
-    htable->cnt=0;
-    htable->first=NULL;
+    htable->cnt = 0;
+    htable->first = NULL;
+    // htable->tid = 0;
 }
 
-void prune(fptree ftree, data_type data_item)
+void prune(fptree ftree, int tid)
 {
-    header_table htable=ftree->head_table;
-    header_table prev=NULL;
-    while(htable!=NULL)
+    header_table htable = ftree->head_table;
+    header_table prev = NULL;
+    while(htable != NULL)
     {
-        if(htable->first!=NULL)
+        if(htable->first != NULL)
         {
-            if(htable->data_item<=data_item-N)
+            if(htable->tid <= tid-N)
             {
-                prune_obsolete_I_patterns(htable,data_item);
+                prune_obsolete_I_patterns(htable, tid);
             }
-            else if(htable->data_item<data_item-N+SUP*N)
+            else if(htable->tid<tid-N+SUP*N)
             {
-                prune_infrequent_I_patterns(htable,data_item);
+                prune_infrequent_I_patterns(htable,tid);
             }
-            else if(htable->data_item>=data_item-N+SUP*N&&ineq7(htable,data_item))
+            else if(htable->tid >= tid-N+SUP*N&&ineq7(htable, tid))
             {
-                //printf("22----------\n");
-                prune_infrequent_II_patterns(htable,data_item);
+                prune_infrequent_II_patterns(htable,tid);
             }
             else
             {
-                //printf("24-------\n");
-                prune_obsolete_II_patterns(htable,data_item);
+                prune_obsolete_II_patterns(htable,tid);
             }
         }
         htable=htable->next;
     }
 }
 
+void update_ancestor(fpnode temp)
+{
+    fpnode temp1 = temp->parent;
+    while(temp1->parent != NULL)
+    {
+        temp1->freq = temp1->freq -
+                    (temp->freq * pow(DECAY, temp1->tid - temp->tid));
+        temp1=temp1->parent;
+    }
+}
 
 fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, int minsup)
 {
@@ -915,7 +956,7 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
             else
                 fp = fopen("output", "a");
 
-            int t=0, arr[DICT_SIZE];
+            int t = 0, arr[DICT_SIZE];
 
             data temp = till_now;
             // temp = temp->next;
@@ -982,9 +1023,7 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
             temp->next = new_data;
         }
 
-
         // printf("appended %d to till_now\n", curr_data->data_item);
-
         // printf("\nyolo %d cond_tree\n", curr_data->data_item);
 
         // if(cond_tree != NULL)

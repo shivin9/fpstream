@@ -18,9 +18,10 @@ long timer_end(struct timespec start_time){
     return diffInNanos;
 }
 
+/*DESCENDING order here*/
 int cmpfunc (const void * a, const void * b)
 {
-   return -( *(int*)a - *(int*)b );
+   return -( *(double*)a - *(double*)b );
 }
 
 
@@ -85,16 +86,16 @@ int main(int argc, char* argv[])
     // printf("\nresulting fp-tree:\n\n");
     // printf("\n");
     // fp_print_tree(ftree->root);
-    int* arr = (int*) malloc(DICT_SIZE * sizeof(int));
-    int* funcarr = (int*) malloc(DICT_SIZE * sizeof(int));
+    double* arr = (double*) malloc(DICT_SIZE * sizeof(double));
+    double* funcarr = (double*) malloc(DICT_SIZE * sizeof(double));
 
     // fp_print_header_table(ftree->head_table);
     // process_batch(ptree, cnt/batch_size);
     // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
 
     for(cnt = 0; cnt < 100; cnt++){
-        arr[cnt] = 0;
-        funcarr[cnt] = 0;
+        arr[cnt] = 0.0;
+        funcarr[cnt] = 0.0;
     }
     // fp_create_header_table(ftree);
     // usleep(1000);
@@ -110,17 +111,16 @@ int main(int argc, char* argv[])
         // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
         // printf("%d ", child->tree_node->freq);
         arr[cnt] =  child->tree_node->freq;
-        sum += arr[cnt];
-        cnt++;
+        sum += arr[cnt++];
         child = child->next;
     }
 
     printf("sizeof fp tree = %d\n", fp_size_of_tree(ftree->root));
 
-    qsort(arr, 100, sizeof(int), cmpfunc);
+    qsort(arr, 100, sizeof(double), cmpfunc);
     printf("total = %d, children = %d\n", sum, cnt);
     for(cnt = 0; cnt < 100; cnt++)
-        printf("%d ", arr[cnt]);
+        printf("%lf ", arr[cnt]);
     printf("\n");
 
     struct timeval t1, t2;
@@ -160,7 +160,8 @@ int main(int argc, char* argv[])
     child = ctree->root->children;
 
     for(cnt = 0; cnt < 100; cnt++)
-        arr[cnt] = 0;
+        arr[cnt] = 0.0;
+
     cnt = 0, sum = 0;
 
     while(child){
@@ -171,10 +172,10 @@ int main(int argc, char* argv[])
         child = child->next;
     }
 
-    qsort(arr, 100, sizeof(int), cmpfunc);
+    qsort(arr, 100, sizeof(double), cmpfunc);
     printf("total = %d, children = %d\n", sum, cnt);
     for(cnt = 0; cnt < 100; cnt++)
-        printf("%d ", arr[cnt]);
+        printf("%lf ", arr[cnt]);
 
     fp_delete_fptree(ctree);
     fp_delete_data_node(sorted);
