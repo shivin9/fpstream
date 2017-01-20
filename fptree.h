@@ -38,15 +38,14 @@ void fp_print_data_node(data d);
 
 data fp_reverse_data(data head);
 
-void prune_infrequent_I_patterns(header_table, data_type);
-void prune_infrequent_II_patterns(header_table, data_type);
-void prune_obsolete_II_patterns(header_table, data_type);
-void prune_obsolete_I_patterns(header_table, data_type);
+void prune_infrequent_I_patterns(header_table, data_type, int);
+void prune_infrequent_II_patterns(header_table, data_type, int);
+void prune_obsolete_II_patterns(header_table, data_type, int);
+void prune_obsolete_I_patterns(header_table, data_type, int);
 void prune(fptree, data_type);
 void update_ancestor(fpnode);
-void merge(fpnode, fpnode_list);
-void free_subtree(fptree);
-int ineq7(header_table, data_type);
+void merge(fpnode, fpnode, header_table);
+int ineq7(header_table, int);
 
 
 #endif //FPTREE

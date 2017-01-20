@@ -62,9 +62,19 @@ void fp_delete_tree_structure(fpnode current_node)
 
     while(current_child_ptr != NULL)
     {
-
         fpnode this_child = current_child_ptr->tree_node;
         fp_delete_tree_structure(this_child);
+
+        if(this_child->prev_similar!=NULL)
+            (this_child->prev_similar)->next_similar = this_child->next_similar;
+
+        // THIS UPDATES THE HEADER TABle
+        //else
+        //    t->next_similar=(to_free->node)->next_similar;
+
+        if(this_child->next_similar!=NULL)
+            (this_child->next_similar)->prev_similar=(this_child)->prev_similar;
+
         free(this_child);
         this_child = NULL;
 
@@ -323,17 +333,20 @@ void fp_create_header_table_helper(fpnode root, header_table* h)
 {
     //append this node to the corresponding list for this data item in the header table
     data_type this_data = root->data_item;
-
     header_table curr_header_node = *h;
     int found = 0;
+
     while(curr_header_node != NULL)
     {
         if(curr_header_node->data_item == this_data)
         {
             //append to the head of the linked list for this data item
             root->next_similar = curr_header_node->first;
+            curr_header_node->first->prev_similar = root;
             curr_header_node->first = root;
-            curr_header_node->cnt += root->freq;
+            /*The first node next to the header table has NO previous node although a next node from the header table points to it*/
+            root->prev_similar = NULL;
+            curr_header_node->cnt = curr_header_node->cnt + root->freq;
 
             found = 1;
             break;
@@ -559,13 +572,13 @@ void fp_convert_helper(fpnode curr, fptree cptree, double* srtd_freqs, int* coll
         fp_sort_data(head, srtd_freqs);
         cptree = fp_insert_itemset(cptree, head, 0);
         fp_delete_data_node(head);
-        curr->freq = curr->freq-1;
+        curr->freq--;
         // just above the leaf node
         curr = curr->parent;
 
         while(curr)
         {
-            curr->freq = curr->freq-1;
+            curr->freq--;
             curr = curr->parent;
         }
     }
@@ -678,28 +691,64 @@ int ineq7(header_table head, int tid)
         return 0;
 }
 
-void free_subtree(fpnode to_free)
+void merge(fpnode parent, fpnode child, header_table htable)
 {
-    if(to_free==NULL)
-        return;
-    int i;
-    for(i=1;i <= DICT_SIZE;i++)
-    {
-        free_subtree(to_free->child[i],t);
+    int flag = 0;
+    data_type nt = child->data_item;
+    fpnode_list this_child = parent->children, prev = NULL;
+
+    while(this_child != NULL){
+        if(this_child->tree_node->data_item == nt){
+            break;
+        }
+        prev = this_child;
+        this_child = this_child->next;
     }
-    if((to_free->node)->previous!=NULL)
-        (((to_free->node)->previous)->node)->next=(to_free->node)->next;
+
+    if(this_child == NULL){
+        prev->next = (fpnode_list) malloc(sizeof(struct fpnode_list_node));
+        prev->next->tree_node = child;
+        prev->next->next = NULL;
+    }
+
     else
-        t->next=(to_free->node)->next;
-    if((to_free->node)->next!=NULL)
-        (((to_free->node)->next)->node)->previous=(to_free->node)->previous;
-    free(to_free);
+    {
+        fpnode temp = this_child->tree_node;
+        temp->freq+=pow(abs(child->tid - temp->tid),DECAY);
+        temp->tid=max(temp->tid, child->tid);
+
+        if(child->next_similar != NULL)
+            (child->next_similar)->prev_similar = child->prev_similar;
+
+        if(child->prev_similar != NULL)
+            (child->prev_similar)->next_similar=child->next_similar;
+
+        else{
+            header_table htemp = htable;
+            while(htemp && htemp->data_item != child->data_item)
+                htemp = htemp->next;
+            htemp->first = child->next_similar;
+        }
+
+        fpnode_list child_child = child->children;
+        while(child_child != NULL){
+            merge(temp, child_child->tree_node, htable);
+            child_child = child_child->next;
+        }
+        free(child);
+    }
 }
 
-void prune_infrequent_I_patterns(header_table htable, data_type data_item)
+
+void prune_infrequent_I_patterns(header_table htable, data_type data_item, int tid)
 {
-    fpnode fir = htable->first;
-    htable->first = NULL;
+    header_table htemp = htable;
+    while(htemp && htemp->data_item != data_item)
+        htemp = htemp->next;
+
+    fpnode fir = htemp->first;
+    htemp->first = NULL;
+
     while(fir != NULL)
     {
         fpnode_list temp1 = fir->children;
@@ -722,7 +771,7 @@ void prune_infrequent_I_patterns(header_table htable, data_type data_item)
         }
         while(temp1 != NULL)
         {
-            merge(fir->parent, temp1);
+            merge(fir->parent, temp1->tree_node, htable);
             temp1 = temp1->next;
         }
         fpnode temp2 = fir;
@@ -732,22 +781,27 @@ void prune_infrequent_I_patterns(header_table htable, data_type data_item)
     }
 }
 
-void prune_infrequent_II_patterns(header_table htable, data_type data_item)
+void prune_infrequent_II_patterns(header_table htable, data_type data_item, int tid)
 {
-    prune_infrequent_I_patterns(htable,data_item);
+    prune_infrequent_I_patterns(htable, data_item, tid);
 }
 
-void prune_obsolete_II_patterns(header_table htable, data_type data_item)
+void prune_obsolete_II_patterns(header_table htable, data_type data_item, int tid)
 {
-    fpnode fir = htable->first;
+    header_table htemp = htable;
+    while(htemp && htemp->data_item != data_item)
+        htemp = htemp->next;
+
+    fpnode fir = htemp->first;
+
     fpnode to_free = NULL;
     while(fir!=NULL)
     {
-        if(fir->data_item <= data_item - N)
+        if(fir->tid <= tid - N)
         {
             update_ancestor(fir);
-            to_free=fir;
-            fir=fir->next_similar;
+            to_free = fir;
+            fir = fir->next_similar;
             if(to_free->parent->children->tree_node==to_free)
             {
                 to_free->parent->children=to_free->parent->children->next;
@@ -765,7 +819,7 @@ void prune_obsolete_II_patterns(header_table htable, data_type data_item)
                     temp=temp->next;
                 }
             }
-            free_subtree(to_free);
+            fp_delete_tree_structure(to_free);
         }
         else
         {
@@ -775,9 +829,14 @@ void prune_obsolete_II_patterns(header_table htable, data_type data_item)
 
 }
 
-void prune_obsolete_I_patterns(header_table htable, int tid)
+void prune_obsolete_I_patterns(header_table htable, data_type data_item, int tid)
 {
-    fpnode fir = htable->first, to_free = NULL;
+    header_table htemp = htable;
+    while(htemp && htemp->data_item != data_item)
+        htemp = htemp->next;
+
+    fpnode fir = htemp->first, to_free = NULL;
+
     while(fir != NULL)
     {
         if(fir->freq * pow(DECAY, tid - fir->tid) >= EPS*N)
@@ -803,7 +862,7 @@ void prune_obsolete_I_patterns(header_table htable, int tid)
                 temp = temp->next;
             }
         }
-        free_subtree(to_free);
+        fp_delete_tree_structure(to_free);
     }
     htable->cnt = 0;
     htable->first = NULL;
@@ -820,19 +879,19 @@ void prune(fptree ftree, int tid)
         {
             if(htable->tid <= tid-N)
             {
-                prune_obsolete_I_patterns(htable, tid);
+                prune_obsolete_I_patterns(htable, htable->data_item, tid);
             }
             else if(htable->tid<tid-N+SUP*N)
             {
-                prune_infrequent_I_patterns(htable,tid);
+                prune_infrequent_I_patterns(htable, htable->data_item, tid);
             }
-            else if(htable->tid >= tid-N+SUP*N&&ineq7(htable, tid))
+            else if(htable->tid >= tid-N+SUP*N && ineq7(htable, tid))
             {
-                prune_infrequent_II_patterns(htable,tid);
+                prune_infrequent_II_patterns(htable, htable->data_item, tid);
             }
             else
             {
-                prune_obsolete_II_patterns(htable,tid);
+                prune_obsolete_II_patterns(htable, htable->data_item, tid);
             }
         }
         htable=htable->next;

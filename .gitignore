@@ -3,4 +3,4 @@ intermediate
 output
 *.out
 ./data/*
-./exe
+exe

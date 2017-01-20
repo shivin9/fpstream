@@ -11,8 +11,8 @@
 #include <math.h>
 
 
-#define MINSUP_SEMIFREQ 16   //minimum support for semi-frequent itemsets
-#define MINSUP_FREQ 18    //minimum support for frequent itemsets
+#define MINSUP_SEMIFREQ 2   //minimum support for semi-frequent itemsets
+#define MINSUP_FREQ 4    //minimum support for frequent itemsets
 #define SUP_ERROR 50 //max error for sub-frequent itemsets
 #define DICT_SIZE 100 // max. number of items
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned

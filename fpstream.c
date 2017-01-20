@@ -156,7 +156,7 @@ void fpstream(char* fname)
     fclose(fp);
     fp_create_header_table(ftree);
 
-    int* arr = (int*) malloc(DICT_SIZE * sizeof(int));
+    double* arr = (double*) malloc(DICT_SIZE * sizeof(double));
     fp_sort_header_table(ftree->head_table, arr);
     fp_sort_data(sorted, arr);
     sorted = fp_reverse_data(sorted);
