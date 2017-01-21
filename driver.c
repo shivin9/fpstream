@@ -2,6 +2,8 @@
 /*
     note: be careful with mining functions of cptree and fptree
     all are working correct but just that they need to be properly adjusted ie. sorting the sorted list for cptree and initializing all the arrays to 0 before using etc.
+
+    CP and FP trees are working alright
 */
 // call this function to start a nanosecond-resolution timer
 struct timespec timer_start(){
@@ -59,7 +61,6 @@ int main(int argc, char* argv[])
     while(fscanf(fp, "%d", &sz) != EOF){
         data d = NULL;
         while(sz--){
-
             data_type item;
             fscanf(fp, "%d", &item);
 
@@ -103,7 +104,7 @@ int main(int argc, char* argv[])
     fp_create_header_table(ftree);
 
     fp_sort_header_table(ftree->head_table, funcarr);
-    // fp_print_header_table(ftree->head_table);
+    fp_print_header_table(ftree->head_table);
 
     cnt = 0;
     fpnode_list child = ftree->root->children;
@@ -118,10 +119,10 @@ int main(int argc, char* argv[])
     printf("sizeof fp tree = %d\n", fp_size_of_tree(ftree->root));
 
     qsort(arr, 100, sizeof(double), cmpfunc);
-    printf("total = %d, children = %d\n", sum, cnt);
-    for(cnt = 0; cnt < 100; cnt++)
-        printf("%lf ", arr[cnt]);
-    printf("\n");
+    // printf("total = %d, children = %d\n", sum, cnt);
+    // for(cnt = 0; cnt < 100; cnt++)
+    //     printf("%lf ", arr[cnt]);
+    // printf("\n");
 
     struct timeval t1, t2;
     double elapsedTime;
@@ -144,7 +145,7 @@ int main(int argc, char* argv[])
     fp_sort_data(sorted, funcarr);
     sorted = fp_reverse_data(sorted);
     gettimeofday(&t1, NULL);
-    fp_mine_frequent_itemsets(ctree, sorted, NULL, 0);
+    // fp_mine_frequent_itemsets(ctree, sorted, NULL, 0);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
@@ -153,10 +154,10 @@ int main(int argc, char* argv[])
     printf("total time taken by CP tree = %lf ms\n", elapsedTime);
 
     // printf("\nresulting cp-tree:\n");
+    // fp_print_tree(ctree->root);
     // printf("\n");
     printf("\nsizeof cp tree = %d\n", fp_size_of_tree(ctree->root));
 
-    // fp_print_tree(ctree->root);
     child = ctree->root->children;
 
     for(cnt = 0; cnt < 100; cnt++)
@@ -173,9 +174,9 @@ int main(int argc, char* argv[])
     }
 
     qsort(arr, 100, sizeof(double), cmpfunc);
-    printf("total = %d, children = %d\n", sum, cnt);
-    for(cnt = 0; cnt < 100; cnt++)
-        printf("%lf ", arr[cnt]);
+    // printf("total = %d, children = %d\n", sum, cnt);
+    // for(cnt = 0; cnt < 100; cnt++)
+    //     printf("%lf ", arr[cnt]);
 
     fp_delete_fptree(ctree);
     fp_delete_data_node(sorted);

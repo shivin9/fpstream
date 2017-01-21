@@ -28,7 +28,7 @@ data fp_array_to_datalist(int* arr, int end);
 void fp_free_data_node(data d);
 
 fpnode fp_dfs(fpnode, data_type);
-fptree fp_create_conditional_fp_tree(fptree, data_type, int);
+fptree fp_create_conditional_fp_tree(fptree, data_type, double);
 void fp_mine_frequent_itemsets(fptree, data, data, int);
 
 void fp_print_node(fpnode);

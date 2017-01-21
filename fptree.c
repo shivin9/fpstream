@@ -38,7 +38,7 @@ fptree fp_create_fptree()
     node->freq = 0.0;
     node->tid = 0;
     node->data_item = -1;
-    node->touched = 0;
+    node->touched = 0.0;
     node->parent = NULL;
     node->next_similar = NULL;
     node->prev_similar = NULL;
@@ -236,7 +236,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, data d, int put_in_buffer)
     assert(current_node != NULL);
     extern int leave_as_buffer;
     //increment frequency of this node of fp-tree
-    current_node->freq = current_node->freq + 1;
+    current_node->freq++;
     if(d == NULL)    return current_node;    //terminate when all items have been inserted
 
     if(put_in_buffer == 1 && leave_as_buffer)
@@ -396,9 +396,9 @@ fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
     fpnode new_node = malloc(sizeof(struct fp_node));
     new_node->children = NULL;
     new_node->item_list = NULL;
-    new_node->touched = 0;
-    new_node->freq = 0.0;
-    new_node->tid = 0;
+    new_node->touched = 0.0;
+    new_node->freq = node->touched;
+    new_node->tid = node->tid; // will see this later
     new_node->data_item = node->data_item;
     new_node->next_similar = NULL;
     new_node->prev_similar = NULL;
@@ -512,6 +512,7 @@ void fp_sort_data(data head, double* arr)
         Removing duplicate items here
     */
     ori = head->data_item;
+
     for(prev = head, temp = head->next; temp != NULL; temp = temp->next)
     {
         while(temp != NULL && temp->data_item == ori)
@@ -826,7 +827,6 @@ void prune_obsolete_II_patterns(header_table htable, data_type data_item, int ti
             fir=fir->next_similar;
         }
     }
-
 }
 
 void prune_obsolete_I_patterns(header_table htable, data_type data_item, int tid)
@@ -909,13 +909,12 @@ void update_ancestor(fpnode temp)
     }
 }
 
-fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, int minsup)
+fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, double minsup)
 {
     header_table curr_head_table_node = tree->head_table;
     fpnode node = NULL;
     while(curr_head_table_node != NULL)
     {
-
         if(curr_head_table_node->data_item == data_item)
         {
             node = curr_head_table_node->first;
@@ -928,29 +927,29 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, int minsu
         return NULL;
     if(node == NULL)    return NULL;
 
-    // printf("%d\n", curr_head_table_node->cnt);
-    // printf("success %d %d %d\n", data_item, node->data_item, node->freq);
+    printf("%lf\n", curr_head_table_node->cnt);
+    printf("success %d %d %lf\n", data_item, node->data_item, node->freq);
 
     //node is the link to successive fpnodes having data type 'data_item'
     //iterate through it and for each node in it, start from that node
     //and touch all nodes till the root
     //touched nodes are a means of identifying which nodes should be in coditional FP-tree
-
+    double add;
     while(node != NULL)
     {
         fpnode temp = node;
-        int add = temp->freq;
+        add = temp->freq;
         while(temp != NULL)
         {
             temp->touched += add;
+            // printf("touched = %d\n", temp->touched);
             temp = temp->parent;
         }
         node = node->next_similar;
     }
 
-    // printf("after touching:\n");
-    // print_tree(tree->root);
-    // printf("MINSUP = %d\n", MINSUP);
+    printf("after touching:\n");
+    fp_print_tree(tree->root);
 
     //now run a DFS from the root of the given FP_tree, for all touched nodes,
     //create a copy for the conditional FP-tree
@@ -958,9 +957,9 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, int minsu
     fpnode cond_fptree = fp_dfs(tree->root, data_item);
     if(cond_fptree == NULL)    return NULL;
 
-    // printf("cond_fptree\n");
-    // print_tree(cond_fptree);
-    // printf("\n");
+    printf("cond_fptree\n");
+    fp_print_tree(cond_fptree);
+    printf("\n");
 
     fptree cond_tree = malloc(sizeof(struct fptree_node));
     cond_tree->root = cond_fptree;
@@ -1007,7 +1006,6 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
         if((pattern == 0 && curr_header_node->cnt >= MINSUP_SEMIFREQ)
                 || (pattern == 1 && curr_header_node->cnt >= MINSUP_FREQ))
         {
-
             //frequent itemset
             FILE *fp;
             if(pattern == 0)
@@ -1027,16 +1025,17 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
             }
             // size of frequent itemset
             fprintf(fp, "%d", t);
-            // printf("%d", t);
+            printf("%d", t);
             t--;
             while(t >= 0)
             {
                 fprintf(fp, " %d", arr[t]);
+                printf(" %d", arr[t]);
                 t--;
             }
             if(pattern == 0){
                 fprintf(fp, " %lf", curr_header_node->cnt);
-                // printf(" %d", curr_header_node->cnt);
+                printf(" %lf", curr_header_node->cnt);
             }
             // printf("\n");
 
@@ -1046,7 +1045,6 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
         }
     }
     else{
-
     }
 
     if(sorted == NULL)    return;
@@ -1056,7 +1054,6 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
     data curr_data = sorted;
     while(curr_data != NULL)
     {
-
         fptree cond_tree = fp_create_conditional_fp_tree(tree, curr_data->data_item,
                 (pattern == 1) ? MINSUP_FREQ : MINSUP_SEMIFREQ);
         if(cond_tree == NULL)
@@ -1138,9 +1135,9 @@ void fp_print_node(fpnode node)
     int c = fp_no_children(node), b = node->bufferSize;
 
     if(node->data_item != -1)
-        printf("data_item = %d, freq = %lf, parent = %d, touched = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->parent->data_item, node->touched, c, b);
+        printf("data_item = %d, freq = %lf, tid = %d, parent = %d, touched = %lf, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->tid, node->parent->data_item, node->touched, c, b);
     else
-        printf("data_item = %d, freq = %lf, parent = NULL, touched = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->touched, c, b);
+        printf("data_item = %d, freq = %lf, tid = %d, parent = NULL, touched = %lf, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->tid, node->touched, c, b);
 
     printf("BUFFER:\n");
     buffer buff = node->itembuffer;
@@ -1194,11 +1191,6 @@ void fp_print_data_node(data d)
         d = d->next;
     }
     printf("\n");
-}
-
-void fp_print_dots(int num){
-    while(num--)
-        printf("|");
 }
 
 //////////////////////////////////////////////////////////////////////////////
