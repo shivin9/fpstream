@@ -50,22 +50,25 @@ int main(int argc, char* argv[])
     }
     // fpstream(argv[1]);
 
-    int sz;
+    int sz, tid = 1;
     fptree ftree = NULL;
 
-    data sorted = create_sorted_dummy();
-    int cnt = 0, sum = 0;
-    int batch_size = 10000;
+    data sorted = fp_create_sorted_dummy();
+    int sum = 0, batch_size = 10000;
     ftree = fp_create_fptree();
+    fp_create_header_table(ftree);
 
-    while(fscanf(fp, "%d", &sz) != EOF){
+    while(fscanf(fp, "%d", &sz) != EOF)
+    {
         data d = NULL;
-        while(sz--){
+        while(sz--)
+        {
             data_type item;
             fscanf(fp, "%d", &item);
 
             data new_d = malloc(sizeof(struct data_node));
-            if(new_d == NULL){
+            if(new_d == NULL)
+            {
                 printf("new_d malloc failed\n");
             }
             new_d->data_item = item;
@@ -76,9 +79,11 @@ int main(int argc, char* argv[])
         // printf("inserting: ");
         fp_sort_data(d, NULL);
         // fp_print_data_node(d);
-        ftree = fp_insert_itemset(ftree, d, 0);
+        ftree = fp_insert_itemset(ftree, d, tid, 0);
+        fp_create_header_table_helper(ftree->root, &(ftree->head_table));
+        fp_update_header_table(ftree->head_table, d, tid);
         fp_delete_data_node(d);
-        cnt++;
+        tid++;
     }
     fclose(fp);
 
@@ -93,16 +98,15 @@ int main(int argc, char* argv[])
     // fp_print_header_table(ftree->head_table);
     // process_batch(ptree, cnt/batch_size);
     // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
-
+    int cnt;
     for(cnt = 0; cnt < 100; cnt++){
         arr[cnt] = 0.0;
         funcarr[cnt] = 0.0;
     }
     // fp_create_header_table(ftree);
     // usleep(1000);
-    fp_empty_buffers(ftree->root);
-    fp_create_header_table(ftree);
-
+    fp_empty_buffers(ftree->root, ftree->head_table);
+    // fp_create_header_table_helper(ftree->root, &(ftree->head_table));
     fp_sort_header_table(ftree->head_table, funcarr);
     fp_print_header_table(ftree->head_table);
 
@@ -129,7 +133,7 @@ int main(int argc, char* argv[])
 
     // correct fp tree 437 new500
     gettimeofday(&t1, NULL);
-    fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
+    fp_mine_frequent_itemsets(ftree, sorted, NULL, 1, 0);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
@@ -137,9 +141,9 @@ int main(int argc, char* argv[])
 
     printf("total time taken by FP tree = %lf ms\n", elapsedTime);
 
-    // fp_print_tree(ftree->root);
+    fp_print_tree(ftree->root);
 
-    fptree ctree = fp_convert_to_CP(ftree);
+    fptree ctree = ftree;
     // fp_empty_buffers(ftree);
 
     fp_sort_data(sorted, funcarr);

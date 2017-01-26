@@ -10,6 +10,8 @@
 #include <omp.h>
 #include <math.h>
 
+#define max(a,b) ((a) > (b) ? a : b)
+#define min(a,b) ((a) < (b) ? a : b)
 
 #define MINSUP_SEMIFREQ 8.0   //minimum support for semi-frequent itemsets
 #define MINSUP_FREQ 10.0    //minimum support for frequent itemsets
@@ -18,9 +20,9 @@
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned
 
 
-#define DECAY 1
+#define DECAY 0.8
 #define NUM_ITEMS 100
-#define N 100 //window size
+#define N 5 //window size
 #define EPS 0.001
 #define SUP 0.01
 #define BATCH 15
@@ -50,6 +52,7 @@ typedef struct data_node* data;
 
 struct buffer_node{
     data itemset;
+    int tid;
     struct buffer_node* next;
 };
 
