@@ -13,19 +13,19 @@
 #define max(a,b) ((a) > (b) ? a : b)
 #define min(a,b) ((a) < (b) ? a : b)
 
-#define MINSUP_SEMIFREQ 8.0   //minimum support for semi-frequent itemsets
-#define MINSUP_FREQ 10.0    //minimum support for frequent itemsets
+#define DECAY 0.99
+#define NUM_ITEMS 100
+#define N 2 //window size
+#define EPS 0.001
+#define SUP 0.01
+#define BATCH 15
+
+#define MINSUP_SEMIFREQ N*(SUP-EPS)  //minimum support for semi-frequent itemsets
+#define MINSUP_FREQ N*(SUP-EPS)    //minimum support for frequent itemsets
 #define SUP_ERROR 50.0 //max error for sub-frequent itemsets
 #define DICT_SIZE 100 // max. number of items
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned
 
-
-#define DECAY 0.8
-#define NUM_ITEMS 100
-#define N 5 //window size
-#define EPS 0.001
-#define SUP 0.01
-#define BATCH 15
 
 // FLAGS
 int leave_as_buffer;
@@ -63,6 +63,7 @@ typedef struct buffer_node* buffer;
 
 typedef struct fp_node* fpnode;
 typedef struct fpnode_list_node* fpnode_list;
+typedef struct header_table_node* header_table;
 
 struct fp_node{
     fpnode_list children;
@@ -72,6 +73,7 @@ struct fp_node{
     int tid; // time stamp
     double freq;
     data_type data_item;
+    header_table hnode;
     struct fp_node* next_similar;
     struct fp_node* prev_similar;
     struct fp_node* parent;
@@ -92,7 +94,6 @@ struct header_table_node{
     int tid;
     struct header_table_node* next;
 };
-typedef struct header_table_node* header_table;
 
 
 struct fptree_node{
