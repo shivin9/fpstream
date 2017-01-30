@@ -1,9 +1,15 @@
+/*
+1. When deleting a child of a node, fix the child_list as well as the item_list
+2. When removing nodes, also fix the header table
+3. Header table is now not being recreated from scratch, it is being updated periodically
+*/
 #include "fptree.h"
 
 int is_equal(data d1, data d2)
 {
     return (d1->data_item == d2->data_item);
 }
+
 
 data fp_create_sorted_dummy()
 {
@@ -18,6 +24,7 @@ data fp_create_sorted_dummy()
     }
     return d;
 }
+
 
 fptree fp_create_fptree()
 {
@@ -51,7 +58,6 @@ fptree fp_create_fptree()
     return new_tree;
 }
 
-
 void fp_delete_tree_structure(fpnode current_node)
 {
 
@@ -60,22 +66,22 @@ void fp_delete_tree_structure(fpnode current_node)
 
     fpnode_list current_child_ptr = current_node->children;
     data current_data_ptr = current_node->item_list;
+    fpnode this_child;
 
     while(current_child_ptr != NULL)
     {
-        fpnode this_child = current_child_ptr->tree_node;
-        fp_delete_tree_structure(this_child);
+        this_child = current_child_ptr->tree_node;
 
         if(this_child->prev_similar!=NULL)
             (this_child->prev_similar)->next_similar = this_child->next_similar;
 
-        // THIS UPDATES THE HEADER TABle
-        //else
-        //    t->next_similar=(to_free->node)->next_similar;
-
         if(this_child->next_similar!=NULL)
             (this_child->next_similar)->prev_similar=(this_child)->prev_similar;
 
+        if(this_child->hnode && this_child->hnode->first == this_child)
+            this_child->hnode->first = NULL;
+
+        fp_delete_tree_structure(this_child);
         free(this_child);
         this_child = NULL;
 
@@ -91,6 +97,7 @@ void fp_delete_tree_structure(fpnode current_node)
     }
 }
 
+
 void fp_delete_data_node(data d)
 {
     data temp;
@@ -102,6 +109,7 @@ void fp_delete_data_node(data d)
         temp = NULL;
     }
 }
+
 
 void fp_delete_header_table(header_table h)
 {
@@ -133,11 +141,11 @@ int fp_size_of_tree(fpnode curr)
     data temp;
 
     while(buff)
-{
+    {
         size += sizeof(buff);
         temp = buff->itemset;
         while(temp)
-{
+    {
             size += sizeof(temp);
             temp = temp->next;
         }
@@ -163,6 +171,7 @@ void fp_create_and_insert_new_child(fpnode current_node, data d, int tid)
     new_node->item_list = NULL;
     new_node->next_similar = NULL;
     new_node->prev_similar = NULL;
+    new_node->hnode = NULL;
     new_node->freq = 0.0;
     new_node->tid = tid;
     new_node->touched = 0;
@@ -220,6 +229,7 @@ int fp_no_children(fpnode current_node)
     return no_children;
 }
 
+
 int fp_no_dataitem(fpnode current_node)
 {
     data current_data_ptr = current_node->item_list;
@@ -233,7 +243,50 @@ int fp_no_dataitem(fpnode current_node)
     return no_dataitem;
 }
 
-fpnode fp_insert_itemset_helper(fpnode current_node, header_table htable, data d, int tid, int put_in_buffer)
+
+int fp_verify_node(fpnode current_node)
+{
+    printf("\nverification for node %d :-", current_node->data_item);
+
+    fpnode_list current_child_ptr;
+    int flag = 1, res = 1;
+
+    // while(current_node->parent && current_child_ptr)
+    // {
+    //     if(current_child_ptr->tree_node == current_node)
+    //         flag = 2;
+    //     current_child_ptr = current_child_ptr->next;
+    // }
+
+    // if(flag == 2){
+    //     printf("child is not a child of it's parent!");
+    //     res = 0;
+    // }
+    if(fp_no_children(current_node) != fp_no_dataitem(current_node))
+    {
+        res = 0;
+        printf("not equal number of children and itemlist: %d, %d\n", fp_no_children(current_node), fp_no_dataitem(current_node));
+        return res;
+    }
+    current_child_ptr = current_node->children;
+    data current_data_ptr = current_node->item_list;
+    while(current_child_ptr)
+    {
+        int x =  current_child_ptr->tree_node->data_item;
+        int y =  current_data_ptr->data_item;
+        printf("(%d, %d) ", x, y);
+        if(x != y){
+            printf("inconsistant children and itemlist: %d, %d\n", fp_no_children(current_node), fp_no_dataitem(current_node));
+            return 0;
+        }
+        current_child_ptr = current_child_ptr->next;
+        current_data_ptr = current_data_ptr->next;
+    }
+    return res;
+}
+
+
+fpnode fp_insert_itemset_helper(fpnode current_node, data d, int tid, int put_in_buffer)
 {
     // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
@@ -244,7 +297,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, header_table htable, data d
     //updating the frequency of the node according to the formula
     current_node->freq *= pow(DECAY, tid - current_node->tid);
     current_node->freq++;
-    current_node->tid = max(current_node->tid, tid);
+    current_node->tid = tid;
 
     if(d == NULL)    return current_node;    //terminate when all items have been inserted
 
@@ -293,7 +346,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, header_table htable, data d
         {
             // printf("found match %d\n", d->data_item);
             // fp_update_header_table(htable, d->data_item, tid);
-            fpnode after_insert = fp_insert_itemset_helper(this_child, htable, d->next, tid, put_in_buffer);
+            fpnode after_insert = fp_insert_itemset_helper(this_child, d->next, tid, put_in_buffer);
             return current_node;
         }
 
@@ -320,7 +373,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, header_table htable, data d
         if(is_equal(this_data_item, d))
         {
             // fp_update_header_table(htable, d->data_item, tid);
-            fpnode after_insert = fp_insert_itemset_helper(this_child, htable, d->next, tid, put_in_buffer);
+            fpnode after_insert = fp_insert_itemset_helper(this_child, d->next, tid, put_in_buffer);
             current_child_ptr->tree_node = after_insert;
             return current_node;
         }
@@ -333,7 +386,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, header_table htable, data d
 
 fptree fp_insert_itemset(fptree tree, data d, int tid, int put_in_buffer)
 {
-    tree->root = fp_insert_itemset_helper(tree->root, tree->head_table, d, tid, put_in_buffer);
+    tree->root = fp_insert_itemset_helper(tree->root, d, tid, put_in_buffer);
     return tree;
 }
 
@@ -344,47 +397,32 @@ fptree fp_insert_itemset(fptree tree, data d, int tid, int put_in_buffer)
 void fp_create_header_table_helper(fpnode root, header_table* h)
 {
     //append this node to the corresponding list for this data item in the header table
-    data_type this_data = root->data_item;
-    header_table curr_header_node = *h;
-    int found = 0, max_tid;
-
-    while(curr_header_node != NULL)
+    if(root->hnode == NULL)
     {
-        if(curr_header_node->data_item == this_data)
+        data_type this_data = root->data_item;
+        header_table curr_header_node = *h;
+        int found = 0;
+
+        while(curr_header_node != NULL)
         {
-            //append to the head of the linked list for this data item
-            // max_tid = max(root->tid, curr_header_node->tid);
-            root->next_similar = curr_header_node->first;
+            if(curr_header_node->data_item == this_data)
+            {
+                //append to the head of the linked list for this data item
+                root->next_similar = curr_header_node->first;
+                root->hnode = curr_header_node;
+                if(curr_header_node->first)
+                    curr_header_node->first->prev_similar = root;
 
-            if(curr_header_node->first)
-                curr_header_node->first->prev_similar = root;
-
-            curr_header_node->first = root;
-            // curr_header_node->tid = max_tid;
-            // root->tid = max_tid;
-            /*The first node next to the header table has NO previous node although a next node from the header table points to it*/
-            root->prev_similar = NULL;
-            // curr_header_node->cnt += root->freq;
-
-            found = 1;
-            break;
+                curr_header_node->first = root;
+                /*The first node next to the header table has NO previous node although a next node from the header table points to it*/
+                root->prev_similar = NULL;
+                // curr_header_node->cnt += root->freq;
+            }
+            curr_header_node = curr_header_node->next;
         }
-        curr_header_node = curr_header_node->next;
-    }
-
-    if(found == 0)
-    {
-        //create new entry in header table
-        header_table new_entry = malloc(sizeof(struct header_table_node));
-        new_entry->data_item = this_data;
-        new_entry->first = root;
-        new_entry->cnt = 0;
-        new_entry->next = *h;
-        *h = new_entry;
     }
 
     fpnode_list current_child_ptr = root->children;
-
     while(current_child_ptr != NULL)
     {
         fpnode this_child = current_child_ptr->tree_node;
@@ -394,10 +432,7 @@ void fp_create_header_table_helper(fpnode root, header_table* h)
 }
 
 
-/*  this function is updating the header table of the fptree
-    we can also give a flag to update the nodes of the fptree which are connected to the
-*/
-
+/*  this function is updating the header table of the fptree*/
 void fp_update_header_table(header_table htable, data dat, int tid)
 {
     header_table temp, prev;
@@ -410,12 +445,14 @@ void fp_update_header_table(header_table htable, data dat, int tid)
         {
             if(temp->data_item == tdat->data_item)
             {
-                temp->tid = max(temp->tid, tid);
+                temp->tid = tid;
                 temp->cnt = 0;
                 fpnode nxtnode = temp->first;
                 while(nxtnode)
                 {
-                    temp->cnt += (nxtnode->freq)*(pow(DECAY, tid - nxtnode->tid));
+                    nxtnode->freq *= pow(DECAY, tid-nxtnode->tid);
+                    nxtnode->tid = tid;
+                    temp->cnt += nxtnode->freq;
                     nxtnode = nxtnode->next_similar;
                 }
                 flag = 1;
@@ -424,22 +461,15 @@ void fp_update_header_table(header_table htable, data dat, int tid)
             prev = temp;
             temp = temp->next;
         }
-        if(flag == 0)
-        {
-            prev->next = malloc(sizeof(struct header_table_node));
-            prev->next->data_item = tdat->data_item;
-            prev->next->first = NULL;
-            prev->next->cnt = 1;
-            prev->next->tid = tid;
-            prev->next->next = NULL;
-            tdat = tdat->next;
-        }
+        tdat = tdat->next;
     }
 }
+
 
 void fp_create_header_table(fptree tree)
 {
     if(tree == NULL)    return;
+    tree->head_table = NULL;
     if(tree->head_table == NULL)
     {
         int cnt;
@@ -481,6 +511,7 @@ fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
     new_node->data_item = node->data_item;
     new_node->next_similar = NULL;
     new_node->prev_similar = NULL;
+    new_node->hnode = NULL;
     new_node->itembuffer = NULL;
     new_node->bufferSize = 0;
 
@@ -510,6 +541,7 @@ fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
     return new_node;
 }
 
+
 // sorts the I-list in DESCENDING order
 void fp_sort_header_table(header_table htable, double* table)
 {
@@ -532,6 +564,10 @@ void fp_sort_header_table(header_table htable, double* table)
                 temp->data_item = nxt->data_item;
                 nxt->data_item = tdata_item;
 
+                tdata_item = temp->tid;
+                temp->tid = nxt->tid;
+                nxt->tid = tdata_item;
+
                 tnode = temp->first;
                 temp->first = nxt->first;
                 nxt->first = tnode;
@@ -539,6 +575,7 @@ void fp_sort_header_table(header_table htable, double* table)
                 tcnt = temp->cnt;
                 temp->cnt = nxt->cnt;
                 nxt->cnt = tcnt;
+
             }
         }
     }
@@ -547,6 +584,7 @@ void fp_sort_header_table(header_table htable, double* table)
         // +1 because the index -1 also exists
         table[temp->data_item + 1] = temp->cnt;
 }
+
 
 data fp_reverse_data(data head)
 {
@@ -560,6 +598,7 @@ data fp_reverse_data(data head)
     }
     return prev;
 }
+
 
 // removes duplicate items also
 void fp_sort_data(data head, double* arr)
@@ -611,6 +650,7 @@ void fp_sort_data(data head, double* arr)
     }
 }
 
+
 data fp_array_to_datalist(int* arr, int end)
 {
     int i;
@@ -628,6 +668,7 @@ data fp_array_to_datalist(int* arr, int end)
     return head;
 }
 
+
 void fp_fix_touched(fpnode node)
 {
     if(node == NULL)
@@ -641,6 +682,7 @@ void fp_fix_touched(fpnode node)
         child = child->next;
     }
 }
+
 
 void fp_convert_helper(fpnode curr, fptree cptree, double* srtd_freqs, int* collected, int tid, int end)
 {
@@ -701,6 +743,7 @@ void fp_convert_helper(fpnode curr, fptree cptree, double* srtd_freqs, int* coll
     }
 }
 
+
 fptree fp_convert_to_CP(fptree tree, int tid)
 {
     fpnode curr = tree->root;
@@ -729,7 +772,8 @@ fptree fp_convert_to_CP(fptree tree, int tid)
     return cptree;
 }
 
-void fp_empty_buffers(fpnode curr, header_table htable)
+
+void fp_empty_buffers(fpnode curr)
 {
     if(curr == NULL)
         return;
@@ -742,7 +786,7 @@ void fp_empty_buffers(fpnode curr, header_table htable)
         {
             printf("buffer emptied at %d: ", curr->data_item);
             fp_print_data_node(buff->itemset);
-            curr = fp_insert_itemset_helper(curr, htable, buff->itemset, buff->tid, 0);
+            curr = fp_insert_itemset_helper(curr, buff->itemset, buff->tid, 0);
             curr->bufferSize--;
             curr->freq = curr->freq-1;
             fp_delete_data_node(buff->itemset);
@@ -757,12 +801,13 @@ void fp_empty_buffers(fpnode curr, header_table htable)
     while(child)
     {
         // printf("\nemptying child: %d of %d", child->tree_node->data_item, curr->data_item);
-        fp_empty_buffers(child->tree_node, htable);
+        fp_empty_buffers(child->tree_node);
         child = child->next;
     }
 }
 
-int ineq7(header_table head, int tid)
+
+int fp_ineq7(header_table head, int tid)
 {
     double s = N-tid+head->tid;
     double num = pow(DECAY,s-SUP*N)-pow(DECAY,s-2)-(SUP-EPS)*N*(1-DECAY);
@@ -773,217 +818,8 @@ int ineq7(header_table head, int tid)
         return 0;
 }
 
-void merge(fpnode parent, fpnode child, header_table htable)
-{
-    int flag = 0;
-    data_type nt = child->data_item;
-    fpnode_list this_child = parent->children, prev = NULL;
 
-    while(this_child != NULL)
-    {
-        if(this_child->tree_node->data_item == nt)
-{
-            break;
-        }
-        prev = this_child;
-        this_child = this_child->next;
-    }
-
-    if(this_child == NULL)
-    {
-        prev->next = (fpnode_list) malloc(sizeof(struct fpnode_list_node));
-        prev->next->tree_node = child;
-        prev->next->next = NULL;
-    }
-
-    else
-    {
-        fpnode temp = this_child->tree_node;
-        temp->freq+=pow(DECAY, abs(child->tid - temp->tid));
-        temp->tid=max(temp->tid, child->tid);
-
-        if(child->next_similar != NULL)
-            (child->next_similar)->prev_similar = child->prev_similar;
-
-        if(child->prev_similar != NULL)
-            (child->prev_similar)->next_similar=child->next_similar;
-
-        else{
-            header_table htemp = htable;
-            while(htemp && htemp->data_item != child->data_item)
-                htemp = htemp->next;
-            htemp->first = child->next_similar;
-        }
-
-        fpnode_list child_child = child->children;
-        while(child_child != NULL)
-{
-            merge(temp, child_child->tree_node, htable);
-            child_child = child_child->next;
-        }
-        free(child);
-    }
-}
-
-
-void prune_infrequent_I_patterns(header_table htable, data_type data_item, int tid)
-{
-    header_table htemp = htable;
-    while(htemp && htemp->data_item != data_item)
-        htemp = htemp->next;
-
-    fpnode fir = htemp->first;
-    htemp->first = NULL;
-
-    while(fir != NULL)
-    {
-        fpnode_list temp1 = fir->children;
-        if(fir->parent->children->tree_node == fir)
-        {
-            fir->parent->children = fir->parent->children->next;
-        }
-        else
-        {
-            fpnode_list temp = fir->parent->children;
-            while(temp->next != NULL)
-            {
-                if(temp->next->tree_node == fir)
-                {
-                    temp->next = temp->next->next;
-                    break;
-                }
-                temp = temp->next;
-            }
-        }
-        while(temp1 != NULL)
-        {
-            merge(fir->parent, temp1->tree_node, htable);
-            temp1 = temp1->next;
-        }
-        fpnode temp2 = fir;
-        fir = fir->next_similar;
-        free(temp2);
-        temp2 = NULL;
-    }
-}
-
-void prune_infrequent_II_patterns(header_table htable, data_type data_item, int tid)
-{
-    prune_infrequent_I_patterns(htable, data_item, tid);
-}
-
-void prune_obsolete_II_patterns(header_table htable, data_type data_item, int tid)
-{
-    header_table htemp = htable;
-    while(htemp && htemp->data_item != data_item)
-        htemp = htemp->next;
-
-    fpnode fir = htemp->first;
-
-    fpnode to_free = NULL;
-    while(fir!=NULL)
-    {
-        if(fir->tid <= tid - N)
-        {
-            update_ancestor(fir);
-            to_free = fir;
-            fir = fir->next_similar;
-            if(to_free->parent->children->tree_node==to_free)
-            {
-                to_free->parent->children=to_free->parent->children->next;
-            }
-            else
-            {
-                fpnode_list temp=to_free->parent->children;
-                while(temp->next!=NULL)
-                {
-                    if(temp->next->tree_node == to_free)
-                    {
-                        temp->next=temp->next->next;
-                        break;
-                    }
-                    temp=temp->next;
-                }
-            }
-            fp_delete_tree_structure(to_free);
-        }
-        else
-        {
-            fir=fir->next_similar;
-        }
-    }
-}
-
-void prune_obsolete_I_patterns(header_table htable, data_type data_item, int tid)
-{
-    header_table htemp = htable;
-    while(htemp && htemp->data_item != data_item)
-        htemp = htemp->next;
-
-    fpnode fir = htemp->first, to_free = NULL;
-
-    while(fir != NULL)
-    {
-        if(fir->freq * pow(DECAY, tid - fir->tid) >= EPS*N)
-        {
-            update_ancestor(fir);
-        }
-        to_free = fir;
-        fir = fir->next_similar;
-        if(to_free->parent->children->tree_node ==to_free)
-        {
-            to_free->parent->children = to_free->parent->children->next;
-        }
-        else
-        {
-            fpnode_list temp = to_free->parent->children;
-            while(temp->next != NULL)
-            {
-                if(temp->next->tree_node == to_free)
-                {
-                    temp->next = temp->next->next;
-                    break;
-                }
-                temp = temp->next;
-            }
-        }
-        fp_delete_tree_structure(to_free);
-    }
-    htable->cnt = 0;
-    htable->first = NULL;
-    // htable->tid = 0;
-}
-
-void prune(fptree ftree, int tid)
-{
-    header_table htable = ftree->head_table;
-    header_table prev = NULL;
-    while(htable != NULL)
-    {
-        if(htable->first != NULL)
-        {
-            if(htable->tid <= tid-N)
-            {
-                prune_obsolete_I_patterns(htable, htable->data_item, tid);
-            }
-            else if(htable->tid<tid-N+SUP*N)
-            {
-                prune_infrequent_I_patterns(htable, htable->data_item, tid);
-            }
-            else if(htable->tid >= tid-N+SUP*N && ineq7(htable, tid))
-            {
-                prune_infrequent_II_patterns(htable, htable->data_item, tid);
-            }
-            else
-            {
-                prune_obsolete_II_patterns(htable, htable->data_item, tid);
-            }
-        }
-        htable=htable->next;
-    }
-}
-
-void update_ancestor(fpnode temp)
+void fp_update_ancestor(fpnode temp)
 {
     fpnode temp1 = temp->parent;
     while(temp1->parent != NULL)
@@ -992,6 +828,358 @@ void update_ancestor(fpnode temp)
         temp1=temp1->parent;
     }
 }
+
+
+void fp_merge(fpnode parent, fpnode child, header_table htable)
+{
+    // the parent has no children so we assign it a child
+    if(parent->children == NULL)
+    {
+        assert(fp_verify_node(parent));
+        parent->children = (fpnode_list) malloc(sizeof(struct fpnode_list_node));
+        parent->children->tree_node = child;
+        child->parent = parent;
+        parent->children->next = NULL;
+
+        parent->item_list = (data) malloc(sizeof(struct data_node));
+        parent->item_list->data_item = child->data_item;
+        parent->item_list->next = NULL;
+        assert(fp_verify_node(parent));
+        return;
+    }
+
+
+    data_type nt = child->data_item;
+    fpnode_list this_child = parent->children, prev = NULL, child_child;
+    fpnode temp = NULL;
+    data prntdata = parent->item_list, prevdata = NULL;
+
+    printf("in merge parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+    fp_print_data_node(parent->item_list);
+
+    while(this_child != NULL)
+    {
+        if(this_child->tree_node->data_item == nt)
+        {
+            break;
+        }
+        prev = this_child;
+        prevdata = prntdata;
+        assert(prevdata->data_item == prev->tree_node->data_item);
+        this_child = this_child->next;
+        prntdata = prntdata->next;
+    }
+
+    // this means that child list not empty but that child does not exist
+    if(this_child == NULL)
+    {
+        assert(prev->next == NULL);
+        assert(child != NULL);
+        assert(fp_verify_node(parent));
+
+        int c1 = fp_no_children(parent);
+        printf("%d has children but not %d\n", parent->data_item, nt);
+        prev->next = (fpnode_list) malloc(sizeof(struct fpnode_list_node));
+        prev->next->tree_node = child;
+        prev->next->next = NULL;
+        child->parent = parent;
+
+        prevdata->next = (data) malloc(sizeof(struct data_node));
+        prevdata->next->data_item = child->data_item;
+        prevdata->next->next = NULL;
+
+        printf("%d, added = %d, children = %d, items = %d: ", parent->data_item, nt, fp_no_children(parent), fp_no_dataitem(parent));
+        fp_print_data_node(parent->item_list);
+
+        int c2 = fp_no_children(parent);
+        assert(fp_verify_node(parent));
+        assert(c2-c1 == 1);
+        return;
+    }
+
+    printf("\n!!!special merge, child = %d!!!\n", nt);
+    temp = this_child->tree_node;
+    temp->freq += pow(abs(child->tid - temp->tid), DECAY);
+    temp->tid = max(temp->tid, child->tid);
+
+    /* taken cared of by the delete function*/
+    // if(child->next_similar != NULL)
+    //     (child->next_similar)->prev_similar = child->prev_similar;
+
+    // if(child->prev_similar != NULL)
+    //     (child->prev_similar)->next_similar=child->next_similar;
+
+    // else
+    // {
+    //     header_table htemp = htable;
+    //     while(htemp && htemp->data_item != child->data_item)
+    //         htemp = htemp->next;
+    //     htemp->first = child->next_similar;
+    // }
+    assert(fp_verify_node(parent));
+
+    child_child = child->children;
+    while(child_child != NULL)
+    {
+        assert(fp_verify_node(temp));
+        fp_merge(temp, child_child->tree_node, htable);
+        assert(fp_verify_node(temp));
+        prev = child_child;
+        child_child = child_child->next;
+        // free(prev);
+    }
+    assert(fp_verify_node(parent));
+    // fp_delete_tree_structure(child);
+    // free(child);
+}
+
+
+void fp_prune_infrequent_I_patterns(header_table htable, data_type data_item, int tid)
+{
+    printf("\n***pruning data_item %d***\n", data_item);
+    header_table htemp = htable;
+    while(htemp && htemp->data_item != data_item)
+        htemp = htemp->next;
+
+    fpnode fir = htemp->first, temp2, parent;
+    htemp->first = NULL;
+    fpnode_list temp, ori, temp1;
+    data prntdata;
+
+    while(fir != NULL)
+    {
+        parent = fir->parent;
+
+        printf("in pruing parent %d, curr_child = %d, children = %d, items = %d: ", parent->data_item, data_item, fp_no_children(parent), fp_no_dataitem(parent));
+        fp_print_data_node(parent->item_list);
+
+        // this code is separating the child from the parent and then we will merge the parent and it's grandchildren
+        if(parent->children->tree_node == fir)
+        {
+            printf("doing stuff here!\n");
+            parent->children = parent->children->next;
+            parent->item_list = parent->item_list->next;
+        }
+        else
+        {
+            printf("doing stuff there!\n");
+            temp = parent->children;
+            prntdata = parent->item_list;
+            ori = NULL;
+            while(temp->next != NULL)
+            {
+                if(temp->next->tree_node == fir)
+                {
+                    // ori is the child pointer which points to
+                    // fir, so we must free it to save space
+                    ori = temp->next;
+                    temp->next = temp->next->next;
+                    prntdata->next = prntdata->next->next;
+                    free(ori);
+                    break;
+                }
+                temp = temp->next;
+                prntdata = prntdata->next;
+            }
+        }
+        printf("separated child = %d with %d children: ", fir->data_item, fp_no_children(fir));
+        fp_print_data_node(fir->item_list);
+
+        temp1 = fir->children;
+
+        while(temp1 != NULL)
+        {
+            printf("merging %d, %d\n", fir->parent->data_item, temp1->tree_node->data_item);
+
+            printf("before:- parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+
+            fp_print_data_node(parent->item_list);
+            assert(fp_verify_node(parent));
+
+            fp_merge(parent, temp1->tree_node, htable);
+
+            assert(fp_verify_node(parent));
+
+            printf("after:- parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+            fp_print_data_node(parent->item_list);
+
+            // this is deleting the children pointers of fir as we will delete it eventually
+            temp = temp1;
+            temp1 = temp1->next;
+            temp->next = NULL;
+            free(temp);
+        }
+
+        temp2 = fir;
+        fir = fir->next_similar;
+        // Do not do fp_delete_tree_structure(temp2); it will delete the children of temp2 also which we are merging!
+
+        // if(temp2->prev_similar!=NULL)
+        //     (temp2->prev_similar)->next_similar = temp2->next_similar;
+
+        // if(temp2->next_similar!=NULL)
+        //     (temp2->next_similar)->prev_similar=(temp2)->prev_similar;
+
+        // if(temp2->hnode && temp2->hnode->first == temp2)
+        //     temp2->hnode->first = NULL;
+        fp_delete_data_node(temp2->item_list);
+        free(temp2);
+    }
+}
+
+
+void fp_prune_infrequent_II_patterns(header_table htable, data_type data_item, int tid)
+{
+    fp_prune_infrequent_I_patterns(htable, data_item, tid);
+}
+
+
+void fp_prune_obsolete_II_patterns(header_table htable, data_type data_item, int tid)
+{
+    header_table htemp = htable;
+    while(htemp && htemp->data_item != data_item)
+        htemp = htemp->next;
+
+    fpnode fir = htemp->first, to_free = NULL;
+    fpnode_list temp, ori;
+    data prntdata;
+
+    while(fir!=NULL)
+    {
+        if(fir->tid <= tid - N)
+        {
+            fp_update_ancestor(fir);
+            to_free = fir;
+            if(to_free->parent->children->tree_node==to_free)
+            {
+                temp = to_free->parent->children;
+                to_free->parent->children=to_free->parent->children->next;
+                prntdata = to_free->parent->item_list;
+                to_free->parent->item_list = to_free->parent->item_list->next;
+                free(temp);
+                free(prntdata);
+            }
+            else
+            {
+                temp = to_free->parent->children;
+                prntdata = to_free->parent->item_list;
+                ori = NULL;
+                while(temp->next!=NULL)
+                {
+                    if(temp->next->tree_node == to_free)
+                    {
+                        ori = temp->next;
+                        temp->next=temp->next->next;
+                        prntdata->next = prntdata->next->next;
+                        free(ori);
+                        break;
+                    }
+                temp = temp->next;
+                prntdata = prntdata->next;
+                }
+            }
+            assert(fp_verify_node(to_free));
+            fp_delete_tree_structure(to_free);
+            free(to_free);
+        }
+        fir=fir->next_similar;
+    }
+}
+
+
+void fp_prune_obsolete_I_patterns(header_table htable, data_type data_item, int tid)
+{
+    // printf("***pruning data_item %d***\n", data_item);
+    header_table htemp = htable;
+    while(htemp && htemp->data_item != data_item)
+        htemp = htemp->next;
+
+    fpnode fir = htemp->first, to_free = NULL;
+    fpnode_list temp, ori;
+    data prntdata;
+
+    while(fir != NULL)
+    {
+        if(fir->freq * pow(DECAY, tid - fir->tid) >= EPS*N)
+        {
+            fp_update_ancestor(fir);
+        }
+        to_free = fir;
+        // printf("parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+        // fp_print_data_node(parent->item_list);
+
+        fir = fir->next_similar;
+        if(to_free->parent->children->tree_node == to_free)
+        {
+            // printf("doing stuff here\n");
+            temp = to_free->parent->children;
+            to_free->parent->children=to_free->parent->children->next;
+            prntdata = to_free->parent->item_list;
+            to_free->parent->item_list = to_free->parent->item_list->next;
+            free(temp);
+            free(prntdata);
+        }
+        else
+        {
+            // printf("doing stuff there\n");
+            temp = to_free->parent->children;
+            prntdata = to_free->parent->item_list;
+            ori = NULL;
+            while(temp->next != NULL)
+            {
+                if(temp->next->tree_node == to_free)
+                {
+                    ori = temp->next;
+                    temp->next = temp->next->next;
+                    prntdata->next = prntdata->next->next;
+                    free(ori);
+                    break;
+                }
+                temp = temp->next;
+                prntdata = prntdata->next;
+            }
+        }
+        // printf("deleting %d, children = %d, items = %d\n", to_free->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+        assert(fp_verify_node(to_free));
+        fp_delete_tree_structure(to_free);
+        free(to_free);
+    }
+    htable->cnt = 0;
+    htable->first = NULL;
+    htable->tid = -1;
+}
+
+
+void fp_prune(fptree ftree, int tid)
+{
+    header_table htable = ftree->head_table;
+    header_table prev = NULL;
+    while(htable != NULL)
+    {
+        if(htable->first != NULL)
+        {
+            // if(htable->tid <= tid-N)
+            // {
+            //     fp_prune_obsolete_I_patterns(htable, htable->data_item, tid);
+            // }
+            if(htable->tid<tid-N+SUP*N)
+            {
+                fp_prune_infrequent_I_patterns(htable, htable->data_item, tid);
+            }
+            // printf("&&&wont prune %d&&&\n", htable->data_item);
+            // else if(htable->tid >= tid-N+SUP*N && fp_ineq7(htable, tid))
+            // {
+            //     fp_prune_infrequent_II_patterns(htable, htable->data_item, tid);
+            // }
+            // else
+            // {
+            //     fp_prune_obsolete_II_patterns(htable, htable->data_item, tid);
+            // }
+        }
+        htable=htable->next;
+    }
+}
+
 
 fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, double minsup, int tid)
 {
@@ -1007,7 +1195,7 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
         curr_head_table_node = curr_head_table_node->next;
     }
 
-    if(curr_head_table_node == NULL || (curr_head_table_node->cnt)*pow(DECAY, tid - curr_head_table_node->tid) < (minsup-EPS)*N)
+    if(curr_head_table_node == NULL || curr_head_table_node->cnt < minsup)
         return NULL;
     if(node == NULL)    return NULL;
 
@@ -1019,11 +1207,10 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
     //and touch all nodes till the root
     //touched nodes are a means of identifying which nodes should be in coditional FP-tree
     double add;
-    fpnode temp;
     while(node != NULL)
     {
-        temp = node;
-        add = (temp->freq)*pow(DECAY, tid - temp->tid);
+        fpnode temp = node;
+        add = temp->freq * pow(DECAY, tid - temp->tid);
         while(temp != NULL)
         {
             temp->touched += add;
@@ -1088,11 +1275,8 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int tid,
         }
 
         assert(curr_header_node != NULL);
-
-        double new_cnt = (curr_header_node->cnt)*pow(DECAY, tid - curr_header_node->tid);
-
-        if((pattern == 0 && new_cnt >= (MINSUP_SEMIFREQ - EPS)*N)
-                || (pattern == 1 && new_cnt >= (MINSUP_FREQ - EPS)*N))
+        if((pattern == 0 && curr_header_node->cnt >= MINSUP_SEMIFREQ)
+                || (pattern == 1 && curr_header_node->cnt >= MINSUP_FREQ))
         {
             //frequent itemset
             FILE *fp;
@@ -1121,8 +1305,7 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int tid,
                 printf(" %d", arr[t]);
                 t--;
             }
-            if(pattern == 0)
-{
+            if(pattern == 0){
                 fprintf(fp, " %lf", curr_header_node->cnt);
                 printf(" %lf", curr_header_node->cnt);
             }
@@ -1242,14 +1425,13 @@ void fp_print_tree(fpnode node)
 {
     fp_print_node(node);
     fpnode_list curr_child_list = node->children;
-    data curr_data = node->item_list;
-    while(curr_data != NULL)
+    fpnode this_child;
+    while(curr_child_list != NULL)
     {
-        fpnode this_child = curr_child_list->tree_node;
+        this_child = curr_child_list->tree_node;
         // printf("going to child %d %d\n", this_child->data_item, curr_data->data_item);
         fp_print_tree(this_child);
         curr_child_list = curr_child_list->next;
-        curr_data = curr_data->next;
     }
 }
 
