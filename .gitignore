@@ -1,5 +1,7 @@
 *.o
+test
 intermediate
+gnd_truth
 output
 *.out
 ./data/*

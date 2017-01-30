@@ -13,7 +13,7 @@
 #define max(a,b) ((a) > (b) ? a : b)
 #define min(a,b) ((a) < (b) ? a : b)
 
-#define DECAY 0.99
+#define DECAY 1.0
 #define NUM_ITEMS 100
 #define N 2 //window size
 #define EPS 0.001
@@ -62,12 +62,11 @@ typedef struct buffer_node* buffer;
 
 
 typedef struct fp_node* fpnode;
-typedef struct fpnode_list_node* fpnode_list;
 typedef struct header_table_node* header_table;
 
 struct fp_node{
-    fpnode_list children;
-    data item_list;
+    fpnode* children;
+    data* item_list;
     buffer itembuffer;
     int bufferSize;
     int tid; // time stamp
@@ -81,24 +80,17 @@ struct fp_node{
 };
 
 
-struct fpnode_list_node{
-    fpnode tree_node; // pointer to fp-tree node
-    fpnode_list next; // pointer to next list node
-};
-
-
 struct header_table_node{
     data_type data_item;
     fpnode first;
     double cnt;
     int tid;
-    struct header_table_node* next;
 };
 
 
 struct fptree_node{
     fpnode root;
-    header_table head_table;
+    header_table* head_table;
 };
 typedef struct fptree_node* fptree;
 

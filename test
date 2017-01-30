@@ -1,0 +1,1723 @@
+total time taken to insert in FP tree = 16.561000 ms
+
+resulting fp-tree:
+
+data_item = -1, freq = 97.000000, tid = 97, parent = NULL, touched = 0.000000, children = 23, buffer_size = 0 
+BUFFER:
+data_item = 0, freq = 1.000000, tid = 8, parent = -1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 5, freq = 1.000000, tid = 92, parent = 0, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 8, freq = 1.000000, tid = 90, parent = 5, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 8, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 29, freq = 1.000000, tid = 70, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 29, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 62, freq = 1.000000, tid = 8, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 62, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 90, freq = 1.000000, tid = 66, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 95, freq = 1.000000, tid = 76, parent = 90, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 1, freq = 4.000000, tid = 90, parent = -1, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 8, freq = 2.000000, tid = 90, parent = 1, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 1.000000, tid = 96, parent = 8, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 12, freq = 1.000000, tid = 92, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 1.000000, tid = 76, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 41, freq = 1.000000, tid = 77, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 54, freq = 1.000000, tid = 94, parent = 41, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 75, freq = 1.000000, tid = 87, parent = 54, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 75, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 8, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 40, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 1.000000, tid = 96, parent = 1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 63, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 80, freq = 1.000000, tid = 94, parent = 73, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 80, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 13, freq = 1.000000, tid = 93, parent = 1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 61, freq = 1.000000, tid = 85, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 81, freq = 1.000000, tid = 79, parent = 61, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 88, freq = 1.000000, tid = 18, parent = 81, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 2, freq = 24.000000, tid = 93, parent = -1, touched = 0.000000, children = 12, buffer_size = 0 
+BUFFER:
+data_item = 5, freq = 2.000000, tid = 92, parent = 2, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 2.000000, tid = 96, parent = 5, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 2.000000, tid = 96, parent = 9, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 83, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 33, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 6, freq = 2.000000, tid = 82, parent = 2, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 1.000000, tid = 96, parent = 6, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 10, freq = 1.000000, tid = 74, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 10, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 28, freq = 1.000000, tid = 86, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 28, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 66, freq = 1.000000, tid = 86, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 66, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 77, freq = 1.000000, tid = 59, parent = 71, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 77, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 6, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 29, freq = 1.000000, tid = 70, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 29, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 39, freq = 1.000000, tid = 43, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 39, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 77, freq = 1.000000, tid = 59, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 77, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 83, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 85, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 7, freq = 2.000000, tid = 94, parent = 2, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 1.000000, tid = 96, parent = 7, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 28, freq = 1.000000, tid = 86, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 78, freq = 1.000000, tid = 78, parent = 28, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 80, freq = 1.000000, tid = 94, parent = 78, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 7, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 42, freq = 1.000000, tid = 84, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 42, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 71, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 96, freq = 1.000000, tid = 84, parent = 94, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 8, freq = 3.000000, tid = 90, parent = 2, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 2.000000, tid = 96, parent = 8, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 10, freq = 1.000000, tid = 74, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 10, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 28, freq = 1.000000, tid = 86, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 28, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 61, freq = 1.000000, tid = 85, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 61, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 75, freq = 1.000000, tid = 87, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 75, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 83, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 34, freq = 1.000000, tid = 78, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 34, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 78, freq = 1.000000, tid = 78, parent = 73, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 78, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 8, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 1.000000, tid = 76, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 95, freq = 1.000000, tid = 76, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 5.000000, tid = 96, parent = 2, touched = 0.000000, children = 5, buffer_size = 0 
+BUFFER:
+data_item = 10, freq = 1.000000, tid = 74, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 10, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 20, freq = 1.000000, tid = 77, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 20, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 55, freq = 1.000000, tid = 35, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 55, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 72, freq = 1.000000, tid = 67, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 77, freq = 1.000000, tid = 59, parent = 72, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 77, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 85, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 11, freq = 1.000000, tid = 92, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 11, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 75, freq = 1.000000, tid = 87, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 75, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 13, freq = 1.000000, tid = 93, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 58, freq = 1.000000, tid = 93, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 58, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 89, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 14, freq = 1.000000, tid = 96, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 19, freq = 1.000000, tid = 85, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 19, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 61, freq = 1.000000, tid = 85, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 61, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 63, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 75, freq = 1.000000, tid = 87, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 75, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 42, freq = 1.000000, tid = 84, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 42, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 11, freq = 1.000000, tid = 92, parent = 2, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 11, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 28, freq = 1.000000, tid = 86, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 28, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 63, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 95, freq = 1.000000, tid = 76, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 96, freq = 1.000000, tid = 84, parent = 95, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 13, freq = 2.000000, tid = 93, parent = 2, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 29, freq = 1.000000, tid = 70, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 29, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 83, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 92, freq = 1.000000, tid = 69, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 14, freq = 1.000000, tid = 96, parent = 2, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 25, freq = 1.000000, tid = 96, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 25, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 91, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 95, freq = 1.000000, tid = 76, parent = 94, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 2, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 19, freq = 1.000000, tid = 85, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 47, freq = 1.000000, tid = 62, parent = 19, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 47, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 83, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 2, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 1.000000, tid = 76, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 74, freq = 1.000000, tid = 94, parent = 63, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 74, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 2.000000, tid = 90, parent = 2, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 61, freq = 1.000000, tid = 85, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 61, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 86, freq = 1.000000, tid = 94, parent = 82, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 29, freq = 1.000000, tid = 70, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 29, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 48, freq = 1.000000, tid = 97, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 61, freq = 1.000000, tid = 85, parent = 48, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 61, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 2.000000, tid = 96, parent = 2, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 1.000000, tid = 76, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 72, freq = 1.000000, tid = 67, parent = 63, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 84, freq = 1.000000, tid = 66, parent = 72, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 84, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 90, freq = 1.000000, tid = 66, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 3, freq = 1.000000, tid = 49, parent = -1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 1.000000, tid = 96, parent = 3, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 12, freq = 1.000000, tid = 92, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 80, freq = 1.000000, tid = 94, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 80, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 4, freq = 3.000000, tid = 73, parent = -1, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 8, freq = 1.000000, tid = 90, parent = 4, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 1.000000, tid = 96, parent = 8, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 12, freq = 1.000000, tid = 92, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 20, freq = 1.000000, tid = 77, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 1.000000, tid = 76, parent = 20, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 57, freq = 1.000000, tid = 73, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 57, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 73, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 1.000000, tid = 96, parent = 4, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 13, freq = 1.000000, tid = 93, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 72, freq = 1.000000, tid = 67, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 87, freq = 1.000000, tid = 79, parent = 72, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 90, freq = 1.000000, tid = 66, parent = 87, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 20, freq = 1.000000, tid = 77, parent = 4, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 20, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 86, freq = 1.000000, tid = 94, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 86, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 5, freq = 2.000000, tid = 92, parent = -1, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 11, freq = 1.000000, tid = 92, parent = 5, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 12, freq = 1.000000, tid = 92, parent = 11, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 73, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 5, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 65, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 6, freq = 4.000000, tid = 82, parent = -1, touched = 0.000000, children = 4, buffer_size = 0 
+BUFFER:
+data_item = 11, freq = 1.000000, tid = 92, parent = 6, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 11, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 54, freq = 1.000000, tid = 94, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 54, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 95, freq = 1.000000, tid = 76, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 12, freq = 1.000000, tid = 92, parent = 6, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 64, freq = 1.000000, tid = 70, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 64, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 6, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 67, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 6, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 61, freq = 1.000000, tid = 85, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 75, freq = 1.000000, tid = 87, parent = 61, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 7, freq = 4.000000, tid = 94, parent = -1, touched = 0.000000, children = 4, buffer_size = 0 
+BUFFER:
+data_item = 8, freq = 1.000000, tid = 90, parent = 7, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 8, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 44, freq = 1.000000, tid = 13, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 44, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 76, freq = 1.000000, tid = 13, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 76, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 1.000000, tid = 96, parent = 7, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 54, freq = 1.000000, tid = 94, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 54, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 71, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 7, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 27, freq = 1.000000, tid = 80, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 28, freq = 1.000000, tid = 86, parent = 27, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 28, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 56, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 7, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 54, freq = 1.000000, tid = 94, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 54, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 74, freq = 1.000000, tid = 94, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 80, freq = 1.000000, tid = 94, parent = 74, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 80, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 86, freq = 1.000000, tid = 94, parent = 83, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 8, freq = 9.000000, tid = 90, parent = -1, touched = 0.000000, children = 4, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 5.000000, tid = 96, parent = 8, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 12, freq = 1.000000, tid = 92, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 58, freq = 1.000000, tid = 93, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 58, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 89, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 92, freq = 1.000000, tid = 69, parent = 91, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 95, freq = 1.000000, tid = 76, parent = 92, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 96, freq = 1.000000, tid = 84, parent = 95, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 13, freq = 3.000000, tid = 93, parent = 9, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 28, freq = 1.000000, tid = 86, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 28, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 48, freq = 1.000000, tid = 97, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 66, freq = 1.000000, tid = 86, parent = 48, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 66, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 99, freq = 1.000000, tid = 97, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 78, freq = 1.000000, tid = 78, parent = 71, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 78, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 48, freq = 1.000000, tid = 97, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 48, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 96, freq = 1.000000, tid = 84, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 20, freq = 1.000000, tid = 77, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 20, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 83, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 11, freq = 1.000000, tid = 92, parent = 8, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 14, freq = 1.000000, tid = 96, parent = 11, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 42, freq = 1.000000, tid = 84, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 42, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 63, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 71, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 89, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 96, freq = 1.000000, tid = 84, parent = 93, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 12, freq = 1.000000, tid = 92, parent = 8, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 45, freq = 1.000000, tid = 67, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 45, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 72, freq = 1.000000, tid = 67, parent = 71, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 79, freq = 1.000000, tid = 67, parent = 72, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 79, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 98, freq = 1.000000, tid = 89, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 14, freq = 2.000000, tid = 96, parent = 8, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 54, freq = 1.000000, tid = 94, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 54, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 50, freq = 1.000000, tid = 95, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 50, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 86, freq = 1.000000, tid = 94, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 86, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 9, freq = 15.000000, tid = 96, parent = -1, touched = 0.000000, children = 10, buffer_size = 0 
+BUFFER:
+data_item = 10, freq = 1.000000, tid = 74, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 10, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 48, freq = 1.000000, tid = 97, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 48, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 82, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 11, freq = 1.000000, tid = 92, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 11, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 19, freq = 1.000000, tid = 85, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 19, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 92, freq = 1.000000, tid = 69, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 13, freq = 1.000000, tid = 93, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 36, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 14, freq = 6.000000, tid = 96, parent = 9, touched = 0.000000, children = 4, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 2.000000, tid = 93, parent = 14, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 1.000000, tid = 76, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 48, freq = 1.000000, tid = 97, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 48, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 56, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 27, freq = 1.000000, tid = 80, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 27, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 61, freq = 1.000000, tid = 85, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 98, freq = 1.000000, tid = 89, parent = 61, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 2.000000, tid = 96, parent = 14, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 19, freq = 1.000000, tid = 85, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 41, freq = 1.000000, tid = 77, parent = 19, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 41, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 73, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 25, freq = 1.000000, tid = 96, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 25, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 96, freq = 1.000000, tid = 84, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 63, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 1.000000, tid = 76, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 58, freq = 1.000000, tid = 93, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 58, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 96, freq = 1.000000, tid = 84, parent = 71, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 27, freq = 1.000000, tid = 80, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 27, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 37, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 49, freq = 1.000000, tid = 6, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 86, freq = 1.000000, tid = 94, parent = 49, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 86, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 81, freq = 1.000000, tid = 79, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 87, freq = 1.000000, tid = 79, parent = 81, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 87, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 9, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 41, freq = 1.000000, tid = 77, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 41, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 52, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 10, freq = 1.000000, tid = 74, parent = -1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 10, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 19, freq = 1.000000, tid = 85, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 19, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 11, freq = 1.000000, tid = 92, parent = -1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 11, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 78, freq = 1.000000, tid = 78, parent = 73, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 78, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 12, freq = 2.000000, tid = 92, parent = -1, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 13, freq = 1.000000, tid = 93, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 1.000000, tid = 76, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 81, freq = 1.000000, tid = 79, parent = 63, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 81, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 92, freq = 1.000000, tid = 69, parent = 91, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 92, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 95, freq = 1.000000, tid = 76, parent = 93, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 14, freq = 1.000000, tid = 96, parent = 12, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 20, freq = 1.000000, tid = 77, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 20, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 55, freq = 1.000000, tid = 35, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 65, freq = 1.000000, tid = 96, parent = 55, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 65, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 89, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 91, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 99, freq = 1.000000, tid = 97, parent = 94, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 13, freq = 4.000000, tid = 93, parent = -1, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 14, freq = 2.000000, tid = 96, parent = 13, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 18, freq = 1.000000, tid = 90, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 18, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 28, freq = 1.000000, tid = 86, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 45, freq = 1.000000, tid = 67, parent = 28, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 45, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 20, freq = 1.000000, tid = 77, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 20, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 34, freq = 1.000000, tid = 78, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 34, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 92, freq = 1.000000, tid = 69, parent = 73, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 69, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 29, freq = 1.000000, tid = 70, parent = 13, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 29, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 85, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 14, freq = 3.000000, tid = 96, parent = -1, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 1.000000, tid = 93, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 27, freq = 1.000000, tid = 80, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 27, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 70, freq = 1.000000, tid = 86, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 70, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 71, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 41, freq = 1.000000, tid = 77, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 55, freq = 1.000000, tid = 35, parent = 41, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 55, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 58, freq = 1.000000, tid = 93, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 58, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 92, freq = 1.000000, tid = 69, parent = 89, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 14, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 69, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 15, freq = 3.000000, tid = 93, parent = -1, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 1.000000, tid = 95, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 19, freq = 1.000000, tid = 85, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 19, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 38, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 51, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 82, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 19, freq = 1.000000, tid = 85, parent = 15, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 19, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 56, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 16, freq = 4.000000, tid = 95, parent = -1, touched = 0.000000, children = 4, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 1.000000, tid = 96, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 25, freq = 1.000000, tid = 96, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 25, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 50, freq = 1.000000, tid = 95, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 50, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 93, freq = 1.000000, tid = 95, parent = 89, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 93, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 96, freq = 1.000000, tid = 84, parent = 71, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 75, freq = 1.000000, tid = 87, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 75, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 16, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 38, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 17, freq = 3.000000, tid = 96, parent = -1, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 20, freq = 1.000000, tid = 77, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 20, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 31, freq = 1.000000, tid = 73, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 36, freq = 1.000000, tid = 88, parent = 31, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 36, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 67, freq = 1.000000, tid = 92, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 77, freq = 1.000000, tid = 59, parent = 67, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 78, freq = 1.000000, tid = 78, parent = 77, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 21, freq = 1.000000, tid = 96, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 21, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 64, freq = 1.000000, tid = 70, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 64, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 78, freq = 1.000000, tid = 78, parent = 73, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 78, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 17, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 43, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 20, freq = 1.000000, tid = 77, parent = -1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = 20, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 41, freq = 1.000000, tid = 77, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 52, freq = 1.000000, tid = 95, parent = 41, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 52, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 73, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 83, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 99, freq = 1.000000, tid = 97, parent = 85, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 22, freq = 4.000000, tid = 76, parent = -1, touched = 0.000000, children = 3, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 2.000000, tid = 97, parent = 22, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 58, freq = 1.000000, tid = 93, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 79, freq = 1.000000, tid = 67, parent = 58, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 79, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 40, freq = 1.000000, tid = 93, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 40, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 63, freq = 1.000000, tid = 85, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 63, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 73, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 26, freq = 1.000000, tid = 91, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 29, freq = 1.000000, tid = 70, parent = 26, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 1.000000, tid = 95, parent = 29, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 56, freq = 1.000000, tid = 87, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 64, freq = 1.000000, tid = 70, parent = 56, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 64, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 78, freq = 1.000000, tid = 78, parent = 73, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 82, freq = 1.000000, tid = 91, parent = 78, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 82, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 87, freq = 1.000000, tid = 79, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 87, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = 22, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 43, freq = 1.000000, tid = 94, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 71, freq = 1.000000, tid = 84, parent = 43, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 73, freq = 1.000000, tid = 92, parent = 71, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 78, freq = 1.000000, tid = 78, parent = 73, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 83, freq = 1.000000, tid = 94, parent = 78, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 24, freq = 1.000000, tid = 97, parent = -1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 46, freq = 1.000000, tid = 97, parent = 24, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 48, freq = 1.000000, tid = 97, parent = 46, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 59, freq = 1.000000, tid = 97, parent = 48, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 59, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 89, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 99, freq = 1.000000, tid = 97, parent = 94, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 33, freq = 2.000000, tid = 95, parent = -1, touched = 0.000000, children = 2, buffer_size = 0 
+BUFFER:
+data_item = 38, freq = 1.000000, tid = 92, parent = 33, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 69, freq = 1.000000, tid = 94, parent = 33, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 69, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 98, freq = 1.000000, tid = 89, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+data_item = 37, freq = 1.000000, tid = 95, parent = -1, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 51, freq = 1.000000, tid = 80, parent = 37, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 85, freq = 1.000000, tid = 89, parent = 51, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 89, freq = 1.000000, tid = 97, parent = 85, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 91, freq = 1.000000, tid = 93, parent = 89, touched = 0.000000, children = 1, buffer_size = 0 
+BUFFER:
+data_item = 94, freq = 1.000000, tid = 97, parent = 91, touched = 0.000000, children = 0, buffer_size = 0 
+BUFFER:
+33 95 52.000000
+89 97 42.000000
+9 96 37.000000
+37 95 27.000000
+82 91 25.000000
+2 93 24.000000
+24 97 24.000000
+91 93 23.000000
+17 96 22.000000
+38 92 21.000000
+56 87 21.000000
+67 92 21.000000
+21 96 18.000000
+18 90 18.000000
+94 97 18.000000
+14 96 17.000000
+15 93 17.000000
+8 90 17.000000
+40 93 16.000000
+43 94 16.000000
+46 97 15.000000
+52 95 14.000000
+73 92 14.000000
+13 93 14.000000
+16 95 13.000000
+85 89 13.000000
+26 91 13.000000
+31 73 13.000000
+51 80 13.000000
+65 96 12.000000
+22 76 12.000000
+71 84 11.000000
+59 97 11.000000
+69 94 11.000000
+83 94 11.000000
+36 88 10.000000
+70 86 10.000000
+12 92 9.000000
+93 95 9.000000
+63 85 9.000000
+78 78 8.000000
+20 77 8.000000
+96 84 8.000000
+19 85 7.000000
+11 92 7.000000
+28 86 7.000000
+95 76 7.000000
+61 85 7.000000
+29 70 6.000000
+92 69 6.000000
+7 94 6.000000
+6 82 6.000000
+48 97 6.000000
+75 87 6.000000
+5 92 5.000000
+10 74 5.000000
+54 94 5.000000
+41 77 5.000000
+86 94 5.000000
+58 93 5.000000
+1 90 4.000000
+77 59 4.000000
+72 67 4.000000
+80 94 4.000000
+27 80 4.000000
+99 97 4.000000
+90 66 3.000000
+81 79 3.000000
+42 84 3.000000
+55 35 3.000000
+25 96 3.000000
+64 70 3.000000
+87 79 3.000000
+98 89 3.000000
+4 73 3.000000
+79 67 2.000000
+34 78 2.000000
+74 94 2.000000
+45 67 2.000000
+66 86 2.000000
+50 95 2.000000
+88 18 1.000000
+0 8 1.000000
+39 43 1.000000
+62 8 1.000000
+47 62 1.000000
+3 49 1.000000
+49 6 1.000000
+84 66 1.000000
+57 73 1.000000
+76 13 1.000000
+44 13 1.000000
+53 -1 0.000000
+30 -1 0.000000
+60 -1 0.000000
+23 -1 0.000000
+68 -1 0.000000
+97 -1 0.000000
+35 -1 0.000000
+32 -1 0.000000
+sizeof fp tree = 6456
+total time taken to mine FP tree = 0.003000 ms
+total time taken by CP tree = 0.000000 ms
+
+sizeof cp tree = 6456

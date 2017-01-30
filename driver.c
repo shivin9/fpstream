@@ -81,15 +81,15 @@ int main(int argc, char* argv[])
             d = new_d;
         }
         // removes duplicates items also
-        printf("inserting: ");
+        // printf("inserting: ");
         fp_sort_data(d, NULL);
-        fp_print_data_node(d);
+        // fp_print_data_node(d);
         ftree = fp_insert_itemset(ftree, d, tid, 0);
-        fp_create_header_table_helper(ftree->root, &(ftree->head_table));
+        fp_create_header_table_helper(ftree->root, ftree->head_table);
         fp_update_header_table(ftree->head_table, d, tid);
         // fp_print_tree(ftree->root);
         fp_delete_data_node(d);
-        fp_prune(ftree, tid);
+        // fp_prune(ftree, tid);
         tid++;
     }
     fclose(fp);
@@ -103,16 +103,16 @@ int main(int argc, char* argv[])
 
     // printf("\n\nfinal pattern tree:\n\n");
     // print_tree(ptree->root);
-    // printf("\nresulting fp-tree:\n\n");
+    printf("\nresulting fp-tree:\n\n");
     // printf("\n");
-    // fp_print_tree(ftree->root);
+    fp_print_tree(ftree->root);
     double* arr = (double*) malloc(DICT_SIZE * sizeof(double));
     double* funcarr = (double*) malloc(DICT_SIZE * sizeof(double));
 
     // fp_print_header_table(ftree->head_table);
     // process_batch(ptree, cnt/batch_size);
     // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
-    int cnt;
+    int cnt, idx;
     for(cnt = 0; cnt < 100; cnt++){
         arr[cnt] = 0.0;
         funcarr[cnt] = 0.0;
@@ -121,17 +121,21 @@ int main(int argc, char* argv[])
     // usleep(1000);
     fp_empty_buffers(ftree->root);
     // fp_create_header_table_helper(ftree->root, &(ftree->head_table));
-    // fp_sort_header_table(ftree->head_table, funcarr);
-    // fp_print_header_table(ftree->head_table);
+    fp_sort_header_table(ftree->head_table, funcarr);
+    fp_print_header_table(ftree->head_table);
 
     cnt = 0;
-    fpnode_list child = ftree->root->children;
-    while(child){
-        // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
-        // printf("%lf ", child->tree_node->freq);
-        arr[cnt] =  child->tree_node->freq;
-        sum += arr[cnt++];
-        child = child->next;
+    fpnode* child = ftree->root->children;
+
+    for(idx = 0; idx < DICT_SIZE; idx++)
+    {
+        if(child[idx])
+        {
+            // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
+            // printf("%lf ", child->tree_node->freq);
+            arr[cnt] =  child[idx]->freq;
+            sum += arr[cnt++];
+        }
     }
 
     printf("sizeof fp tree = %d\n", fp_size_of_tree(ftree->root));
@@ -180,14 +184,16 @@ int main(int argc, char* argv[])
 
     cnt = 0, sum = 0;
 
-    while(child){
-        // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
-        // printf("%d ", child->tree_node->freq);
-        arr[cnt++] =  child->tree_node->freq;
-        sum += arr[cnt-1];
-        child = child->next;
+    for(idx = 0; idx < DICT_SIZE; idx++)
+    {
+        if(child[idx])
+        {
+            // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
+            // printf("%d ", child->tree_node->freq);
+            arr[cnt++] =  child[idx]->freq;
+            sum += arr[cnt-1];
+        }
     }
-
     qsort(arr, 100, sizeof(double), cmpfunc);
     // printf("total = %d, children = %d\n", sum, cnt);
     // for(cnt = 0; cnt < 100; cnt++)
