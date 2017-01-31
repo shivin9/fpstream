@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     data sorted = fp_create_sorted_dummy();
     int sum = 0, batch_size = 10000;
     ftree = fp_create_fptree();
-    fp_create_header_table(ftree);
+    fp_create_header_table(ftree, 1);
 
     struct timeval t1, t2;
     double elapsedTime;
@@ -103,9 +103,9 @@ int main(int argc, char* argv[])
 
     // printf("\n\nfinal pattern tree:\n\n");
     // print_tree(ptree->root);
-    printf("\nresulting fp-tree:\n\n");
+    // printf("\nresulting fp-tree:\n\n");
     // printf("\n");
-    fp_print_tree(ftree->root);
+    // fp_print_tree(ftree->root);
     double* arr = (double*) malloc(DICT_SIZE * sizeof(double));
     double* funcarr = (double*) malloc(DICT_SIZE * sizeof(double));
 
@@ -121,8 +121,8 @@ int main(int argc, char* argv[])
     // usleep(1000);
     fp_empty_buffers(ftree->root);
     // fp_create_header_table_helper(ftree->root, &(ftree->head_table));
-    fp_sort_header_table(ftree->head_table, funcarr);
-    fp_print_header_table(ftree->head_table);
+    // fp_sort_header_table(ftree->head_table, funcarr);
+    // fp_print_header_table(ftree->head_table);
 
     cnt = 0;
     fpnode* child = ftree->root->children;
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 
     // correct fp tree 437 new500
     gettimeofday(&t1, NULL);
-    fp_mine_frequent_itemsets(ftree, sorted, NULL, 1, 0);
+    fp_mine_frequent_itemsets(ftree, sorted, NULL, tid, 0);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;

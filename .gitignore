@@ -1,8 +1,8 @@
 *.o
-test
-intermediate
-gnd_truth
 output
+intermediate
+test
+gnd_truth
 *.out
 ./data/*
 exe
