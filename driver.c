@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     data sorted = fp_create_sorted_dummy();
     int sum = 0, batch_size = 10000;
     ftree = fp_create_fptree();
-    fp_create_header_table(ftree);
+    fp_create_header_table(ftree, 1);
 
     struct timeval t1, t2;
     double elapsedTime;
@@ -89,7 +89,8 @@ int main(int argc, char* argv[])
         fp_update_header_table(ftree->head_table, d, tid);
         // fp_print_tree(ftree->root);
         fp_delete_data_node(d);
-        // fp_prune(ftree, tid);
+        if(tid%500 == 0)
+            fp_prune(ftree, tid);
         tid++;
     }
     fclose(fp);
@@ -145,7 +146,7 @@ int main(int argc, char* argv[])
 
     // correct fp tree 437 new500
     gettimeofday(&t1, NULL);
-    fp_mine_frequent_itemsets(ftree, sorted, NULL, 1, 0);
+    fp_mine_frequent_itemsets(ftree, sorted, NULL, tid, 0);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;

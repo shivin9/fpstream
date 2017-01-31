@@ -18,7 +18,7 @@ int  fp_no_children(fpnode);
 int  fp_no_dataitem(fpnode);
 
 void fp_create_header_table_helper(fpnode, header_table*);
-void fp_create_header_table(fptree);
+void fp_create_header_table(fptree, int);
 void fp_update_header_table(header_table, data, int);
 
 void fp_convert_helper(fpnode, fptree, double*, int*, int tid, int end);
