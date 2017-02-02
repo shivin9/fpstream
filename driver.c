@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
         fp_update_header_table(ftree->head_table, d, tid);
         // fp_print_tree(ftree->root);
         fp_delete_data_node(d);
-        // fp_prune(ftree, tid);
+        fp_prune(ftree, tid);
         tid++;
     }
     fclose(fp);

@@ -15,7 +15,7 @@
 
 #define DECAY 0.99
 #define NUM_ITEMS 100
-#define N 500 //window size
+#define N 20 //window size
 #define EPS 0.001
 #define SUP 0.01
 #define BATCH 15

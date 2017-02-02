@@ -70,7 +70,7 @@ void fp_delete_tree_structure(fpnode current_node)
 
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
-        assert(fp_verify_node(current_node));
+        //assert(fp_verify_node(current_node));
 
         if(current_child_ptr[idx] != NULL)
         {
@@ -191,13 +191,13 @@ void fp_create_and_insert_new_child(fpnode current_node, data d, int tid)
     new_data->data_item = d->data_item;
     new_data->next = NULL;
 
-    // assert(fp_verify_node(new_node));
+    // //assert(fp_verify_node(new_node));
     assert(current_node->children[d->data_item] == NULL);
     assert(current_node->item_list[d->data_item] == NULL);
 
     current_node->children[d->data_item] = new_node;
     current_node->item_list[d->data_item] = new_data;
-    assert(fp_verify_node(current_node));
+    //assert(fp_verify_node(current_node));
 }
 
 // explicitely inserts the child node in the current node
@@ -210,8 +210,8 @@ void fp_insert_new_child(fpnode current_node, fpnode new_child, data d)
 
     current_node->children[d->data_item] = new_child;
     current_node->item_list[d->data_item] = new_data;
-    assert(fp_verify_node(new_child));
-    assert(fp_verify_node(current_node));
+    //assert(fp_verify_node(new_child));
+    //assert(fp_verify_node(current_node));
 
 }
 
@@ -246,7 +246,7 @@ int fp_no_dataitem(fpnode current_node)
 
 int fp_verify_node(fpnode current_node)
 {
-    // printf("\nverification for node %d:- ", current_node->data_item);
+    printf("\nverification for node %d:- ", current_node->data_item);
 
     fpnode* current_child_ptr;
     int flag = 1, res = 1, idx;
@@ -277,12 +277,11 @@ int fp_verify_node(fpnode current_node)
         {
             int x =  current_child_ptr[idx]->data_item;
             int y =  current_data_ptr[idx]->data_item;
-            // printf("c(%d, %d) ", idx, x);
-            // printf("i(%d, %d) ", idx, y);
+            printf("c(%d, %d) ", idx, x);
+            printf("i(%d, %d) ", idx, y);
 
             if(x != y)
                 res = 0;
-
         }
     }
     if(res == 0)
@@ -309,7 +308,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, data d, int tid, int put_in
     if(put_in_buffer == 1 && leave_as_buffer)
     {
         printf("leaving in buffer at node %d: ", current_node->data_item);
-        fp_print_data_node(d);
+        // fp_print_data_node(d);
         buffer buff = current_node->itembuffer;
         buffer new = (buffer) calloc(1, sizeof(struct buffer_node));
 
@@ -714,7 +713,7 @@ void fp_empty_buffers(fpnode curr)
         while(buff)
         {
             printf("buffer emptied at %d: ", curr->data_item);
-            fp_print_data_node(buff->itemset);
+            // fp_print_data_node(buff->itemset);
             curr = fp_insert_itemset_helper(curr, buff->itemset, buff->tid, 0);
             curr->bufferSize--;
             curr->freq = curr->freq-1;
@@ -760,355 +759,238 @@ void fp_update_ancestor(fpnode temp)
 }
 
 
-// void fp_merge(fpnode parent, fpnode child, header_table* htable)
-// {
-//     // the parent has no children so we assign it a child
-//     if(parent->children == NULL)
-//     {
-//         assert(fp_verify_node(parent));
-//         parent->children = (fpnode*) malloc(sizeof(struct fpnode*_node));
-//         parent->children->tree_node = child;
-//         child->parent = parent;
-//         parent->children->next = NULL;
+void fp_merge(fpnode parent, fpnode child, header_table* htable)
+{
+    // the parent has no children so we assign it a child
+    data_type nt = child->data_item;
+    child->parent = parent;
 
-//         parent->item_list = (data) malloc(sizeof(struct data_node));
-//         parent->item_list->data_item = child->data_item;
-//         parent->item_list->next = NULL;
-//         assert(fp_verify_node(parent));
-//         return;
-//     }
+    if(parent->children[nt] == NULL)
+    {
+        //assert(fp_verify_node(parent));
+        parent->children[nt] = child;
+        child->parent = parent;
 
-
-//     data_type nt = child->data_item;
-//     fpnode* this_child = parent->children, prev = NULL, child_child;
-//     fpnode temp = NULL;
-//     data prntdata = parent->item_list, prevdata = NULL;
-
-//     printf("in merge parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
-//     fp_print_data_node(parent->item_list);
-
-//     while(this_child != NULL)
-//     {
-//         if(this_child->tree_node->data_item == nt)
-//         {
-//             break;
-//         }
-//         prev = this_child;
-//         prevdata = prntdata;
-//         assert(prevdata->data_item == prev->tree_node->data_item);
-//         this_child = this_child->next;
-//         prntdata = prntdata->next;
-//     }
-
-//     // this means that child list not empty but that child does not exist
-//     if(this_child == NULL)
-//     {
-//         assert(prev->next == NULL);
-//         assert(child != NULL);
-//         assert(fp_verify_node(parent));
-
-//         int c1 = fp_no_children(parent);
-//         printf("%d has children but not %d\n", parent->data_item, nt);
-//         prev->next = (fpnode*) malloc(sizeof(struct fpnode*_node));
-//         prev->next->tree_node = child;
-//         prev->next->next = NULL;
-//         child->parent = parent;
-
-//         prevdata->next = (data) malloc(sizeof(struct data_node));
-//         prevdata->next->data_item = child->data_item;
-//         prevdata->next->next = NULL;
-
-//         printf("%d, added = %d, children = %d, items = %d: ", parent->data_item, nt, fp_no_children(parent), fp_no_dataitem(parent));
-//         fp_print_data_node(parent->item_list);
-
-//         int c2 = fp_no_children(parent);
-//         assert(fp_verify_node(parent));
-//         assert(c2-c1 == 1);
-//         return;
-//     }
-
-//     printf("\n!!!special merge, child = %d!!!\n", nt);
-//     temp = this_child->tree_node;
-//     temp->freq += pow(abs(child->tid - temp->tid), DECAY);
-//     temp->tid = max(temp->tid, child->tid);
-
-//     /* taken cared of by the delete function*/
-//     // if(child->next_similar != NULL)
-//     //     (child->next_similar)->prev_similar = child->prev_similar;
-
-//     // if(child->prev_similar != NULL)
-//     //     (child->prev_similar)->next_similar=child->next_similar;
-
-//     // else
-//     // {
-//     //     header_table htemp = htable;
-//     //     while(htemp && htemp->data_item != child->data_item)
-//     //         htemp = htemp->next;
-//     //     htemp->first = child->next_similar;
-//     // }
-//     assert(fp_verify_node(parent));
-
-//     child_child = child->children;
-//     while(child_child != NULL)
-//     {
-//         assert(fp_verify_node(temp));
-//         fp_merge(temp, child_child->tree_node, htable);
-//         assert(fp_verify_node(temp));
-//         prev = child_child;
-//         child_child = child_child->next;
-//         // free(prev);
-//     }
-//     assert(fp_verify_node(parent));
-//     // fp_delete_tree_structure(child);
-//     // free(child);
-// }
+        parent->item_list[nt] = (data) calloc(1, sizeof(struct data_node));
+        parent->item_list[nt]->data_item = child->data_item;
+        //assert(fp_verify_node(parent));
+        return;
+    }
 
 
-// void fp_prune_infrequent_I_patterns(header_table htable, data_type data_item, int tid)
-// {
-//     printf("\n***pruning data_item %d***\n", data_item);
-//     header_table htemp = htable;
-//     while(htemp && htemp->data_item != data_item)
-//         htemp = htemp->next;
+    fpnode temp = parent->children[nt];
+    data prntdata = parent->item_list[nt], prevdata = NULL;
 
-//     fpnode fir = htemp->first, temp2, parent;
-//     htemp->first = NULL;
-//     fpnode* temp, ori, temp1;
-//     data prntdata;
+    printf("in merge parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+    fp_print_data_node(parent->item_list);
 
-//     while(fir != NULL)
-//     {
-//         parent = fir->parent;
+    // this means that child list not empty but that child does not exist
 
-//         printf("in pruing parent %d, curr_child = %d, children = %d, items = %d: ", parent->data_item, data_item, fp_no_children(parent), fp_no_dataitem(parent));
-//         fp_print_data_node(parent->item_list);
+    printf("\n!!!special merge, child = %d!!!\n", nt);
+    temp->freq += pow(abs(child->tid - temp->tid), DECAY);
+    temp->tid = max(temp->tid, child->tid);
 
-//         // this code is separating the child from the parent and then we will merge the parent and it's grandchildren
-//         if(parent->children->tree_node == fir)
-//         {
-//             printf("doing stuff here!\n");
-//             parent->children = parent->children->next;
-//             parent->item_list = parent->item_list->next;
-//         }
-//         else
-//         {
-//             printf("doing stuff there!\n");
-//             temp = parent->children;
-//             prntdata = parent->item_list;
-//             ori = NULL;
-//             while(temp->next != NULL)
-//             {
-//                 if(temp->next->tree_node == fir)
-//                 {
-//                     // ori is the child pointer which points to
-//                     // fir, so we must free it to save space
-//                     ori = temp->next;
-//                     temp->next = temp->next->next;
-//                     prntdata->next = prntdata->next->next;
-//                     free(ori);
-//                     break;
-//                 }
-//                 temp = temp->next;
-//                 prntdata = prntdata->next;
-//             }
-//         }
-//         printf("separated child = %d with %d children: ", fir->data_item, fp_no_children(fir));
-//         fp_print_data_node(fir->item_list);
+    /* taken cared of by the delete function*/
+    if(child->next_similar != NULL)
+        (child->next_similar)->prev_similar = child->prev_similar;
 
-//         temp1 = fir->children;
+    if(child->prev_similar != NULL)
+        (child->prev_similar)->next_similar=child->next_similar;
 
-//         while(temp1 != NULL)
-//         {
-//             printf("merging %d, %d\n", fir->parent->data_item, temp1->tree_node->data_item);
+    else
+    {
+        header_table htemp = htable[nt];
+        htemp->first = child->next_similar;
+    }
 
-//             printf("before:- parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+    //assert(fp_verify_node(parent));
 
-//             fp_print_data_node(parent->item_list);
-//             assert(fp_verify_node(parent));
-
-//             fp_merge(parent, temp1->tree_node, htable);
-
-//             assert(fp_verify_node(parent));
-
-//             printf("after:- parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
-//             fp_print_data_node(parent->item_list);
-
-//             // this is deleting the children pointers of fir as we will delete it eventually
-//             temp = temp1;
-//             temp1 = temp1->next;
-//             temp->next = NULL;
-//             free(temp);
-//         }
-
-//         temp2 = fir;
-//         fir = fir->next_similar;
-//         // Do not do fp_delete_tree_structure(temp2); it will delete the children of temp2 also which we are merging!
-
-//         // if(temp2->prev_similar!=NULL)
-//         //     (temp2->prev_similar)->next_similar = temp2->next_similar;
-
-//         // if(temp2->next_similar!=NULL)
-//         //     (temp2->next_similar)->prev_similar=(temp2)->prev_similar;
-
-//         // if(temp2->hnode && temp2->hnode->first == temp2)
-//         //     temp2->hnode->first = NULL;
-//         fp_delete_data_node(temp2->item_list);
-//         free(temp2);
-//     }
-// }
+    int idx;
+    for(idx = 0; idx < DICT_SIZE; idx++)
+    {
+        if(child->children[idx])
+        {
+            fp_merge(temp, child->children[idx], htable);
+            //assert(fp_verify_node(parent));
+        }
+    }
+    //assert(fp_verify_node(parent));
+    // fp_delete_tree_structure(child);
+    free(child->children);
+    free(child);
+}
 
 
-// void fp_prune_infrequent_II_patterns(header_table htable, data_type data_item, int tid)
-// {
-//     fp_prune_infrequent_I_patterns(htable, data_item, tid);
-// }
+void fp_prune_infrequent_I_patterns(header_table* htable, data_type data_item, int tid)
+{
+    printf("\n***pruning data_item %d***\n", data_item);
+
+    header_table htemp = htable[data_item];
+    fpnode fir = htemp->first, tempnode, parent;
+    htemp->first = NULL;
+    fpnode* child;
+    data prntdata;
+    int idx;
+
+    while(fir != NULL)
+    {
+        parent = fir->parent;
+
+        printf("in pruing parent %d, curr_child = %d, children = %d, items = %d: ", parent->data_item, data_item, fp_no_children(parent), fp_no_dataitem(parent));
+        fp_print_data_node(parent->item_list);
+
+        //assert(fp_verify_node(parent));
+
+        parent->children[data_item] = NULL;
+        fp_delete_data_node(parent->item_list[data_item]);
+        parent->item_list[data_item] = NULL;
+
+        printf("separated child = %d with %d children: ", fir->data_item, fp_no_children(fir));
+        fp_print_data_node(fir->item_list);
+
+        child = fir->children;
+
+        for(idx = 0; idx < DICT_SIZE; idx++)
+        {
+            tempnode = child[idx];
+            if(tempnode)
+            {
+                printf("merging %d, %d\n", fir->parent->data_item, tempnode->data_item);
+
+                printf("before:- parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+
+                fp_print_data_node(parent->item_list);
+                //assert(fp_verify_node(parent));
+
+                fp_merge(parent, tempnode, htable);
+
+                //assert(fp_verify_node(parent));
+
+                printf("after:- parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+                fp_print_data_node(parent->item_list);
+
+                // this is deleting the children pointers of fir as we will delete it eventually
+                child[idx] = NULL;
+            }
+        }
+
+        tempnode = fir;
+        fir = fir->next_similar;
+        // Do not do fp_delete_tree_structure(tempnode); it will delete the children of tempnode also which we are merging!
+
+        if(tempnode->prev_similar!=NULL)
+            (tempnode->prev_similar)->next_similar = tempnode->next_similar;
+
+        if(tempnode->next_similar!=NULL)
+            (tempnode->next_similar)->prev_similar=(tempnode)->prev_similar;
+
+        if(tempnode->hnode && tempnode->hnode->first == tempnode)
+            tempnode->hnode->first = NULL;
+        // fp_delete_data_node(tempnode->item_list);
+        tempnode->children = NULL;
+        free(tempnode);
+    }
+}
 
 
-// void fp_prune_obsolete_II_patterns(header_table htable, data_type data_item, int tid)
-// {
-//     header_table htemp = htable;
-//     while(htemp && htemp->data_item != data_item)
-//         htemp = htemp->next;
-
-//     fpnode fir = htemp->first, to_free = NULL;
-//     fpnode* temp, ori;
-//     data prntdata;
-
-//     while(fir!=NULL)
-//     {
-//         if(fir->tid <= tid - N)
-//         {
-//             fp_update_ancestor(fir);
-//             to_free = fir;
-//             if(to_free->parent->children->tree_node==to_free)
-//             {
-//                 temp = to_free->parent->children;
-//                 to_free->parent->children=to_free->parent->children->next;
-//                 prntdata = to_free->parent->item_list;
-//                 to_free->parent->item_list = to_free->parent->item_list->next;
-//                 free(temp);
-//                 free(prntdata);
-//             }
-//             else
-//             {
-//                 temp = to_free->parent->children;
-//                 prntdata = to_free->parent->item_list;
-//                 ori = NULL;
-//                 while(temp->next!=NULL)
-//                 {
-//                     if(temp->next->tree_node == to_free)
-//                     {
-//                         ori = temp->next;
-//                         temp->next=temp->next->next;
-//                         prntdata->next = prntdata->next->next;
-//                         free(ori);
-//                         break;
-//                     }
-//                 temp = temp->next;
-//                 prntdata = prntdata->next;
-//                 }
-//             }
-//             assert(fp_verify_node(to_free));
-//             fp_delete_tree_structure(to_free);
-//             free(to_free);
-//         }
-//         fir=fir->next_similar;
-//     }
-// }
+void fp_prune_infrequent_II_patterns(header_table* htable, data_type data_item, int tid)
+{
+    fp_prune_infrequent_I_patterns(htable, data_item, tid);
+}
 
 
-// void fp_prune_obsolete_I_patterns(header_table htable, data_type data_item, int tid)
-// {
-//     // printf("***pruning data_item %d***\n", data_item);
-//     header_table htemp = htable;
-//     while(htemp && htemp->data_item != data_item)
-//         htemp = htemp->next;
+void fp_prune_obsolete_II_patterns(header_table* htable, data_type data_item, int tid)
+{
+    header_table htemp = htable[data_item];
 
-//     fpnode fir = htemp->first, to_free = NULL;
-//     fpnode* temp, ori;
-//     data prntdata;
+    fpnode fir = htemp->first, to_free = NULL;
+    fpnode* temp, ori;
+    data prntdata;
 
-//     while(fir != NULL)
-//     {
-//         if(fir->freq * pow(DECAY, tid - fir->tid) >= EPS*N)
-//         {
-//             fp_update_ancestor(fir);
-//         }
-//         to_free = fir;
-//         // printf("parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
-//         // fp_print_data_node(parent->item_list);
+    while(fir!=NULL)
+    {
+        to_free = fir;
+        fir=fir->next_similar;
+        if(fir && fir->tid <= tid - N)
+        {
+            fp_update_ancestor(fir);
 
-//         fir = fir->next_similar;
-//         if(to_free->parent->children->tree_node == to_free)
-//         {
-//             // printf("doing stuff here\n");
-//             temp = to_free->parent->children;
-//             to_free->parent->children=to_free->parent->children->next;
-//             prntdata = to_free->parent->item_list;
-//             to_free->parent->item_list = to_free->parent->item_list->next;
-//             free(temp);
-//             free(prntdata);
-//         }
-//         else
-//         {
-//             // printf("doing stuff there\n");
-//             temp = to_free->parent->children;
-//             prntdata = to_free->parent->item_list;
-//             ori = NULL;
-//             while(temp->next != NULL)
-//             {
-//                 if(temp->next->tree_node == to_free)
-//                 {
-//                     ori = temp->next;
-//                     temp->next = temp->next->next;
-//                     prntdata->next = prntdata->next->next;
-//                     free(ori);
-//                     break;
-//                 }
-//                 temp = temp->next;
-//                 prntdata = prntdata->next;
-//             }
-//         }
-//         // printf("deleting %d, children = %d, items = %d\n", to_free->data_item, fp_no_children(parent), fp_no_dataitem(parent));
-//         assert(fp_verify_node(to_free));
-//         fp_delete_tree_structure(to_free);
-//         free(to_free);
-//     }
-//     htable->cnt = 0;
-//     htable->first = NULL;
-//     htable->tid = -1;
-// }
+            // fp_delete_data_node(to_free->parent->item_list[data_item]);
+            to_free->parent->item_list[data_item] = NULL;
+            to_free->parent->children[data_item] = NULL;
+
+            fp_delete_tree_structure(to_free);
+            //assert(fp_verify_node(to_free));
+            fp_delete_tree_structure(to_free);
+            free(to_free);
+        }
+    }
+}
 
 
-// void fp_prune(fptree ftree, int tid)
-// {
-//     header_table htable = ftree->head_table;
-//     header_table prev = NULL;
-//     while(htable != NULL)
-//     {
-//         if(htable->first != NULL)
-//         {
-//             // if(htable->tid <= tid-N)
-//             // {
-//             //     fp_prune_obsolete_I_patterns(htable, htable->data_item, tid);
-//             // }
-//             if(htable->tid<tid-N+SUP*N)
-//             {
-//                 fp_prune_infrequent_I_patterns(htable, htable->data_item, tid);
-//             }
-//             // printf("&&&wont prune %d&&&\n", htable->data_item);
-//             // else if(htable->tid >= tid-N+SUP*N && fp_ineq7(htable, tid))
-//             // {
-//             //     fp_prune_infrequent_II_patterns(htable, htable->data_item, tid);
-//             // }
-//             // else
-//             // {
-//             //     fp_prune_obsolete_II_patterns(htable, htable->data_item, tid);
-//             // }
-//         }
-//         htable=htable->next;
-//     }
-// }
+void fp_prune_obsolete_I_patterns(header_table* htable, data_type data_item, int tid)
+{
+    printf("***pruning data_item %d***\n", data_item);
+    header_table htemp = htable[data_item];
+
+    fpnode fir = htemp->first, to_free = NULL;
+    fpnode* temp, ori;
+    data prntdata;
+
+    while(fir != NULL)
+    {
+        if(fir->freq * pow(DECAY, tid - fir->tid) >= EPS*N)
+        {
+            fp_update_ancestor(fir);
+        }
+        to_free = fir;
+        // printf("parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+        // fp_print_data_node(parent->item_list);
+
+        fir = fir->next_similar;
+
+        fp_delete_data_node(to_free->parent->item_list[data_item]);
+        to_free->parent->item_list[data_item] = NULL;
+        to_free->parent->children[data_item] = NULL;
+
+        fp_delete_tree_structure(to_free);
+        //assert(fp_verify_node(to_free));
+        free(to_free);
+    }
+    htemp->cnt = 0;
+    htemp->first = NULL;
+    htemp->tid = -1;
+}
+
+
+void fp_prune(fptree ftree, int tid)
+{
+    header_table* htable = ftree->head_table;
+    int idx;
+    for(idx = 0; idx < DICT_SIZE; idx++)
+    {
+        if(htable[idx]->first != NULL)
+        {
+            if(htable[idx]->tid <= tid-N)
+            {
+                fp_prune_obsolete_I_patterns(htable, htable[idx]->data_item, tid);
+            }
+            if(htable[idx]->tid<tid-N+SUP*N)
+            {
+                fp_prune_infrequent_I_patterns(htable, htable[idx]->data_item, tid);
+            }
+            // printf("&&&wont prune %d&&&\n", htable[idx]->data_item);
+            else if(htable[idx]->tid >= tid-N+SUP*N && fp_ineq7(htable[idx], tid))
+            {
+                fp_prune_infrequent_II_patterns(htable, htable[idx]->data_item, tid);
+            }
+            else
+            {
+                fp_prune_obsolete_II_patterns(htable, htable[idx]->data_item, tid);
+            }
+        }
+    }
+}
 
 
 fpnode fp_dfs(fpnode node, data_type highest_priority_data_item)
@@ -1405,7 +1287,7 @@ void fp_print_node(fpnode node)
     buffer buff = node->itembuffer;
     while(buff)
     {
-        fp_print_data_node(buff->itemset);
+        // fp_print_data_node(buff->itemset);
         buff = buff->next;
     }
 }
@@ -1443,12 +1325,13 @@ void fp_print_header_table(header_table* h)
     }
 }
 
-void fp_print_data_node(data d)
+void fp_print_data_node(data* d)
 {
-    while(d != NULL)
+    int idx;
+    for(idx = 0; idx < DICT_SIZE; idx++)
     {
-        printf("%d ", d->data_item);
-        d = d->next;
+        if(d[idx])
+            printf("%d ", d[idx]->data_item);
     }
     printf("\n");
 }

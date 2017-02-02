@@ -37,7 +37,7 @@ void fp_mine_frequent_itemsets(fptree, data, data, int tid, int pattern);
 void fp_print_node(fpnode);
 void fp_print_tree(fpnode);
 void fp_print_header_table(header_table*);
-void fp_print_data_node(data d);
+void fp_print_data_node(data* d);
 
 data fp_reverse_data(data head);
 
