@@ -1,7 +1,8 @@
 /*
 1. When deleting a child of a node, fix the child_list as well as the item_list
 2. When removing nodes, also fix the header table
-3. Header table is now not being recreated from scratch, it is being updated periodically
+3. Header table is now not being recreated from scratch, it is being updated periodically using the fp_update_header_table function
+4. But the tree is being constructed ie. next_similar and prev_similar pointers are being given periodically just before pruning
 */
 #include "fptree.h"
 
@@ -1070,14 +1071,14 @@ void fp_prune_infrequent_I_patterns(header_table htable, data_type data_item, in
         fir = fir->next_similar;
         // Do not do fp_delete_tree_structure(temp2); it will delete the children of temp2 also which we are merging!
 
-        // if(temp2->prev_similar!=NULL)
-        //     (temp2->prev_similar)->next_similar = temp2->next_similar;
+        if(temp2->prev_similar!=NULL)
+            (temp2->prev_similar)->next_similar = temp2->next_similar;
 
-        // if(temp2->next_similar!=NULL)
-        //     (temp2->next_similar)->prev_similar=(temp2)->prev_similar;
+        if(temp2->next_similar!=NULL)
+            (temp2->next_similar)->prev_similar=(temp2)->prev_similar;
 
-        // if(temp2->hnode && temp2->hnode->first == temp2)
-        //     temp2->hnode->first = NULL;
+        if(temp2->hnode && temp2->hnode->first == temp2)
+            temp2->hnode->first = NULL;
 
         fp_delete_data_node(temp2->item_list);
         assert(temp2->children == NULL);
@@ -1142,6 +1143,16 @@ void fp_prune_obsolete_II_patterns(header_table htable, data_type data_item, int
                 }
             }
             //assert(fp_verify_node(to_free));
+
+            if(to_free->prev_similar!=NULL)
+                (to_free->prev_similar)->next_similar = to_free->next_similar;
+
+            if(to_free->next_similar!=NULL)
+                (to_free->next_similar)->prev_similar=(to_free)->prev_similar;
+
+            if(to_free->hnode && to_free->hnode->first == to_free)
+                to_free->hnode->first = NULL;
+
             fp_delete_tree_structure(to_free);
             free(to_free);
         }
@@ -1205,6 +1216,16 @@ void fp_prune_obsolete_I_patterns(header_table htable, data_type data_item, int 
         }
         // printf("deleting %d, children = %d, items = %d\n", to_free->data_item, fp_no_children(parent), fp_no_dataitem(parent));
         //assert(fp_verify_node(to_free));
+
+        if(to_free->prev_similar!=NULL)
+            (to_free->prev_similar)->next_similar = to_free->next_similar;
+
+        if(to_free->next_similar!=NULL)
+            (to_free->next_similar)->prev_similar=(to_free)->prev_similar;
+
+        if(to_free->hnode && to_free->hnode->first == to_free)
+            to_free->hnode->first = NULL;
+
         fp_delete_tree_structure(to_free);
         free(to_free);
     }

@@ -13,13 +13,13 @@
 #define max(a,b) ((a) > (b) ? a : b)
 #define min(a,b) ((a) < (b) ? a : b)
 
-#define DECAY 0.99
+#define DECAY 0.999
 #define NUM_ITEMS 100
-#define N 2000 //window size
+#define N 5000 //window size
 #define EPS 0.001
 #define THETA 0.01
 
-#define SUP N*0.3
+#define SUP N*0.15
 #define BATCH 15
 
 #define MINSUP_SEMIFREQ N*(THETA-EPS)  //minimum support for semi-frequent itemsets
