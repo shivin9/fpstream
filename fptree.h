@@ -47,6 +47,8 @@ void fp_prune_obsolete_I_patterns(header_table, data_type, int);
 void fp_prune(fptree, data_type);
 void fp_update_ancestor(fpnode);
 void fp_merge(fpnode, fpnode, header_table);
+void fp_merge1(fpnode, fpnode, int);
+
 int fp_ineq7(header_table, int);
 
 

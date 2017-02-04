@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     }
     // fpstream(argv[1]);
 
-    int sz, tid = 1;
+    int sz, tid = 1, size;
     fptree ftree = NULL;
 
     data sorted = fp_create_sorted_dummy();
@@ -89,8 +89,16 @@ int main(int argc, char* argv[])
         fp_update_header_table(ftree->head_table, d, tid);
         // fp_print_tree(ftree->root);
         fp_delete_data_node(d);
-        if(tid%500 == 0)
+
+        if(tid%2000 == 0)
+        {
+            size = fp_size_of_tree(ftree->root);
+            printf("pruning at tid = %d, size = %d; ", tid, size);
             fp_prune(ftree, tid);
+            size = fp_size_of_tree(ftree->root);
+            printf("new_size = %d\n", size);
+        }
+
         tid++;
     }
     fclose(fp);
@@ -123,6 +131,7 @@ int main(int argc, char* argv[])
     // fp_create_header_table_helper(ftree->root, &(ftree->head_table));
     fp_sort_header_table(ftree->head_table, funcarr);
     // fp_print_header_table(ftree->head_table);
+    printf("\nsMINSUP_FREQ = %lf, MINSUP_SEMIFREQ = %lf, SUP = %lf\n\n", MINSUP_FREQ, MINSUP_SEMIFREQ, SUP);
     printf("total time taken to insert in FP tree = %lf ms\n", elapsedTime);
 
     cnt = 0;
@@ -146,7 +155,7 @@ int main(int argc, char* argv[])
 
     // correct fp tree 437 new500
     gettimeofday(&t1, NULL);
-    fp_mine_frequent_itemsets(ftree, sorted, NULL, tid, 0);
+    fp_mine_frequent_itemsets(ftree, sorted, NULL, tid, 2);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;

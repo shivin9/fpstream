@@ -15,13 +15,15 @@
 
 #define DECAY 0.99
 #define NUM_ITEMS 100
-#define N 500 //window size
+#define N 2000 //window size
 #define EPS 0.001
-#define SUP 0.01
+#define THETA 0.01
+
+#define SUP N*0.3
 #define BATCH 15
 
-#define MINSUP_SEMIFREQ N*(SUP-EPS)  //minimum support for semi-frequent itemsets
-#define MINSUP_FREQ N*(SUP)    //minimum support for frequent itemsets
+#define MINSUP_SEMIFREQ N*(THETA-EPS)  //minimum support for semi-frequent itemsets
+#define MINSUP_FREQ N*(THETA)    //minimum support for frequent itemsets
 #define SUP_ERROR 50.0 //max error for sub-frequent itemsets
 #define DICT_SIZE 100 // max. number of items
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned
