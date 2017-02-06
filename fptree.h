@@ -8,7 +8,7 @@ data fp_create_sorted_dummy();
 
 void fp_create_and_insert_new_child(fpnode, data, int);
 void fp_insert_new_child(fpnode, fpnode, data);
-fpnode fp_insert_itemset_helper(fpnode, data, int, int);
+fpnode fp_insert_itemset_helper(fpnode, header_table, data, int tid, int put_in_buffer);
 fptree fp_insert_itemset(fptree, data, int, int);
 void fp_delete_tree_structure(fpnode);
 void fp_delete_data_node(data);
@@ -25,7 +25,7 @@ void fp_convert_helper(fpnode, fptree, double*, int*, int tid, int end);
 fptree fp_convert_to_CP(fptree, int);
 void fp_sort_data(data head, double*);
 void fp_sort_header_table(header_table, double*);
-void fp_empty_buffers(fpnode);
+void fp_empty_buffers(fpnode, header_table, int);
 data fp_array_to_datalist(int*, int);
 void fp_free_data_node(data);
 
