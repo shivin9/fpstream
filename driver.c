@@ -56,27 +56,6 @@ int main(int argc, char* argv[])
     ftree = fp_create_fptree();
 
     while(fscanf(fp, "%d", &sz) != EOF){
-        /*if(cnt % batch_size == 0){
-            if(cnt/batch_size > 0){
-
-                fp_create_header_table(ftree);
-                // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
-
-                FILE *fp1;
-                fp1 = fopen("output", "a");
-                fprintf(fp1, "After batch %d:\n", cnt/batch_size);
-                fclose(fp1);
-
-                fp_delete_fptree(ftree);
-                // ftree = get_fptree(ptree);
-                // fp_mine_frequent_itemsets(ftree, sorted, NULL, 1);
-            }
-
-            // fp_delete_fptree(ftree);
-            ftree = fp_create_fptree();
-        }*/
-
-        // printf("sz = %d\n", sz);
         data d = NULL;
         while(sz--){
 
@@ -92,10 +71,10 @@ int main(int argc, char* argv[])
             d = new_d;
         }
         // removes duplicates items also
-        // fp_print_data_node(d);
+        // printf("inserting: ");
         fp_sort_data(d, NULL);
         // fp_print_data_node(d);
-        ftree = fp_insert_itemset(ftree, d);
+        ftree = fp_insert_itemset(ftree, d, 0);
         fp_delete_data_node(d);
         cnt++;
     }
@@ -103,13 +82,9 @@ int main(int argc, char* argv[])
 
     // printf("\n\nfinal pattern tree:\n\n");
     // print_tree(ptree->root);
-    // printf("\nresulting fp-tree:\n\n");
-    // fp_print_tree(ftree->root);
-    printf("sizeof fp tree = %d\n", fp_size_of_tree(ftree->root));
+    printf("\nresulting fp-tree:\n\n");
     // printf("\n");
-    // fp_print_tree(ftree->root);
-
-    fp_create_header_table(ftree);
+    fp_print_tree(ftree->root);
     int* arr = (int*) malloc(DICT_SIZE * sizeof(int));
     int* funcarr = (int*) malloc(DICT_SIZE * sizeof(int));
 
@@ -121,7 +96,13 @@ int main(int argc, char* argv[])
         arr[cnt] = 0;
         funcarr[cnt] = 0;
     }
+    // fp_create_header_table(ftree);
+    // usleep(1000);
+    fp_empty_buffers(ftree->root);
+    fp_create_header_table(ftree);
+
     fp_sort_header_table(ftree->head_table, funcarr);
+    fp_print_header_table(ftree->head_table);
 
     cnt = 0;
     fpnode_list child = ftree->root->children;
@@ -129,15 +110,18 @@ int main(int argc, char* argv[])
         // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
         // printf("%d ", child->tree_node->freq);
         arr[cnt] =  child->tree_node->freq;
-        sum += arr[cnt];
-        cnt++;
+        sum += arr[cnt++];
         child = child->next;
     }
 
+    printf("sizeof fp tree = %d\n", fp_size_of_tree(ftree->root));
+
     qsort(arr, 100, sizeof(int), cmpfunc);
     printf("total = %d, children = %d\n", sum, cnt);
+
     for(cnt = 0; cnt < 100; cnt++)
         printf("%d ", arr[cnt]);
+
     printf("\n");
 
     struct timeval t1, t2;
@@ -153,9 +137,11 @@ int main(int argc, char* argv[])
 
     printf("total time taken by FP tree = %lf ms\n", elapsedTime);
 
-    fp_empty_buffers(ftree);
+    // fp_print_tree(ftree->root);
 
     fptree ctree = fp_convert_to_CP(ftree);
+    // fp_empty_buffers(ftree);
+
     fp_sort_data(sorted, funcarr);
     sorted = fp_reverse_data(sorted);
     gettimeofday(&t1, NULL);
@@ -168,11 +154,12 @@ int main(int argc, char* argv[])
     printf("total time taken by CP tree = %lf ms\n", elapsedTime);
 
     // printf("\nresulting cp-tree:\n");
-    fp_print_tree(ctree->root);
+    // fp_print_tree(ctree->root);
     // printf("\n");
     printf("\nsizeof cp tree = %d\n", fp_size_of_tree(ctree->root));
 
     child = ctree->root->children;
+
     for(cnt = 0; cnt < 100; cnt++)
         arr[cnt] = 0;
     cnt = 0, sum = 0;
@@ -180,8 +167,8 @@ int main(int argc, char* argv[])
     while(child){
         // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
         // printf("%d ", child->tree_node->freq);
-        arr[cnt++] =  child->tree_node->freq;
-        sum += arr[cnt-1];
+        arr[cnt] =  child->tree_node->freq;
+        sum += arr[cnt++];
         child = child->next;
     }
 

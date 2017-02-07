@@ -1,5 +1,12 @@
-*.o
 intermediate
+*.ignore
 output
 *.out
-
+./data/*
+exe
+*.o
+*~
+*.h.gch
+./output
+./intermediate
+.gitignore

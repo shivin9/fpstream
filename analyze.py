@@ -32,7 +32,7 @@ def exp(x, a, b, c):
 
 
 def new_func(x, a, b, c, d):
-    return a*(b**(c*x))+d
+    return a * (b**(c * x)) + d
 
 
 y = vals
