@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
         exit(-1);
     }
 
-    struct timeval t1, t2;
+    struct timeval t1, t2, tp1, tp2, tm1, tm2;
     double elapsedTime;
     gettimeofday(&t1, NULL);
 
@@ -250,8 +250,16 @@ int main(int argc, char* argv[])
 
                     # pragma omp critical
                     {
+                        gettimeofday(&tm1, NULL);
                         fp_mine_frequent_itemsets(temp, sorted, NULL, 0);
+                        gettimeofday(&tm2, NULL);
+
+                        gettimeofday(&tp1, NULL);
                         process_batch(ptree, ++batch_ready);
+                        gettimeofday(&tp2, NULL);
+
+                        printf("ratio = %lf\n", (tm2.tv_sec-tm1.tv_sec)/(tp2.tv_sec-tp1.tv_sec));
+
                         printf("Done Servicing TREE_%d\n\n", tree_to_prune + 1);
 
                         if(tree_to_prune)

@@ -13,15 +13,19 @@ def main():
     while i < len(vals):
         frst = vals[i][0]
         cnt = 0
-        temp = ""
+        temp = []
         while i < len(vals) and vals[i][0] == frst:
             cnt += 1
-            temp = temp + vals[i][1] + " "
+            temp.append(vals[i][1])
+            #temp = temp + vals[i][1] + ","
             i += 1
-        temp = str(cnt) + " " + temp + "\n"
+        #temp = str(cnt) + " " + temp + "\n"
+        temp = list(set(temp))
+        temp = " ".join(temp)
+        temp = temp + "\n"
         new += temp
 
-    out = open(fname+".data", "w")
+    out = open(fname+".tab", "w")
     print >> out, new
 
 if __name__ == '__main__':

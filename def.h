@@ -10,10 +10,10 @@
 #include <omp.h>
 
 #define MINSUP_SEMIFREQ 8  //minimum support for semi-frequent itemsets
-#define MINSUP_FREQ 10    //minimum support for frequent itemsets
+#define MINSUP_FREQ 8    //minimum support for frequent itemsets
 #define SUP_ERROR 50 //max error for sub-frequent itemsets
 #define DICT_SIZE 100 // max. number of items
-#define SIZE_LMT 16192 // max. size of tree after which it is pruned
+#define SIZE_LMT 16000 // max. size of tree after which it is pruned
 
 // FLAGS
 int leave_as_buffer;
