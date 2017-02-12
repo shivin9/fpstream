@@ -20,6 +20,7 @@ void fp_create_header_table_helper(fpnode, header_table*);
 void fp_create_header_table(fptree);
 
 void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int end);
+fptree fp_convert_to_CP1(fptree tree);
 fptree fp_convert_to_CP(fptree tree);
 void fp_sort_data(data head, int* arr);
 void fp_sort_header_table(header_table htable, int* table);
@@ -37,5 +38,6 @@ void fp_print_header_table(header_table);
 void fp_print_data_node(data d);
 
 data fp_reverse_data(data head);
+header_table fp_reverse_table(header_table head);
 
 #endif //FPTREE

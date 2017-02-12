@@ -1,5 +1,6 @@
 intermediate
 *.ignore
+tests/
 output
 *.out
 data/

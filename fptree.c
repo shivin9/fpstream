@@ -435,7 +435,25 @@ void fp_sort_header_table(header_table htable, int* table)
     {
         for(nxt = temp->next; nxt != NULL; nxt = nxt->next)
         {
-            if(temp->cnt < nxt->cnt)
+            if(table == NULL)
+            {
+                if(temp->data_item < nxt->data_item)
+                {
+                    tdata_item = temp->data_item;
+                    temp->data_item = nxt->data_item;
+                    nxt->data_item = tdata_item;
+
+                    tnode = temp->first;
+                    temp->first = nxt->first;
+                    nxt->first = tnode;
+
+                    tcnt = temp->cnt;
+                    temp->cnt = nxt->cnt;
+                    nxt->cnt = tcnt;
+                }
+            }
+
+            else if(temp->cnt < nxt->cnt)
             {
                 tdata_item = temp->data_item;
                 temp->data_item = nxt->data_item;
@@ -451,14 +469,28 @@ void fp_sort_header_table(header_table htable, int* table)
             }
         }
     }
-
-    for(temp = htable; temp != NULL; temp = temp->next)
-        // +1 because the index -1 also exists
-        table[temp->data_item + 1] = temp->cnt;
+    if(table)
+        for(temp = htable; temp != NULL; temp = temp->next)
+            // +1 because the index -1 also exists
+            table[temp->data_item + 1] = temp->cnt;
 }
 
-data fp_reverse_data(data head){
+data fp_reverse_data(data head)
+{
     data prev = NULL, curr = head, temp;
+    while(curr)
+    {
+        temp = curr->next;
+        curr->next = prev;
+        prev = curr;
+        curr = temp;
+    }
+    return prev;
+}
+
+header_table fp_reverse_table(header_table head)
+{
+    header_table prev = NULL, curr = head, temp;
     while(curr)
     {
         temp = curr->next;
@@ -603,15 +635,66 @@ void fp_convert_helper(fpnode curr, fptree cptree, int* arr, int* collected, int
     }
 }
 
+fptree fp_convert_to_CP1(fptree tree)
+{
+    int* arr = calloc(DICT_SIZE, sizeof(int));
+    int* collected = calloc(DICT_SIZE + 2, sizeof(int));
+    int end = 0;
+
+    if(tree->head_table == NULL)
+        fp_create_header_table(tree);
+
+    fp_sort_header_table(tree->head_table, arr);
+    fptree cptree = fp_create_fptree();
+
+    fpnode parent = NULL, curr = NULL;
+    fp_sort_header_table(tree->head_table, NULL);
+    header_table hnode = tree->head_table;
+
+    while(hnode)
+    {
+        curr = hnode->first;
+        while(curr)
+        {
+            while(curr->freq > 0)
+            {
+                end = 1;
+                parent = curr;
+                while(parent && parent->freq > 0)
+                {
+                    collected[end++] = parent->data_item;
+                    parent->freq--;
+                    parent = parent->parent;
+                }
+                data head = fp_array_to_datalist(collected, end - 1);
+                // need to sort the item using the values in arr
+                fp_sort_data(head, arr);
+                // printf("CP: ");
+                // fp_print_data_node(head->next);
+                cptree = fp_insert_itemset(cptree, head->next, 0);
+                fp_delete_data_node(head);
+            }
+            curr = curr->next_similar;
+        }
+        hnode = hnode->next;
+    }
+
+    fp_create_header_table(cptree);
+    fp_fix_touched(cptree->root);
+    fp_sort_header_table(cptree->head_table, arr);
+    fp_delete_fptree(tree);
+    tree = NULL;
+    free(arr);
+    free(collected);
+    return cptree;
+}
+
 fptree fp_convert_to_CP(fptree tree)
 {
     fpnode curr = tree->root;
-    int* arr = (int*) malloc(DICT_SIZE*sizeof(int));
-    int* collected = (int*) malloc(DICT_SIZE*sizeof(int));
+    int* arr = calloc(DICT_SIZE, sizeof(int));
+    int* collected = calloc(DICT_SIZE, sizeof(int));
     int end = 0;
-
-    for(end = 0; end < 100; end++)
-        arr[end] = 0;
 
     if(tree->head_table == NULL)
         fp_create_header_table(tree);
@@ -621,10 +704,15 @@ fptree fp_convert_to_CP(fptree tree)
     // usleep(sleepTime);
     fptree cptree = fp_create_fptree();
     fp_convert_helper(curr, cptree, arr, collected, 0);
-    fp_create_header_table(cptree);
+
+    // fp_create_header_table(cptree);
+    cptree->head_table = tree->head_table;
     fp_fix_touched(cptree->root);
     fp_sort_header_table(cptree->head_table, arr);
-    fp_delete_fptree(tree);
+    // fp_delete_fptree(tree);
+    fp_delete_tree_structure(tree->root);
+    free(tree);
+    tree = NULL;
     free(arr);
     free(collected);
     return cptree;
