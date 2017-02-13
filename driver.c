@@ -50,22 +50,27 @@ int main(int argc, char* argv[])
     int sz;
     fptree ftree = NULL;
 
+    struct timeval tp1, tp2, tm1, tm2;
+    double elapsedTime1, elapsedTime2, rat = 0;
+
     data sorted = create_sorted_dummy();
-    int cnt = 0, sum = 0;
-    int batch_size = 10000;
+    int cnt = 0, sum = 0, times = 0;
+    int batch_size = 25000;
     ftree = fp_create_fptree();
+    patterntree ptree = create_pattern_tree();
 
-    while(fscanf(fp, "%d", &sz) != EOF){
+    while(fscanf(fp, "%d", &sz) != EOF)
+    {
         data d = NULL;
-        while(sz--){
-
+        while(sz--)
+        {
             data_type item;
             fscanf(fp, "%d", &item);
 
             data new_d = malloc(sizeof(struct data_node));
-            if(new_d == NULL){
+            if(new_d == NULL)
                 printf("new_d malloc failed\n");
-            }
+
             new_d->data_item = item;
             new_d->next = d;
             d = new_d;
@@ -75,38 +80,80 @@ int main(int argc, char* argv[])
         fp_sort_data(d, NULL);
         // fp_print_data_node(d);
         ftree = fp_insert_itemset(ftree, d, 0);
-        fp_delete_data_node(d);
         cnt++;
+        // if(cnt % batch_size == 0)
+        // {
+        //     fp_create_header_table(ftree);
+
+        //     gettimeofday(&tm1, NULL);
+        //     fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
+        //     gettimeofday(&tm2, NULL);
+
+        //     elapsedTime1 = (tm2.tv_sec - tm1.tv_sec) * 1000.0;
+        //     elapsedTime1 += (tm2.tv_usec - tm1.tv_usec) / 1000.0;
+        //     // printf("%lf, ", elapsedTime);
+
+        //     gettimeofday(&tp1, NULL);
+        //     process_batch(ptree, cnt/batch_size);
+        //     gettimeofday(&tp2, NULL);
+
+        //     elapsedTime2 = (tp2.tv_sec - tp1.tv_sec) * 1000.0;
+        //     elapsedTime2 += (tp2.tv_usec - tp1.tv_usec) / 1000.0;
+        //     rat += elapsedTime1/elapsedTime2;
+        //     times++;
+        //     printf("%lf\n", elapsedTime1/elapsedTime2);
+
+
+        //     FILE *fp1;
+        //     fp1 = fopen("output", "a");
+        //     fprintf(fp1, "After batch %d:\n", cnt/batch_size);
+        //     fclose(fp1);
+
+        //     fp_delete_fptree(ftree);
+        //     ftree = get_fptree(ptree);
+        //     fp_mine_frequent_itemsets(ftree, sorted, NULL, 1);
+
+        //     fp_delete_fptree(ftree);
+        //     ftree = fp_create_fptree();
+        // }
+        fp_delete_data_node(d);
     }
     fclose(fp);
+    // printf("avg. ratio = %lf\n", rat/times);
 
     // printf("\n\nfinal pattern tree:\n\n");
     // print_tree(ptree->root);
     // printf("\nresulting fp-tree:\n\n");
     // printf("\n");
     // fp_print_tree(ftree->root);
-    int* arr = (int*) malloc(DICT_SIZE * sizeof(int));
-    int* funcarr = (int*) malloc(DICT_SIZE * sizeof(int));
+    int* arr = (int*) calloc(DICT_SIZE, sizeof(int));
+    int* funcarr = (int*) calloc(DICT_SIZE, sizeof(int));
 
     // fp_print_header_table(ftree->head_table);
-    // process_batch(ptree, cnt/batch_size);
-    // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
-
-    for(cnt = 0; cnt < 100; cnt++){
-        arr[cnt] = 0;
-        funcarr[cnt] = 0;
-    }
+    // code for final batch
+    // {
+    //     fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
+    //     process_batch(ptree, cnt/batch_size);
+    //     FILE *fp1;
+    //     fp1 = fopen("output", "a");
+    //     fprintf(fp1, "After batch %d:\n", cnt/batch_size);
+    //     fclose(fp1);
+    //     fp_delete_fptree(ftree);
+    //     ftree = get_fptree(ptree);
+    //     fp_mine_frequent_itemsets(ftree, sorted, NULL, 1);
+    // }
     // fp_create_header_table(ftree);
     // usleep(1000);
-    fp_empty_buffers(ftree->root);
-    fp_create_header_table(ftree);
+    // fp_empty_buffers(ftree->root);
 
+    fp_create_header_table(ftree);
     fp_sort_header_table(ftree->head_table, funcarr);
     // fp_print_header_table(ftree->head_table);
 
     cnt = 0;
     fpnode_list child = ftree->root->children;
-    while(child){
+    while(child)
+    {
         // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
         // printf("%d ", child->tree_node->freq);
         arr[cnt] =  child->tree_node->freq;
@@ -116,10 +163,10 @@ int main(int argc, char* argv[])
 
     printf("sizeof fp tree = %d\n", fp_size_of_tree(ftree->root));
 
-    qsort(arr, 100, sizeof(int), cmpfunc);
+    qsort(arr, DICT_SIZE, sizeof(int), cmpfunc);
     printf("total = %d, children = %d\n", sum, cnt);
 
-    for(cnt = 0; cnt < 100; cnt++)
+    for(cnt = 0; cnt < DICT_SIZE; cnt++)
         printf("%d ", arr[cnt]);
 
     printf("\n");
@@ -160,7 +207,7 @@ int main(int argc, char* argv[])
 
     child = ctree->root->children;
 
-    for(cnt = 0; cnt < 100; cnt++)
+    for(cnt = 0; cnt < DICT_SIZE; cnt++)
         arr[cnt] = 0;
     cnt = 0, sum = 0;
 
@@ -172,9 +219,9 @@ int main(int argc, char* argv[])
         child = child->next;
     }
 
-    qsort(arr, 100, sizeof(int), cmpfunc);
+    qsort(arr, DICT_SIZE, sizeof(int), cmpfunc);
     printf("total = %d, children = %d\n", sum, cnt);
-    for(cnt = 0; cnt < 100; cnt++)
+    for(cnt = 0; cnt < DICT_SIZE; cnt++)
         printf("%d ", arr[cnt]);
 
     fp_delete_fptree(ctree);

@@ -1,3 +1,5 @@
+# this version is to create files which fpgrowth can take
+
 def main():
     fname = raw_input("enter name of file\n")
     #fname = "./data/" + fname

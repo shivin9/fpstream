@@ -3,6 +3,8 @@ intermediate
 output
 *.out
 data/
+fpgrowth
+tests/
 exe
 *.o
 *~
