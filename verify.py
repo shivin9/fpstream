@@ -11,6 +11,7 @@ def main():
         gnd = f.read()
 
     vals = vals.split("\n")
+    vset = set()
     for i in range(len(vals)):
         vals[i] = vals[i].split(" ")
         vals[i] = vals[i][1:]
@@ -18,37 +19,46 @@ def main():
             vals[i] = vals[i][:-1]
         vals[i] = map(int, vals[i])
         vals[i] = sorted(vals[i])
-    vals = sorted(vals)
+        vals[i] = map(str, vals[i])
+        vals[i] = "".join(vals[i])
+        vset.add(vals[i])
 
+    # vals = sorted(vals)
     gnd = gnd.split("\n")
+    gset = set()
     for i in range(len(gnd)):
         gnd[i] = gnd[i].split(" ")
         gnd[i] = gnd[i][:-1]
         gnd[i] = map(int, gnd[i])
         gnd[i] = sorted(gnd[i])
-    gnd = sorted(gnd)
+        gnd[i] = map(str, gnd[i])
+        gnd[i] = "".join(gnd[i])
+        gset.add(gnd[i])
 
+    # gnd = sorted(gnd)
     if len(vals) != len(gnd):
         print "some patterns are missing!"
 
-    flag = 0
-    coll = []
+    pres = 0
+    rec = 0
 
-    while i < len(vals):
-        if(vals[i] == gnd[i]):
-            i += 1
-        else:
-            j = i
-            while vals[i] != gnd[j]:
-                flag += 1
-                coll.append(gnd[j])
-                j += 1
-            i = j
+    for pttrn in vset:
+        if(pttrn in gset):
+            pres += 1
 
-    if flag == 0 and len(gnd) == len(vals):
+    for pttrn in gset:
+        if(pttrn in vset):
+            rec += 1
+
+    pres = pres / float(len(gset))
+    rec = rec / float(len(vset))
+
+    print "precision = " + str(pres)
+    print "recall = " + str(rec)
+
+    if pres == 1.0 and rec == 1.0 and len(gnd) == len(vals):
         print "output is CORRECT"
-    elif flag == 0:
-        print "result is short of " + str(len(gnd) - len(vals)) + " transactions"
+
 
 if __name__ == '__main__':
     main()

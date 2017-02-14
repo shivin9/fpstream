@@ -19,13 +19,14 @@ def main():
             temp.append(vals[i][1])
             #temp = temp + vals[i][1] + ","
             i += 1
-        #temp = str(cnt) + " " + temp + "\n"
-        temp = list(set(temp))
+        #temp = list(set(temp))
         temp = " ".join(temp)
+        temp = str(cnt) + " " + temp + "\n"
         temp = temp + "\n"
         new += temp
 
-    out = open(fname+".tab", "w")
+    out = open(fname+".data", "w")
+    #out = open(fname+".tab", "w")
     print >> out, new
 
 if __name__ == '__main__':

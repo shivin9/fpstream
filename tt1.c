@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
                         // fp_print_tree(ftree1->root);
                         fp_empty_buffers(ftree1->root);
                         // exit(0);
-                        ftree1 = fp_convert_to_CP1(ftree1);
+                        // ftree1 = fp_convert_to_CP1(ftree1);
                        //printf("finished converting TREE_1\n");
                         T1 = 1;
                         }
@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
                             curr_tree = 0;
                             T2 = -1;
                         fp_empty_buffers(ftree2->root);
-                        ftree2 = fp_convert_to_CP1(ftree2);
+                        // ftree2 = fp_convert_to_CP1(ftree2);
                        //printf("finished converting TREE_2\n");
                         T2 = 1;
                         }
@@ -245,9 +245,9 @@ int main(int argc, char* argv[])
 
                     // fp_print_tree(temp->root);
                     fp_create_header_table(temp);
-                    fp_sort_header_table(temp->head_table, arr);
-                    fp_sort_data(sorted, arr);
-                    sorted = fp_reverse_data(sorted);
+                    // fp_sort_header_table(temp->head_table, arr);
+                    // fp_sort_data(sorted, arr);
+                    // sorted = fp_reverse_data(sorted);
 
                     # pragma omp critical
                     {
@@ -314,10 +314,10 @@ int main(int argc, char* argv[])
             temp = ftree2;
 
         fp_empty_buffers(temp->root);
-        temp = fp_convert_to_CP(temp);
-        fp_sort_header_table(temp->head_table, arr);
-        fp_sort_data(sorted, arr);
-        sorted = fp_reverse_data(sorted);
+        // temp = fp_convert_to_CP(temp);
+        // fp_sort_header_table(temp->head_table, arr);
+        // fp_sort_data(sorted, arr);
+        // sorted = fp_reverse_data(sorted);
 
         fp_mine_frequent_itemsets(temp, sorted, NULL, 0);
         process_batch(ptree, ++batch_ready);
