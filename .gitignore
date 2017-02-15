@@ -2,7 +2,8 @@
 intermediate
 output
 *.out
-./data/*
+data/
+tests/
 exe
 *.swp
-.gitignore
+*.ignore

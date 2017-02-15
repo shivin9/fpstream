@@ -6,19 +6,19 @@
     CP and FP trees are working alright
 */
 // call this function to start a nanosecond-resolution timer
-struct timespec timer_start(){
-    struct timespec start_time;
-    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
-    return start_time;
-}
+// struct timespec timer_start(){
+//     struct timespec start_time;
+//     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
+//     return start_time;
+// }
 
-// call this function to end a timer, returning nanoseconds elapsed as a long
-long timer_end(struct timespec start_time){
-    struct timespec end_time;
-    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
-    long diffInNanos = end_time.tv_nsec - start_time.tv_nsec;
-    return diffInNanos;
-}
+// // call this function to end a timer, returning nanoseconds elapsed as a long
+// long timer_end(struct timespec start_time){
+//     struct timespec end_time;
+//     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
+//     long diffInNanos = end_time.tv_nsec - start_time.tv_nsec;
+//     return diffInNanos;
+// }
 
 /*DESCENDING order here*/
 int cmpfunc (const void * a, const void * b)
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 
     data sorted = fp_create_sorted_dummy();
     ftree = fp_create_fptree();
-    fp_create_header_table(ftree, 1);
+    fp_create_header_table(ftree, tid);
 
     struct timeval t1, t2;
     double elapsedTime, sum = 0;
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
         // break;
         if(tid%1000 == 0)
         {
-            fp_create_header_table_helper(ftree->root, &(ftree->head_table));
+            fp_create_header_table_helper(ftree->root, ftree->head_table);
             fp_update_header_table(ftree->head_table, sorted, tid);
             // fp_print_header_table(ftree->head_table);
             size = fp_size_of_tree(ftree->root);
@@ -108,10 +108,10 @@ int main(int argc, char* argv[])
 
 
     /* Create the perfect, final tree after emptying the buffers*/
+    fp_create_header_table_helper(ftree->root, ftree->head_table);
     fp_empty_buffers(ftree->root, ftree->head_table, tid);
     fp_update_header_table(ftree->head_table, sorted, tid);
-    fp_create_header_table_helper(ftree->root, &(ftree->head_table));
-
+    fp_prune(ftree, tid);
 
     gettimeofday(&t2, NULL);
 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
     // usleep(1000);
     // fp_create_header_table_helper(ftree->root, &(ftree->head_table));
     fp_sort_header_table(ftree->head_table, funcarr);
-    fp_print_header_table(ftree->head_table);
+    // fp_print_header_table(ftree->head_table);
 
     printf("\nMINSUP_FREQ = %lf, MINSUP_SEMIFREQ = %lf, SUP = %lf\n\n", MINSUP_FREQ, MINSUP_SEMIFREQ, SUP);
     printf("total time taken to insert in FP tree = %lf ms\n", elapsedTime);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 
     // correct fp tree 437 new500
     gettimeofday(&t1, NULL);
-    fp_mine_frequent_itemsets(ftree, sorted, NULL, tid, 0);
+    fp_mine_frequent_itemsets(ftree, sorted, NULL, NULL, tid, 2);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
     fp_sort_data(sorted, funcarr);
     sorted = fp_reverse_data(sorted);
     gettimeofday(&t1, NULL);
-    // fp_mine_frequent_itemsets(ctree, sorted, NULL, 0);
+    // fp_mine_frequent_itemsets(ctree, sorted, NULL, NULL, tid, 2);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
