@@ -49,6 +49,9 @@ int main(int argc, char* argv[])
 
     FILE *fp;
 
+    struct timeval t1, t2;
+    double elapsedTime;
+
     fp = fopen("intermediate", "w");
     fclose(fp);
     fp = fopen("output", "w");
@@ -90,11 +93,20 @@ int main(int argc, char* argv[])
         // printf("FP: ");
         fp_sort_data(d, NULL);
         // fp_print_data_node(d);
+
+	    gettimeofday(&t1, NULL);
         ftree = fp_insert_itemset(ftree, d, 0);
+	    gettimeofday(&t2, NULL);
+
+        elapsedTime += (t2.tv_sec - t1.tv_sec) + 
+              ((t2.tv_usec - t1.tv_usec)/1000000.0);
+
         fp_delete_data_node(d);
         cnt++;
     }
     fclose(fp);
+
+    printf("total time taken to insert in FP tree = %lf ms\n", elapsedTime);
 
     // printf("\n\nfinal pattern tree:\n\n");
     // print_tree(ptree->root);
@@ -116,38 +128,35 @@ int main(int argc, char* argv[])
     // printf("FP Table\n");
     // fp_print_header_table(ftree->head_table);
 
-    cnt = 0;
-    fpnode_list child = ftree->root->children;
-    while(child){
-        // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
-        // printf("%d ", child->tree_node->freq);
-        arr[cnt] =  child->tree_node->freq;
-        sum += arr[cnt++];
-        child = child->next;
-    }
+    // cnt = 0;
+    // fpnode_list child = ftree->root->children;
+    // while(child){
+    //     // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
+    //     // printf("%d ", child->tree_node->freq);
+    //     arr[cnt] =  child->tree_node->freq;
+    //     sum += arr[cnt++];
+    //     child = child->next;
+    // }
 
     printf("sizeof fp tree = %d\n", fp_size_of_tree(ftree->root));
 
-    qsort(arr, 100, sizeof(int), cmpfunc);
-    printf("total = %d, children = %d\n", sum, cnt);
+    // qsort(arr, 100, sizeof(int), cmpfunc);
+    // printf("total = %d, children = %d\n", sum, cnt);
 
     // for(cnt = 0; cnt < 100; cnt++)
     //     printf("%d ", arr[cnt]);
 
-    printf("\n");
-
-    struct timeval t1, t2;
-    double elapsedTime;
+    // printf("\n");
 
     // correct fp tree 437 new500
-    gettimeofday(&t1, NULL);
-    fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
-    gettimeofday(&t2, NULL);
+    // gettimeofday(&t1, NULL);
+    // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
+    // gettimeofday(&t2, NULL);
 
-    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
-    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+    // elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+    // elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    printf("total time taken to mine FP tree = %lf ms\n", elapsedTime);
+    // printf("total time taken to mine FP tree = %lf ms\n", elapsedTime);
 
     // fp_print_tree(ftree->root);
     gettimeofday(&t1, NULL);
@@ -159,47 +168,47 @@ int main(int argc, char* argv[])
 
     printf("time to convert to CP tree = %lf ms\n", elapsedTime);
 
-    // fp_empty_buffers(ftree);
-    // printf("CP Table\n");
-    // fp_print_header_table(ctree->head_table);
+    // // fp_empty_buffers(ftree);
+    // // printf("CP Table\n");
+    // // fp_print_header_table(ctree->head_table);
 
-    fp_sort_data(sorted, funcarr);
-    sorted = fp_reverse_data(sorted);
-    // fp_print_data_node(sorted);
-    gettimeofday(&t1, NULL);
-    fp_mine_frequent_itemsets(ctree, sorted, NULL, 1);
-    gettimeofday(&t2, NULL);
+    // fp_sort_data(sorted, funcarr);
+    // sorted = fp_reverse_data(sorted);
+    // // fp_print_data_node(sorted);
+    // gettimeofday(&t1, NULL);
+    // fp_mine_frequent_itemsets(ctree, sorted, NULL, 1);
+    // gettimeofday(&t2, NULL);
 
-    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
-    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+    // elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+    // elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    printf("total time taken to mine CP tree = %lf ms\n", elapsedTime);
+    // printf("total time taken to mine CP tree = %lf ms\n", elapsedTime);
 
-    // printf("\nresulting cp-tree:\n");
-    // fp_print_tree(ctree->root);
-    // printf("\n");
+    // // printf("\nresulting cp-tree:\n");
+    // // fp_print_tree(ctree->root);
+    // // printf("\n");
     printf("\nsizeof cp tree = %d\n", fp_size_of_tree(ctree->root));
 
-    child = ctree->root->children;
+    // child = ctree->root->children;
 
-    for(cnt = 0; cnt < 100; cnt++)
-        arr[cnt] = 0;
-    cnt = 0, sum = 0;
-
-    while(child){
-        // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
-        // printf("%d ", child->tree_node->freq);
-        arr[cnt] =  child->tree_node->freq;
-        sum += arr[cnt++];
-        child = child->next;
-    }
-
-    qsort(arr, 100, sizeof(int), cmpfunc);
-    printf("total = %d, children = %d\n", sum, cnt);
     // for(cnt = 0; cnt < 100; cnt++)
-    //     printf("%d ", arr[cnt]);
+    //     arr[cnt] = 0;
+    // cnt = 0, sum = 0;
 
-    fp_delete_fptree(ctree);
+    // while(child){
+    //     // printf("<%d, %d> ", child->tree_node->data_item, child->tree_node->freq);
+    //     // printf("%d ", child->tree_node->freq);
+    //     arr[cnt] =  child->tree_node->freq;
+    //     sum += arr[cnt++];
+    //     child = child->next;
+    // }
+
+    // qsort(arr, 100, sizeof(int), cmpfunc);
+    // printf("total = %d, children = %d\n", sum, cnt);
+    // // for(cnt = 0; cnt < 100; cnt++)
+    // //     printf("%d ", arr[cnt]);
+
+    // fp_delete_fptree(ctree);
     fp_delete_data_node(sorted);
     free(arr);
     free(funcarr);

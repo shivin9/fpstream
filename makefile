@@ -2,7 +2,7 @@ CC=gcc
 FLAG=-pg -fopenmp -c -g
 
 exe: tt1.o twin_tree.o driver.o fpstream.o fptree.o pattern_tree.o
-	$(CC) -o exe -pg -fopenmp driver.o fpstream.o fptree.o pattern_tree.o def.h -lm
+	$(CC) -o exestr1 -pg -fopenmp driver.o fpstream.o fptree.o pattern_tree.o def.h -lm
 
 driver.o: driver.c
 	$(CC) $(FLAG) driver.c -lm
@@ -23,4 +23,4 @@ pattern_tree.o: pattern_tree.c
 	$(CC) $(FLAG) pattern_tree.c -lm
 
 clean:
-	rm -f exe *.o *~ *.h.gch output intermediate
+	rm -f *.o *~ *.h.gch output intermediate
