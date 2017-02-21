@@ -12,8 +12,8 @@
 #define MINSUP_SEMIFREQ 8  //minimum support for semi-frequent itemsets
 #define MINSUP_FREQ 8    //minimum support for frequent itemsets
 #define SUP_ERROR 50 //max error for sub-frequent itemsets
-#define DICT_SIZE 100 // max. number of items
-#define SIZE_LMT 64000 // max. size of tree after which it is pruned
+#define DICT_SIZE 1000 // max. number of items
+#define SIZE_LMT 1024000 // max. size of tree after which it is pruned
 
 // FLAGS
 int leave_as_buffer;

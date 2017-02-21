@@ -1,5 +1,6 @@
 intermediate
 *.ignore
+*.py
 tests/
 output
 *.out
@@ -8,6 +9,3 @@ exe
 *.o
 *~
 *.h.gch
-./output
-./intermediate
-.gitignore
