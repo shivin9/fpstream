@@ -101,7 +101,6 @@ int main(int argc, char* argv[])
             printf("new_size = %d\n", size);
             // break;
         }
-
         tid++;
     }
     fclose(fp);

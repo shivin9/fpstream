@@ -15,7 +15,7 @@
 
 #define DECAY 0.9999995
 #define DICT_SIZE 1000 // max. number of items
-#define N 50000 //window size
+#define N 5000 //window size
 #define EPS 0.0001
 #define THETA 0.001
 

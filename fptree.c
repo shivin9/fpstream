@@ -760,7 +760,7 @@ void fp_empty_buffers(fpnode curr, header_table htable, int tid)
         return;
     if(curr->itembuffer)
     {
-        assert(curr->bufferSize > 0);
+        // assert(curr->bufferSize > 0);
         // printf("\nat node %d", curr->data_item);
         buffer buff = curr->itembuffer, temp;
         while(buff)
@@ -1454,6 +1454,7 @@ int fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, buffer st
                     stream = stream->next;
                 stream->next = calloc(1, sizeof(struct buffer_node));
                 stream->next->itemset = fp_copy_data_node(temp);
+                // printf("incremented the stream with new patterns\n");
             }
 
             else
@@ -1483,7 +1484,8 @@ int fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, buffer st
                     // printf(" %d", arr[t]);
                     t--;
                 }
-                if(pattern%2 == 0){
+                if(pattern%2 == 0)
+                {
                     fprintf(fp, " %lf", curr_header_node->cnt);
                     // printf(" %lf", curr_header_node->cnt);
                 }
@@ -1506,7 +1508,8 @@ int fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, buffer st
         // printf("going to get condtree\n");
         fptree cond_tree;
         if(pattern == 2)
-            cond_tree = fp_create_conditional_fp_tree(tree, curr_data->data_item, SUP, tid);
+            cond_tree = fp_create_conditional_fp_tree(tree, 
+            				curr_data->data_item, SUP, tid);
 
         else
             cond_tree = fp_create_conditional_fp_tree(tree, curr_data->data_item,

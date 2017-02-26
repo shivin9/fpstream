@@ -138,6 +138,10 @@ int main(int argc, char* argv[])
             // 5. After the stream has switched, you process the tree and notify the thread with ID 3.
             // 6. All other aspects of handling the CP-tree. (Yet to complete)
             do{
+                // printf("stream_batch = %d, batch_no = %d\n", stream_batch, batch_no);
+                if(stream_batch >= batch_no && T2 == 0)
+                    break;
+
                 while(item_ready == 0 && stream_batch < cnt)
                 {
                     // printf("stuck in T1\n");
@@ -160,10 +164,12 @@ int main(int argc, char* argv[])
                         free(stream);
                     }
 
-                    if(T2 == 0 && stream_batch%5000 == 0)
+                    // prune the tree if 5000 transactions have been inserted or if the stream has ended
+                    if(T2 == 0 && (stream_batch%5000 == 0 || stream_batch >= batch_no))
                     {
                         // direct away the stream
-                        printf("\nCHANGING to AUX Tree; SIZE = %d; count = %d\n\n", fp_size_of_tree(ftree->root), stream_batch);
+                        printf("\nCHANGING to AUX Tree; SIZE = %d; count = %d\n\n",
+                                fp_size_of_tree(ftree->root), stream_batch);
                         aux = fp_create_fptree();
                         fp_create_header_table(aux, tid);
                         // exit(0);
@@ -172,29 +178,35 @@ int main(int argc, char* argv[])
                             curr_tree = 1;
                             T1 = -1;
                             // fp_print_tree(ftree->root);
-                            fp_empty_buffers(ftree->root, ftree->head_table, tid);
                             // exit(0);
                             // will implement this function later
                             // ftree = fp_convert_to_CP(ftree);
-                            // printf("finished converting TREE_1\n");
+                            fp_create_header_table_helper(ftree->root, ftree->head_table);
+                            fp_empty_buffers(ftree->root, ftree->head_table, tid);
+                            fp_update_header_table(ftree->head_table, sorted, tid);
                             fp_prune(ftree, tid);
+                            printf("***finished pruning ftree***\n");
                             T1 = 0;
                         }
                     }
                 }
-            }while(stream_batch <= batch_no);
+            }while(1);
         }
 
         else if(threadId == 2)
         {
             do{
+                // printf("stream_batch = %d, batch_no = %d\n", stream_batch, batch_no);
+                if(stream_batch >= batch_no && T2 == 0)
+                    break;
+                
                 while(item_ready == 0 && stream_batch < cnt)
                 {
                     // printf("stuck in T2\n");
                 }
                 if(stream_batch < cnt && curr_tree == 1  && T2 == 0)
                 {
-                    printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 2, T1, T2);
+                    // printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 2, T1, T2);
                     // fp_print_data_node(curr->itemset);
                     aux = fp_insert_itemset(aux, curr->itemset, tid++, leave_as_buffer);
 
@@ -210,26 +222,28 @@ int main(int argc, char* argv[])
                     // if main tree is ready then we'll mine aux and append the frequent itemsets in the stream
                     if(T1 == 0)
                     {
-                        printf("\nCHANGING to MAIN TREE; SIZE = %d; count = %d\n\n", fp_size_of_tree(aux->root), stream_batch);
+                        printf("\nCHANGING to MAIN TREE; SIZE = %d; count = %d\n\n", 
+                                fp_size_of_tree(aux->root), stream_batch);
                         // direct away the stream
                         # pragma omp critical
                         {
                             curr_tree = 0;
                             T2 = -1;
-                            fp_create_header_table(ftree, tid);
-                            fp_update_header_table(ftree->head_table, sorted, tid);
-                            fp_empty_buffers(aux->root, aux->head_table, tid);
-
-                            batch_no +=     fp_mine_frequent_itemsets(aux, sorted, NULL, curr, tid, 0);
+                            int fixtid = tid;
+                            printf("Starting to mine the AUX TREE\n");
+                            fp_create_header_table_helper(aux->root, aux->head_table);
+                            fp_update_header_table(aux->head_table, sorted, fixtid);
+                            fp_empty_buffers(aux->root, aux->head_table, fixtid);
+                            batch_no += fp_mine_frequent_itemsets(aux, sorted, NULL, curr, tid, 2);
                             fp_delete_fptree(aux);
-
                             // aux = fp_convert_to_CP(aux);
-                            // printf("finished converting TREE_2\n");
+                            printf("\nFinished Mining the AUX TREE\n\n");
+                            // exit(0);
                             T2 = 0;
                         }
                     }
                 }
-            }while(stream_batch <= batch_no);
+            }while(1);
         }
         // else if (threadId == 3) // thread handling pattern tree along with
         // {
@@ -292,27 +306,32 @@ int main(int argc, char* argv[])
         # pragma omp join
     }
 
-    /* Empty the auxillary tree to get frequent itemsets */
-    fp_create_header_table(ftree, tid);
-    fp_update_header_table(ftree->head_table, sorted, tid);
-    fp_empty_buffers(aux->root, aux->head_table, tid);
-    batch_no += fp_mine_frequent_itemsets(aux, sorted, NULL, curr, tid, 0);
-    fp_delete_fptree(aux);
+    /* Now AUX is not needed anymore*/
+    // /* Empty the auxillary tree to get frequent itemsets */
+    // if(aux->root)
+    //     printf("aux is still there! with size = %d\n", fp_size_of_tree(aux));
 
-    while(curr->next)
-    {
-        printf("LATE INSERT item no.: %d in MAIN Tree... T1 = %d, T2 = %d\n", stream_batch, T1, T2);
-        stream_batch++;
-        ftree = fp_insert_itemset(ftree, curr->itemset, tid++, 0);
-        curr = curr->next;
-        fp_delete_data_node(curr->itemset);
-        free(stream);
-    }
+    // fp_create_header_table(aux, tid);
+    // fp_update_header_table(aux->head_table, sorted, tid);
+    // batch_no += fp_mine_frequent_itemsets(aux, sorted, NULL, curr, tid, 0);
+    // fp_delete_fptree(aux);
+
+    // while(curr->next)
+    // {
+    //     printf("LATE INSERT item no.: %d in MAIN Tree... T1 = %d, T2 = %d\n", stream_batch, T1, T2);
+    //     stream_batch++;
+    //     ftree = fp_insert_itemset(ftree, curr->itemset, tid++, 0);
+    //     curr = curr->next;
+    //     fp_delete_data_node(curr->itemset);
+    //     free(stream);
+    // }
 
     // printf("Tree_%d is still left with %d transactions; SIZE = %d\n", tree_to_prune+1, cnt, fp_size_of_tree(aux->root));
 
-    fp_empty_buffers(ftree->root, ftree->head_table, tid);
+    fp_create_header_table_helper(ftree->root, ftree->head_table);
     fp_update_header_table(ftree->head_table, sorted, tid);
+    fp_empty_buffers(ftree->root, ftree->head_table, tid);
+
     fp_mine_frequent_itemsets(ftree, sorted, NULL, NULL, tid, 0);
     printf("Done with final extraction!\n");
 

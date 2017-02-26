@@ -7,3 +7,4 @@ tests/
 exe
 *.swp
 *.ignore
+*.py
