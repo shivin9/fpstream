@@ -197,7 +197,6 @@ int main(int argc, char* argv[])
                 // printf("stream_batch = %d, batch_no = %d\n", stream_batch, batch_no);
                 if(stream_batch >= batch_no && T2 == 0)
                     break;
-
                 while(item_ready == 0 && stream_batch < cnt)
                 {
                     // printf("stuck in T2\n");
