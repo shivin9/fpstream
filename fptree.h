@@ -8,8 +8,8 @@ data fp_create_sorted_dummy();
 
 void fp_create_and_insert_new_child(fpnode, data, int);
 void fp_insert_new_child(fpnode, fpnode, data);
-fpnode fp_insert_itemset_helper(fpnode, header_table, data, int tid, int put_in_buffer);
-fptree fp_insert_itemset(fptree, data, int, int);
+fpnode fp_insert_itemset_helper(fpnode, header_table, data, int tid, int buffer);
+fptree fp_insert_itemset(fptree, data, int tid, int buffer);
 void fp_delete_tree_structure(fpnode);
 void fp_delete_data_node(data);
 int fp_size_of_tree(fpnode);
@@ -17,8 +17,8 @@ int fp_size_of_tree(fpnode);
 int  fp_no_children(fpnode);
 int  fp_no_dataitem(fpnode);
 
-void fp_create_header_table_helper(fpnode, header_table*);
 void fp_create_header_table(fptree, int);
+void fp_create_header_table_helper(fpnode, header_table);
 void fp_update_header_table(header_table, data, int);
 
 void fp_convert_helper(fpnode, fptree, double*, int*, int tid, int end);
@@ -31,7 +31,7 @@ void fp_free_data_node(data);
 
 fpnode fp_dfs(fpnode, data_type);
 fptree fp_create_conditional_fp_tree(fptree, data_type, double, int);
-void fp_mine_frequent_itemsets(fptree, data, data, int tid, int pattern);
+int fp_mine_frequent_itemsets(fptree, data, data, buffer* , int tid, int pattern);
 
 void fp_print_node(fpnode);
 void fp_print_tree(fpnode);
