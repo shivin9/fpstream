@@ -42,8 +42,7 @@ void process_batch(patterntree tree, int batch_num)
     int sz, cnt = 0;
     while(fscanf(fp, "%d", &sz) != EOF)
     {
-
-        int i, t=0, arr[100], val, freq;
+        int i, t=0, arr[DICT_SIZE], val, freq;
         while(sz--)
         {
             fscanf(fp, "%d", &val);

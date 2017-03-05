@@ -3,7 +3,7 @@
 int main(int argc, char* argv[])
 {
     if(argc == 1){
-       //printf("format is ./exe <filename><sleepTime(in microseconds)><batchSize>\n");
+        //printf("format is ./exe <filename><sleepTime(in microseconds)><batchSize>\n");
         exit(-1);
     }
 
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
         fp = fopen(argv[1], "r");
 
         if(fp == NULL){
-           //printf("File does not exist!\n");
+            //printf("File does not exist!\n");
             exit(0);
         }
 
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
                 data new_d = malloc(sizeof(struct data_node));
                 if(new_d == NULL)
                 {
-                   //printf("new_d malloc failed\n");
+                    //printf("new_d malloc failed\n");
                 }
                 new_d->data_item = item;
                 new_d->next = d;
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
         }
         item_ready = -1;
         end = NULL;
-       //printf("Read the Stream...\n");
+        //printf("Read the Stream...\n");
     }
 
 
@@ -123,17 +123,17 @@ int main(int argc, char* argv[])
             {
                 // # pragma omp critical
                 // {
-                    item_ready = 1;
-                    ////printf("Releasing Item no. %d\n", cnt);
-                    leave_as_buffer = 0;
-                    // sleepTime = rand()%100;
-                    cnt += leavecnt;
-                    usleep(sleepTime);
-                    leave_as_buffer = 1;
-                    item_ready = 0;
+                item_ready = 1;
+                ////printf("Releasing Item no. %d\n", cnt);
+                leave_as_buffer = 0;
+                // sleepTime = rand()%100;
+                cnt += leavecnt;
+                usleep(sleepTime);
+                leave_as_buffer = 1;
+                item_ready = 0;
                 // }
             }
-           //printf("Released All Items\n");
+            //printf("Released All Items\n");
             item_ready = -1;
             end = NULL;
         }
@@ -170,17 +170,17 @@ int main(int argc, char* argv[])
                     if(T2==0 && fp_size_of_tree(ftree1->root) > SIZE_LMT)
                     {
                         // direct away the stream
-                       printf("\nCHANGING TREE 1->2; SIZE = %d; count = %d\n", fp_size_of_tree(ftree1->root), stream_batch);
+                        printf("\nCHANGING TREE 1->2; SIZE = %d; count = %d\n", fp_size_of_tree(ftree1->root), stream_batch);
                         # pragma omp critical
                         {
                             curr_tree = 1;
                             T1 = -1;
-                        // fp_print_tree(ftree1->root);
-                        fp_empty_buffers(ftree1->root);
-                        // exit(0);
-                        // ftree1 = fp_convert_to_CP1(ftree1);
-                       //printf("finished converting TREE_1\n");
-                        T1 = 1;
+                            // fp_print_tree(ftree1->root);
+                            fp_empty_buffers(ftree1->root);
+                            // exit(0);
+                            // ftree1 = fp_convert_to_CP1(ftree1);
+                            //printf("finished converting TREE_1\n");
+                            T1 = 1;
                         }
                     }
                 }
@@ -210,16 +210,16 @@ int main(int argc, char* argv[])
 
                     if(T1==0 && fp_size_of_tree(ftree2->root) > SIZE_LMT)
                     {
-                       printf("\nCHANGING TREE 2->1; SIZE = %d; count = %d\n", fp_size_of_tree(ftree2->root), stream_batch);
+                        printf("\nCHANGING TREE 2->1; SIZE = %d; count = %d\n", fp_size_of_tree(ftree2->root), stream_batch);
                         // direct away the stream
                         # pragma omp critical
                         {
                             curr_tree = 0;
                             T2 = -1;
-                        fp_empty_buffers(ftree2->root);
-                        // ftree2 = fp_convert_to_CP1(ftree2);
-                       //printf("finished converting TREE_2\n");
-                        T2 = 1;
+                            fp_empty_buffers(ftree2->root);
+                            // ftree2 = fp_convert_to_CP1(ftree2);
+                            //printf("finished converting TREE_2\n");
+                            T2 = 1;
                         }
                     }
                 }
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
             do{
                 if(T1==1 || T2==1){
                     tree_to_prune = 1 - curr_tree;
-                   //printf("Servicing TREE_%d, batch_ready=%d\n", tree_to_prune + 1, batch_ready);
+                    //printf("Servicing TREE_%d, batch_ready=%d\n", tree_to_prune + 1, batch_ready);
 
                     if(tree_to_prune){
                         T2 = -1;
@@ -259,9 +259,9 @@ int main(int argc, char* argv[])
                         process_batch(ptree, ++batch_ready);
                         gettimeofday(&tp2, NULL);
 
-                       //printf("ratio = %lf\n", (float)(tm2.tv_sec-tm1.tv_sec)/(tp2.tv_sec-tp1.tv_sec));
+                        //printf("ratio = %lf\n", (float)(tm2.tv_sec-tm1.tv_sec)/(tp2.tv_sec-tp1.tv_sec));
 
-                       printf("Done Servicing TREE_%d\n\n", tree_to_prune + 1);
+                        printf("Done Servicing TREE_%d\n\n", tree_to_prune + 1);
 
                         if(tree_to_prune)
                         {
@@ -281,13 +281,13 @@ int main(int argc, char* argv[])
 
                     FILE *fp1;
                     fp1 = fopen("output", "a");
-                    fprintf(fp1, "After batch %d:\n",batch_ready);
+                    // fprintf(fp1, "After batch %d:\n",batch_ready);
                     fclose(fp1);
 
                     fp_delete_fptree(temp);
-                    temp = get_fptree(ptree);
-                    fp_mine_frequent_itemsets(temp, sorted, NULL, 1);
-                    fp_delete_fptree(temp);
+                    // temp = get_fptree(ptree);
+                    // fp_mine_frequent_itemsets(temp, sorted, NULL, 1);
+                    // fp_delete_fptree(temp);
                 }
             }while(stream_batch <= batch_no);
         }
@@ -296,7 +296,7 @@ int main(int argc, char* argv[])
     }
 
     while(curr->next){
-       //printf("LATE INSERT item no.: %d in TREE_1... T1 = %d, T2 = %d\n", stream_batch, T1, T2);
+        //printf("LATE INSERT item no.: %d in TREE_1... T1 = %d, T2 = %d\n", stream_batch, T1, T2);
         stream_batch++;
         ftree1 = fp_insert_itemset(ftree1, curr->itemset, 0);
         curr = curr->next;
@@ -321,14 +321,14 @@ int main(int argc, char* argv[])
 
         fp_mine_frequent_itemsets(temp, sorted, NULL, 0);
         process_batch(ptree, ++batch_ready);
-       //printf("Done with leftover Tree_%d!\n", i);
+        //printf("Done with leftover Tree_%d!\n", i);
 
         FILE *fp1;
         fp1 = fopen("output", "a");
-        fprintf(fp1, "After batch %d:\n",batch_ready);
+        // fprintf(fp1, "After batch %d:\n",batch_ready);
         fclose(fp1);
         // temp = get_fptree(ptree);
-        // fp_mine_frequent_itemsets(temp, sorted, NULL, 1);
+        //     fp_mine_frequent_itemsets(temp, sorted, NULL, 1);
         fp_delete_fptree(temp);
     }
 
@@ -347,7 +347,7 @@ int main(int argc, char* argv[])
     // fp_print_header_table(ftree2->head_table);
 
     // fp_print_tree(temp->root);
-    fp_mine_frequent_itemsets(temp, sorted, NULL, 0);
+    // fp_mine_frequent_itemsets(temp, sorted, NULL, 0);
 
     fp_delete_fptree(temp);
     fp_delete_data_node(sorted);
@@ -361,6 +361,6 @@ int main(int argc, char* argv[])
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-   printf("total time taken = %lf ms\n", elapsedTime);
+    printf("total time taken = %lf ms\n", elapsedTime);
     return 1;
 }

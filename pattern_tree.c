@@ -193,10 +193,8 @@ tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int endi
 
     if(table->buffer_empty == 1)
     {
-
         //no need for further propagation
         //just fill the buffer
-
         table->buffer_empty = 0;
         table->buffer_starting_batch = table->starting_batch;
         table->buffer_ending_batch = table->ending_batch;
@@ -208,15 +206,14 @@ tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int endi
 
         return table;
     }
-    else{
 
+    else
+    {
         //the buffer is combined with current contents and propagated forward
         //new node takes its place and buffer becomes empty
 
         int combined_tw_starting_batch = min(table->starting_batch, table->buffer_starting_batch);
-
         int combined_tw_ending_batch = min(table->ending_batch, table->buffer_ending_batch);
-
         int new_add = table->freq + table->buffer_freq;
 
         table->next = insert_batch(table->next, combined_tw_starting_batch, combined_tw_ending_batch, new_add);
@@ -342,11 +339,7 @@ void tail_prune(pattern_node current_node)
 }
 
 
-
-
-
 //////////////////////////////////////////////////////////////////////////////
-
 
 void print_node(pattern_node node)
 {
@@ -388,5 +381,3 @@ void print_tree(pattern_node node)
 
 
 //////////////////////////////////////////////////////////////////////////////
-
-
