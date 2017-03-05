@@ -7,7 +7,5 @@ tests/
 exe
 *.swp
 *.ignore
-<<<<<<< HEAD
-=======
 *.py
->>>>>>> a94033ef26d62cb38d42cc4b84244a94fccf9139
+*.gnd
