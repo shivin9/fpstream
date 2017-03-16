@@ -1,8 +1,11 @@
-*.o
-output
 intermediate
-test
-gnd_truth
+*.ignore
+*.py
+tests/
+output
 *.out
-./data/*
+data/
 exe
+*.o
+*~
+*.h.gch
