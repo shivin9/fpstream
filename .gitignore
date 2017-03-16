@@ -5,7 +5,16 @@ tests/
 output
 *.out
 data/
+<<<<<<< HEAD
 exe
 *.o
 *~
 *.h.gch
+=======
+tests/
+exe
+*.swp
+*.ignore
+*.py
+*.gnd
+>>>>>>> new
