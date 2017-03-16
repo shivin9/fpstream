@@ -326,11 +326,12 @@ int main(int argc, char* argv[])
 
     // printf("Tree_%d is still left with %d transactions; SIZE = %d\n", tree_to_prune+1, cnt, fp_size_of_tree(aux->root));
 
+    printf("\nMINSUP_FREQ = %lf, MINSUP_SEMIFREQ = %lf, SUP = %lf\n\n", MINSUP_FREQ, MINSUP_SEMIFREQ, SUP);
     fp_create_header_table_helper(ftree->root, ftree->head_table);
     fp_update_header_table(ftree->head_table, sorted, tid);
     fp_empty_buffers(ftree->root, ftree->head_table, tid);
 
-    fp_mine_frequent_itemsets(ftree, sorted, NULL, NULL, tid, 0);
+    fp_mine_frequent_itemsets(ftree, sorted, NULL, NULL, tid, 2);
     printf("Done with final extraction!\n");
 
     fp_delete_fptree(ftree);

@@ -1,5 +1,5 @@
 CC=gcc
-FLAG=-pg -fopenmp -c -g
+FLAG=-pg -fopenmp -c -g 
 
 exe: driver.o fptree.o atstream.o
 	$(CC) -o exe -pg -fopenmp atstream.o fptree.o def.h -lm

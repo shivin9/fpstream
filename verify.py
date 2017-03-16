@@ -25,7 +25,7 @@ def main():
         vals[i] = vals[i].split(" ")
 
         if i == 0:
-            if len(vals[0][1:]) == vals[0][0]:
+            if len(vals[0][1:]) == int(vals[0][0]):
                 op = 0
             else:
                 op = 1

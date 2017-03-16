@@ -1,27 +1,36 @@
+import os
+
 def data_to_tab():
-    fname = raw_input("enter name of file\n")
+    # fname = raw_input("enter name of file\n")
     # fname = "./data/" + fname
-    with open("./data/" + fname, 'r') as f:
-        vals = f.read()
 
-    vals = vals.split("\n")
+    os.chdir("./data")
+    for file in os.listdir('.'):
+        if file[-5:] == ".data":
+            with open(file, 'r') as f:
+                vals = f.read()
+            print "Converting file " + file
 
-    for i in range(len(vals)):
-        vals[i] = vals[i].split(" ")
+            vals = vals.split("\n")
 
-    for i in range(len(vals)):
-        vals[i] = vals[i][1:]
-        vals[i] = vals[i][:-1]
+            for i in range(len(vals)):
+                vals[i] = vals[i].split(" ")
 
-    new = ""
+            for i in range(len(vals)):
+                vals[i] = vals[i][1:]
+                vals[i] = vals[i][:-1]
 
-    for i in range(len(vals)):
-        temp = ""
-        temp = ", ".join(list(set(vals[i]))) + "\n"
-        new += temp
+            new = ""
 
-    out = open("tests/" + fname[:-5] + ".tab", "w")
-    print >> out, new
+            for i in range(len(vals)):
+                temp = ""
+                temp = ", ".join(list(set(vals[i]))) + "\n"
+                new += temp
+
+            out = open("../tests/" + file[:-5]+".tab", "w")
+            print >> out, new
+
+    os.chdir("../")
 
 
 def main():

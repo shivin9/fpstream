@@ -813,7 +813,6 @@ void fp_update_ancestor(fpnode temp)
 
 void fp_merge1(fpnode parent, fpnode child, int tid)
 {
-
     // child's parent has been detached
     // assert(child->parent->parent == NULL);
     child->parent = parent;
@@ -861,7 +860,8 @@ void fp_merge1(fpnode parent, fpnode child, int tid)
     assert(childptr->tree_node->data_item == curr_item->data_item);
 
     selected_child = childptr->tree_node;
-    selected_child->freq = selected_child->freq * pow(DECAY, tid - selected_child->tid) + child->freq * pow(DECAY, tid - selected_child->tid);
+    selected_child->freq = selected_child->freq * pow(DECAY, tid - selected_child->tid) +
+                           child->freq * pow(DECAY, tid - selected_child->tid);
     selected_child->tid = tid;
 
 
