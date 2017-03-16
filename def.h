@@ -44,14 +44,16 @@ static int batch_ready;
 typedef int data_type;    //the data type of individual items in the transaction
 
 // linked list of data_items ie. an itemset
-struct data_node{
+struct data_node
+{
     data_type data_item;
     struct data_node* next;
 };
 
 typedef struct data_node* data;
 
-struct buffer_node{
+struct buffer_node
+{
     data itemset;
     int tid;
     struct buffer_node* next;
@@ -62,12 +64,13 @@ typedef struct buffer_node* buffer;
 //////////////////////////////////////////////////////////////////////////////
 
 
-typedef struct fp_node* fpnode;
-typedef struct fpnode_list_node* fpnode_list;
+typedef struct sf_node* sfnode;
+typedef struct sfnode_list_node* sfnode_list;
 typedef struct header_table_node* header_table;
 
-struct fp_node{
-    fpnode_list children;
+struct sf_node
+{
+    sfnode_list children;
     data item_list;
     buffer itembuffer;
     int bufferSize;
@@ -75,38 +78,42 @@ struct fp_node{
     double freq;
     data_type data_item;
     header_table hnode;
-    struct fp_node* next_similar;
-    struct fp_node* prev_similar;
-    struct fp_node* parent;
+    struct sf_node* next_similar;
+    struct sf_node* prev_similar;
+    struct sf_node* parent;
     double touched;
 };
 
 
-struct fpnode_list_node{
-    fpnode tree_node; // pointer to fp-tree node
-    fpnode_list next; // pointer to next list node
+struct sfnode_list_node
+{
+    sfnode tree_node; // pointer to fp-tree node
+    sfnode_list next; // pointer to next list node
 };
 
 
-struct header_table_node{
+struct header_table_node
+{
     data_type data_item;
-    fpnode first;
+    sfnode first;
     double cnt;
     int tid;
     struct header_table_node* next;
 };
 
 
-struct fptree_node{
-    fpnode root;
+struct sfTree_node
+{
+    sfnode root;
     header_table head_table;
 };
-typedef struct fptree_node* fptree;
+typedef struct sfTree_node* sftree;
+typedef struct sfTree* sforest;
 
 //////////////////////////////////////////////////////////////////////////////
 
-struct tilted_tw_table{
-
+struct tilted_tw_table
+{
     int starting_batch;
     int ending_batch;
     double freq;
@@ -119,13 +126,10 @@ struct tilted_tw_table{
     struct tilted_tw_table* next;
 };
 typedef struct tilted_tw_table* tilted_tw_table;
-
-
-//////////////////////////////////////////////////////////////////////////////
-
 typedef struct pattern_node_list_node* pattern_node_list;
 
-struct pattern_node_{
+struct pattern_node_
+{
     pattern_node_list children;
     data item_list;
     data_type data_item;
@@ -134,13 +138,15 @@ struct pattern_node_{
 typedef struct pattern_node_* pattern_node;
 
 
-struct pattern_node_list_node{
+struct pattern_node_list_node
+{
     pattern_node tree_node;
     pattern_node_list next;
 };
 
 
-struct pattern_tree{
+struct pattern_tree
+{
     pattern_node root;
 };
 typedef struct pattern_tree* patterntree;

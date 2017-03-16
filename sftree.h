@@ -4,13 +4,14 @@
 #include "def.h"
 
 sftree sf_create_sftree();
+sforest sf_create_sforest();
 sfForest sf_create_sforest();
 data sf_create_sorted_dummy();
 
 void sf_create_and_insert_new_child(sfnode, data, int);
 void sf_insert_new_child(sfnode, sfnode, data);
 sfnode sf_insert_itemset_helper(sfnode, header_table, data, int tid, int buffer);
-sftree sf_insert_itemset(sftree, data, int tid, int buffer);
+sftree sf_insert_itemset(sforest, data, int tid, int buffer);
 void sf_delete_tree_structure(sfnode);
 void sf_delete_data_node(data);
 int sf_size_of_tree(sfnode);

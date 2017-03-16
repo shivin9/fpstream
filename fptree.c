@@ -4,7 +4,7 @@
 3. Header table is now not being recreated from scratch, it is being updated periodically using the fp_update_header_table function
 4. But the tree is being constructed ie. next_similar and prev_similar pointers are being given periodically just before pruning
 */
-#include "fptree.h"
+#include "sftree.h"
 
 int is_equal(data d1, data d2)
 {
