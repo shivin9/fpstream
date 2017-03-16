@@ -12,6 +12,7 @@
 
 #define max(a,b) ((a) > (b) ? a : b)
 #define min(a,b) ((a) < (b) ? a : b)
+#define index(x) ((DICT_SIZE) - (x) + (1))
 
 #define DECAY 1
 #define DICT_SIZE 1000 // max. number of items
@@ -65,13 +66,11 @@ typedef struct buffer_node* buffer;
 
 
 typedef struct sf_node* sfnode;
-typedef struct sfnode_list_node* sfnode_list;
 typedef struct header_table_node* header_table;
 
-struct sf_node
-{
-    sfnode_list children;
-    data item_list;
+struct sf_node{
+    sfnode* children;
+    data* item_list;
     buffer itembuffer;
     int bufferSize;
     int tid; // time stamp
@@ -84,15 +83,8 @@ struct sf_node
     double touched;
 };
 
-struct sfnode_list_node
-{
-    sfnode tree_node; // pointer to fp-tree node
-    sfnode_list next; // pointer to next list node
-};
 
-
-struct header_table_node
-{
+struct header_table_node{
     data_type data_item;
     sfnode first;
     double cnt;
@@ -100,12 +92,11 @@ struct header_table_node
 };
 
 
-struct sfTree_node
-{
+struct sftree_node{
     sfnode root;
-    header_table head_table;
+    header_table* head_table;
 };
-typedef struct sfTree_node* sftree;
+typedef struct sftree_node* sftree;
 typedef struct sfTree* sforest;
 
 //////////////////////////////////////////////////////////////////////////////

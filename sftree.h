@@ -3,7 +3,7 @@
 
 #include "def.h"
 
-sftree sf_create_sftree();
+sftree sf_create_sftree(data_type dat);
 sforest sf_create_sforest();
 data sf_create_sorted_dummy();
 
@@ -11,7 +11,7 @@ void sf_create_and_insert_new_child(sfnode, data, int);
 void sf_insert_new_child(sfnode, sfnode, data);
 void sf_delete_header_table(header_table*);
 sfnode sf_insert_itemset_helper(sfnode, header_table, data, int tid, int buffer);
-sftree sf_insert_itemset(sforest, data, int tid, int buffer);
+void sf_insert_itemset(sforest, data, int tid, int buffer);
 void sf_delete_tree_structure(sfnode);
 void sf_delete_data_node(data);
 int sf_size_of_tree(sfnode);
@@ -22,9 +22,6 @@ int  sf_no_dataitem(sfnode);
 void sf_create_header_table_helper(sfnode, header_table*);
 void sf_create_header_table(sftree, int);
 void sf_update_header_table(header_table*, data, int);
-void sf_create_header_table(sftree, int);
-void sf_create_header_table_helper(sfnode, header_table);
-void sf_update_header_table(header_table, data, int);
 
 void sf_convert_helper(sfnode, sftree, double*, int*, int tid, int end);
 sftree sf_convert_to_CP(sftree, int);
