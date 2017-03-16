@@ -6,15 +6,21 @@ output
 *.out
 data/
 <<<<<<< HEAD
+<<<<<<< HEAD
 exe
 *.o
 *~
 *.h.gch
 =======
+=======
+>>>>>>> new
 tests/
 exe
 *.swp
 *.ignore
 *.py
 *.gnd
+<<<<<<< HEAD
+>>>>>>> new
+=======
 >>>>>>> new

@@ -1,7 +1,11 @@
 /*
 1. When deleting a child of a node, fix the child_list as well as the item_list
 2. When removing nodes, also fix the header table
+<<<<<<< HEAD
 3. Header table is now not being recreated from scratch, it is being updated periodically
+=======
+3. Header table is now not being recreated from scratch, it is being updated periodically using the sf_update_header_table function
+4. But the tree is being constructed ie. next_similar and prev_similar pointers are being given periodically just before pruning
 */
 #include "sftree.h"
 
@@ -17,14 +21,13 @@ data sf_create_sorted_dummy()
     int next = 0;
     while(next < DICT_SIZE)
     {
-        data new_d = (data) malloc(sizeof(struct data_node));
+        data new_d = (data) calloc(1, sizeof(struct data_node));
         new_d->data_item = next++;
         new_d->next = d;
         d = new_d;
     }
     return d;
 }
-
 
 sforest sf_create_sforest()
 {
@@ -178,6 +181,7 @@ int sf_size_of_tree(sfnode curr)
     return size;
 }
 
+<<<<<<< HEAD
 //////////////////////////////////////////////////////////////////////////
 
 // creates a new node and inserts it into current_node
@@ -223,7 +227,6 @@ void sf_insert_new_child(sfnode current_node, sfnode new_child, data d)
     current_node->item_list[d->data_item] = new_data;
     //assert(sf_verify_node(new_child));
     //assert(sf_verify_node(current_node));
-
 }
 
 
@@ -261,7 +264,6 @@ int sf_verify_node(sfnode current_node)
 
     sfnode* current_child_ptr;
     int flag = 1, res = 1, idx;
-
     // while(current_node->parent && current_child_ptr)
     // {
     //     if(current_child_ptr->tree_node == current_node)
@@ -301,7 +303,7 @@ int sf_verify_node(sfnode current_node)
 }
 
 
-sfnode sf_insert_itemset_helper(sfnode current_node, data d, int tid, int put_in_buffer)
+sfnode sf_insert_itemset_helper(sfnode current_node, header_table htable, data d, int tid, int put_in_buffer)
 {
     // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
@@ -319,7 +321,7 @@ sfnode sf_insert_itemset_helper(sfnode current_node, data d, int tid, int put_in
     if(put_in_buffer == 1 && leave_as_buffer)
     {
         printf("leaving in buffer at node %d: ", current_node->data_item);
-        // sf_print_data_node(d);
+        sf_print_data_node(d);
         buffer buff = current_node->itembuffer;
         buffer new = (buffer) calloc(1, sizeof(struct buffer_node));
 
@@ -604,13 +606,13 @@ void sf_sort_data(data head, double* arr)
 data sf_array_to_datalist(int* arr, int end)
 {
     int i;
-    data head = (data) malloc(sizeof(struct data_node));
+    data head = (data) calloc(1, sizeof(struct data_node));
     data temp = head;
     head->data_item = arr[1];
     head->next = NULL;
     for(i = 2; i <= end; i++)
     {
-        temp->next = (data) malloc(sizeof(struct data_node));
+        temp->next = (data) calloc(1, sizeof(struct data_node));
         temp = temp->next;
         temp->data_item = arr[i];
         temp->next = NULL;
@@ -1034,7 +1036,17 @@ void sf_mine_frequent_itemsets(sftree tree, data sorted, data till_now, int tid,
     }
 }
 
+    sfnode_list child = node->children;
+    while(child)
+    {
+        sf_fix_touched(child->tree_node);
+        child = child->next;
+    }
 
+
+void sf_empty_buffers(sfnode curr, header_table htable, int tid)
+{
+}
 //////////////////////////////////////////////////////////////////////////////
 
 
