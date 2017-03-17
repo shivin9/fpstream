@@ -64,7 +64,11 @@ def main():
         new += temp
 
     # out = open(fname+".data", "w")
+<<<<<<< HEAD
     out = open(fname + ".tab", "w")
+=======
+    out = open(fname+".tab", "w")
+>>>>>>> 664578536f97317d67b70abe10652d79c66ebff8
     print >> out, new
 
 
