@@ -100,7 +100,7 @@ struct sftree_node{
     header_table* head_table;
 };
 typedef struct sftree_node* sftree;
-typedef struct sfTree* sforest;
+typedef struct sftree_node** sforest;
 
 //////////////////////////////////////////////////////////////////////////////
 

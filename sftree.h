@@ -11,11 +11,13 @@ void sf_create_and_insert_new_child(sfnode, data, int);
 void sf_append_buffer(sfnode curr, data d, int tid);
 void sf_insert_new_child(sfnode, sfnode, data);
 void sf_delete_header_table(header_table*);
-sfnode sf_insert_itemset_helper(sfnode, header_table, data, int tid, int buffer);
-void sf_insert_itemset(sforest, data, int tid, int buffer);
+void sf_insert_itemset_helper(sfnode, header_table*, int tid);
+void sf_insert_itemset(sforest, data, int tid);
 void sf_delete_tree_structure(sfnode);
 void sf_delete_data_node(data);
+int sf_size_of_sforest(sforest forest);
 int sf_size_of_tree(sfnode);
+buffer sf_pop_buffer(sfnode);
 
 int  sf_no_children(sfnode);
 int  sf_no_dataitem(sfnode);
@@ -39,8 +41,9 @@ void sf_mine_frequent_itemsets(sftree, data, data, int tid, int pattern);
 
 void sf_print_node(sfnode);
 void sf_print_tree(sfnode);
+void sf_print_sforest(sforest forest);
 void sf_print_header_table(header_table*);
-void sf_print_data_node(data* d);
+void sf_print_data_node(data d);
 
 data sf_reverse_data(data head);
 void sf_prune(sftree, data_type);

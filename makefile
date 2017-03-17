@@ -1,23 +1,23 @@
 CC=gcc
 FLAG=-pg -fopenmp -c -g 
 
-exe: driver.o fptree.o atstream.o
-	$(CC) -o exe -pg -fopenmp atstream.o fptree.o def.h -lm
+exe: driver.o sftree.o
+	$(CC) -o exe -pg -fopenmp sftree.o driver.o def.h -lm
 
 driver.o: driver.c
 	$(CC) $(FLAG) driver.c -lm
 
-atstream.o: atstream.c
-	$(CC) $(FLAG) atstream.c -lm
+# atstream.o: atstream.c
+# 	$(CC) $(FLAG) atstream.c -lm
 
 #twin_tree.o: twin_tree.c
 #	$(CC) $(FLAG) twin_tree.c -lm
 
-#fpstream.o: fpstream.c
-#	$(CC) $(FLAG) fpstream.c -lm
+#sfstream.o: sfstream.c
+#	$(CC) $(FLAG) sfstream.c -lm
 
-fptree.o: fptree.c
-	$(CC) $(FLAG) fptree.c -lm
+sftree.o: sftree.c
+	$(CC) $(FLAG) sftree.c -lm
 
 #pattern_tree.o: pattern_tree.c
 #	$(CC) $(FLAG) pattern_tree.c -lm
