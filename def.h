@@ -13,7 +13,7 @@
 #define max(a,b) ((a) > (b) ? a : b)
 #define min(a,b) ((a) < (b) ? a : b)
 
-#define DECAY 1
+#define DECAY 0.9999995
 #define DICT_SIZE 1000 // max. number of items
 #define N 5000 //window size
 #define EPS 0.0001

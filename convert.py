@@ -35,7 +35,7 @@ def data_to_tab():
 
 def main():
     fname = raw_input("enter name of file\n")
-    #fname = "./data/" + fname
+    # fname = "./data/" + fname
     with open(fname, 'r') as f:
         vals = f.read()
     vals = vals.split("\r\n")
@@ -64,8 +64,9 @@ def main():
         new += temp
 
     # out = open(fname+".data", "w")
-    out = open(fname+".tab", "w")
+    out = open(fname + ".tab", "w")
     print >> out, new
+
 
 if __name__ == '__main__':
     data_to_tab()
