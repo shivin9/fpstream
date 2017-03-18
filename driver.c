@@ -119,6 +119,7 @@ int main(int argc, char* argv[])
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
     // sf_print_sforest(forest);
     printf("sizeof sf tree = %d\n", sf_size_of_sforest(forest));
+    sf_mine_frequent_itemsets(forest, 0);
     sf_delete_sforest(forest);
     free(forest);
     sf_delete_data_node(sorted);

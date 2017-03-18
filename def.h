@@ -25,8 +25,8 @@
 #define SUP 18.0
 #define BATCH 15
 
-#define MINSUP_SEMIFREQ N*(THETA-EPS)  //minimum support for semi-frequent itemsets
-#define MINSUP_FREQ N*(THETA)    //minimum support for frequent itemsets
+#define MINSUP_SEMIFREQ 4  //minimum support for semi-frequent itemsets
+#define MINSUP_FREQ 6    //minimum support for frequent itemsets
 #define SUP_ERROR 50.0 //max error for sub-frequent itemsets
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned
 

@@ -50,6 +50,7 @@ sftree sf_create_sftree(data_type dat)
     }
 
     sfnode node = calloc(1, sizeof(struct sf_node));
+
     if(node == NULL)
     {
         printf("node calloc failed\n");
@@ -57,16 +58,7 @@ sftree sf_create_sftree(data_type dat)
 
     node->children = calloc(last_index(dat) , sizeof(sfnode));
     node->item_list = calloc(last_index(dat), sizeof(data));
-    node->freq = 0.0;
-    node->tid = 0;
     node->data_item = dat;
-    node->touched = 0.0;
-    node->parent = NULL;
-    node->next_similar = NULL;
-    node->prev_similar = NULL;
-    node->bufferhead = NULL;
-    node->buffertail = NULL;
-    node->bufferSize = 0;
 
     new_tree->root = node;
     new_tree->head_table = NULL;
@@ -139,7 +131,6 @@ void sf_delete_buffer(buffer head)
     {
         next = head->next;
         sf_delete_data_node(head->itemset);
-        // free(head);
         head = next;
     }
 }
@@ -229,17 +220,8 @@ void sf_create_and_insert_new_child(sfnode current_node, data d, int tid)
     // we have pointer of children and children themselves
     new_node->children = calloc(last_index(d->data_item), sizeof(sfnode));
     new_node->item_list = calloc(last_index(d->data_item), sizeof(data));
-    new_node->next_similar = NULL;
-    new_node->prev_similar = NULL;
-    new_node->hnode = NULL;
-    new_node->freq = 0.0;
-    new_node->tid = tid;
-    new_node->touched = 0;
     new_node->data_item = d->data_item;
     new_node->parent = current_node;
-    new_node->bufferhead = NULL;
-    new_node->buffertail = NULL;
-    new_node->bufferSize = 0;
 
     int idx = index(d->data_item, current_node->data_item);
 
@@ -305,7 +287,7 @@ int sf_verify_node(sfnode current_node)
     printf("\nverification for node %d:- ", current_node->data_item);
 
     sfnode* current_child_ptr;
-    int flag = 1, res = 1, idx;
+    int flag = 1, res = 1, idx, i;
     // while(current_node->parent && current_child_ptr)
     // {
     //     if(current_child_ptr->tree_node == current_node)
@@ -323,17 +305,18 @@ int sf_verify_node(sfnode current_node)
         printf("not equal number of children and itemlist: %d, %d\n", sf_no_children(current_node), sf_no_dataitem(current_node));
         return res;
     }
+    
     current_child_ptr = current_node->children;
     data* current_data_ptr = current_node->item_list;
 
-    for(idx = 0; idx < DICT_SIZE; idx++)
+    for(i = 0; i < last_index(current_node->data_item); idx++)
     {
-        if(current_data_ptr[idx])
+        if(current_data_ptr[i])
         {
-            int x =  current_child_ptr[idx]->data_item;
-            int y =  current_data_ptr[idx]->data_item;
-            printf("c(%d, %d) ", idx, x);
-            printf("i(%d, %d) ", idx, y);
+            int x =  current_child_ptr[i]->data_item;
+            int y =  current_data_ptr[i]->data_item;
+            printf("c(%d, %d) ", i, x);
+            printf("i(%d, %d) ", i, y);
 
             if(x != y)
                 res = 0;
@@ -503,6 +486,64 @@ void sf_insert_itemset(sforest forest, data d, int tid)
 
 
 //////////////////////////////////////////////////////////////////////////////
+
+void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int pattern)
+{
+        if((pattern == 0 && node->freq >= MINSUP_SEMIFREQ) ||
+           (pattern == 1 && node->freq >= MINSUP_FREQ))
+        {
+            collected[++end] = node->data_item;
+            int idx;
+            sfnode this_child;
+            for(idx = 0; idx < last_index(node->data_item); idx++)
+            {
+                this_child = node->children[idx];
+                sf_mine_frequent_itemsets_helper(this_child, collected, end, pattern);
+            }
+        }
+
+        else
+        {
+            FILE *fp;
+            if(pattern == 0)
+                fp = fopen("intermediate", "a");
+            else
+                fp = fopen("output", "a");
+
+            int t = end;
+            fprintf(fp, "%d", t);
+            // printf("%d", t);
+            t--;
+            while(t >= 0)
+            {
+                fprintf(fp, " %d", collected[t]);
+                t--;
+            }
+            
+            if(pattern == 0)
+            {
+                fprintf(fp, " %lf", node->freq);
+                // printf(" %d", curr_header_node->freq);
+            }
+            fprintf(fp, "\n");
+            fclose(fp);
+        }
+}
+
+void sf_mine_frequent_itemsets(sforest forest, int pattern)
+{
+    int idx;
+    int* collected = calloc(DICT_SIZE, sizeof(int));
+
+    for(idx = 0; idx < DICT_SIZE; idx++)
+    {
+        sfnode root = forest[idx]->root;
+        sf_mine_frequent_itemsets_helper(root, collected, -1, pattern);
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 
 // this function fixes the next_similar variable also
 void sf_create_header_table_helper(sfnode root, header_table* h)
@@ -683,7 +724,7 @@ void sf_sort_data(data head, double* arr)
     }
     /*
        Removing duplicate items here
-       */
+    */
     ori = head->data_item;
 
     for(prev = head, temp = head->next; temp != NULL; temp = temp->next)
@@ -816,20 +857,20 @@ void sf_print_tree(sfnode node)
 
 void sf_print_header_table(header_table* h)
 {
-    // int idx;
-    // // z is the size of the table
-    // for(idx = 0; idx < last_index(h->data_item); idx++)
-    // {
-    //     printf("%d %d %lf\n", h[idx]->data_item, h[idx]->tid, h[idx]->cnt);
-    //     sfnode node = h[idx]->first;
-    //     while(node != NULL && node->next_similar != node)
-    //     {
-    //         // sf_print_node(node);
-    //         node = node->next_similar;
-    //         // z++;
-    //     }
-    //     // printf("\n");
-    // }
+    int idx;
+    // z is the size of the table
+    for(idx = 0; idx < last_index(h[idx]->data_item); idx++)
+    {
+        printf("%d %d %lf\n", h[idx]->data_item, h[idx]->tid, h[idx]->cnt);
+        sfnode node = h[idx]->first;
+        while(node != NULL && node->next_similar != node)
+        {
+            // sf_print_node(node);
+            node = node->next_similar;
+            // z++;
+        }
+        // printf("\n");
+    }
 }
 
 void sf_print_data_node(data d)

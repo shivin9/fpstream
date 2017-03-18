@@ -40,7 +40,8 @@ void sf_free_data_node(data);
 
 sfnode sf_dfs(sfnode, data_type);
 sftree sf_create_conditional_sf_tree(sftree, data_type, double, int);
-void sf_mine_frequent_itemsets(sftree, data, data, int tid, int pattern);
+void sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int pattern);
+void sf_mine_frequent_itemsets(sforest, int pattern);
 
 void sf_print_node(sfnode);
 void sf_print_tree(sfnode);
