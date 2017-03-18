@@ -59,7 +59,7 @@ sftree sf_create_sftree(data_type dat)
     node->item_list = calloc(last_index(dat), sizeof(data));
     node->freq = 0.0;
     node->tid = 0;
-    node->data_item = -1;
+    node->data_item = dat;
     node->touched = 0.0;
     node->parent = NULL;
     node->next_similar = NULL;
@@ -81,15 +81,15 @@ void sf_delete_tree_structure(sfnode current_node)
     sfnode* current_child_ptr = current_node->children;
     data* current_data_ptr = current_node->item_list;
     sfnode this_child;
+    buffer buff = current_node->bufferhead;
     int idx;
 
     for(idx = 0; idx < last_index(current_node->data_item); idx++)
     {
-        //assert(sf_verify_node(current_node));
-
         if(current_child_ptr[idx] != NULL)
         {
             this_child = current_child_ptr[idx];
+
             if(this_child->prev_similar!=NULL)
                 (this_child->prev_similar)->next_similar = this_child->next_similar;
 
@@ -100,16 +100,21 @@ void sf_delete_tree_structure(sfnode current_node)
                 this_child->hnode->first = NULL;
 
             sf_delete_tree_structure(this_child);
-            free(this_child);
+            free(this_child); /* let the children go*/
             this_child = NULL;
 
             data temp_data = current_data_ptr[idx];
-            free(temp_data);
+            free(temp_data); /* clear the data items*/
             temp_data = NULL;
             current_child_ptr[idx] = NULL;
             current_data_ptr[idx] = NULL;
         }
     }
+    free(current_child_ptr);
+    free(current_data_ptr);
+    sf_delete_buffer(buff); /* clear up the buffer*/
+    current_node->bufferhead = NULL; /*free the buffer pointers*/
+    current_node->buffertail = NULL;
 }
 
 
@@ -125,6 +130,19 @@ void sf_delete_data_node(data d)
     }
 }
 
+void sf_delete_buffer(buffer head)
+{
+    if(head == NULL)
+        return;
+    buffer next;
+    while(head != NULL)
+    {
+        next = head->next;
+        sf_delete_data_node(head->itemset);
+        // free(head);
+        head = next;
+    }
+}
 
 void sf_delete_header_table(header_table* h)
 {
@@ -148,7 +166,7 @@ void sf_delete_sftree(sftree tree)
     sf_delete_tree_structure(tree->root);
     free(tree->root);
     tree->root = NULL;
-    sf_delete_header_table(tree->head_table);
+    // sf_delete_header_table(tree->head_table);
     free(tree);
     tree = NULL;
 }
@@ -223,16 +241,18 @@ void sf_create_and_insert_new_child(sfnode current_node, data d, int tid)
     new_node->buffertail = NULL;
     new_node->bufferSize = 0;
 
+    int idx = index(d->data_item, current_node->data_item);
+
     data new_data = calloc(1, sizeof(struct data_node));
     new_data->data_item = d->data_item;
     new_data->next = NULL;
 
     // //assert(sf_verify_node(new_node));
-    assert(current_node->children[d->data_item] == NULL);
-    assert(current_node->item_list[d->data_item] == NULL);
+    assert(current_node->children[idx] == NULL);
+    assert(current_node->item_list[idx] == NULL);
 
-    current_node->children[d->data_item] = new_node;
-    current_node->item_list[d->data_item] = new_data;
+    current_node->children[idx] = new_node;
+    current_node->item_list[idx] = new_data;
     //assert(sf_verify_node(current_node));
 }
 
@@ -243,9 +263,10 @@ void sf_insert_new_child(sfnode current_node, sfnode new_child, data d)
     data new_data = calloc(1, sizeof(struct data_node));
     new_data->data_item = d->data_item;
     new_data->next = NULL;
+    int idx = index(d->data_item, current_node->data_item);
 
-    current_node->children[d->data_item] = new_child;
-    current_node->item_list[d->data_item] = new_data;
+    current_node->children[idx] = new_child;
+    current_node->item_list[idx] = new_data;
     //assert(sf_verify_node(new_child));
     //assert(sf_verify_node(current_node));
 }
@@ -334,8 +355,9 @@ void sf_append_buffer(sfnode curr, data d, int tid)
 
     if(last == NULL)
     {
-        assert(curr->bufferhead == NULL); /* if tail is NULL then tail must also be*/
+        assert(curr->bufferhead == NULL); /* if tail is NULL then head must also be*/
         curr->bufferhead = new;
+        curr->buffertail = new;
     }
     /* we create a new copy of the datanode*/
     data temp;
@@ -355,6 +377,8 @@ void sf_append_buffer(sfnode curr, data d, int tid)
     if(last)
         last->next = new;
     curr->buffertail = new;
+    curr->buffertail->next = NULL;
+
 }
 
 buffer sf_pop_buffer(sfnode curr)
@@ -362,7 +386,10 @@ buffer sf_pop_buffer(sfnode curr)
     buffer temp = curr->bufferhead, prev = NULL;
 
     if(temp == NULL)
+    {
+        assert(curr->buffertail == NULL);
         return NULL;
+    }
 
     while(temp->next)
     {
@@ -373,7 +400,11 @@ buffer sf_pop_buffer(sfnode curr)
     // assert(prev->next == curr->buffertail);
     if(prev)
         prev->next = NULL;
+    else
+        curr->bufferhead = NULL; /* we are popping off the only buffer present*/
+
     curr->buffertail = prev;
+    assert(temp->next == NULL);
     return temp;
 }
 
@@ -385,8 +416,13 @@ void sf_insert_itemset_helper(sfnode current_node, header_table* htable, int tid
     assert(current_node != NULL);
     extern int leave_as_buffer;
 
+    // sf_print_buffer(current_node);
+
     buffer popped = sf_pop_buffer(current_node);
-    assert(popped->next == NULL); /* 'popped' is the last item*/
+
+    if(popped)
+        assert(popped->next == NULL); /* 'popped' is the last item*/
+
     data d = popped->itemset;
 
     /* this controls pre-emption*/
@@ -414,8 +450,8 @@ void sf_insert_itemset_helper(sfnode current_node, header_table* htable, int tid
         if(current_child_ptr[idx] == NULL)
         {
             /*data item has to be inserted as new child*/
-            assert(current_child_ptr[d->data_item] == NULL);
-            assert(current_data_ptr[d->data_item] == NULL);
+            assert(current_child_ptr[idx] == NULL);
+            assert(current_data_ptr[idx] == NULL);
             sf_create_and_insert_new_child(current_node, temp, tid);
         }
 
@@ -445,8 +481,7 @@ void sf_insert_itemset_helper(sfnode current_node, header_table* htable, int tid
     }    
 
     /* free the popped buffer to save space*/
-    sf_delete_data_node(popped->itemset);
-    free(temp);
+    sf_delete_buffer(popped);
     free(popped);
     return;
 }
@@ -456,6 +491,13 @@ void sf_insert_itemset(sforest forest, data d, int tid)
 {
     sftree tree = forest[d->data_item];
     sf_append_buffer(tree->root, d->next, tid); /* transaction: acdef, node a will have 'cdef'*/
+    if(d->next == NULL)
+    {
+        tree->root->freq *= pow(DECAY, tid - tree->root->tid);
+        tree->root->freq++;
+        tree->root->tid = tid;
+        return;
+    }
     sf_insert_itemset_helper(tree->root, tree->head_table, tid);
 }
 
@@ -721,7 +763,7 @@ void sf_print_node(sfnode node)
     if(node == NULL)    return;
     int c = sf_no_children(node), b = node->bufferSize;
 
-    if(node->data_item != -1)
+    if(node->parent)
         printf("data_item = %d, freq = %lf, tid = %d, parent = %d, touched = %lf, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->tid, node->parent->data_item, node->touched, c, b);
     else
         printf("data_item = %d, freq = %lf, tid = %d, parent = NULL, touched = %lf, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->tid, node->touched, c, b);
@@ -743,6 +785,18 @@ void sf_print_sforest(sforest forest)
         printf("Printing SF-tree %d\n", forest[i]->root->data_item);
         sf_print_tree(forest[i]->root);
         printf("---------------------------------------\n\n");
+    }
+}
+
+
+void sf_print_buffer(sfnode node)
+{
+    printf("NODE: %d, BUFFER:\n", node->data_item);
+    buffer buff = node->bufferhead;
+    while(buff)
+    {
+        sf_print_data_node(buff->itemset);
+        buff = buff->next;
     }
 }
 

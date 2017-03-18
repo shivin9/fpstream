@@ -17,7 +17,7 @@
                                       200th item it found at index 100 in the node of item 100*/
 
 #define DECAY 1.0
-#define DICT_SIZE 1000 // max. number of items
+#define DICT_SIZE  100 // max. number of items
 #define N 5000 //window size
 #define EPS 0.0001
 #define THETA 0.001
