@@ -44,7 +44,7 @@ def main():
     new = ""
     temp = ""
     i = 0
-    print vals
+    # print vals
     vals = vals[:-1]
     while i < len(vals):
         frst = vals[i][0]
@@ -53,25 +53,21 @@ def main():
         while i < len(vals) and vals[i][0] == frst:
             cnt += 1
             temp.append(vals[i][1])
-            temp = temp + vals[i][1] + ","
+            # temp = temp + vals[i][1] + ","
             i += 1
-            print temp
+            # print temp
         temp = list(set(temp))
         temp = " ".join(temp)
-        # temp = str(cnt) + " " + temp + "\n"
-        temp = temp + "\n"
-        print temp
+        temp = str(cnt) + " " + temp + "\n"
+        # temp = temp + "\n"
+        # print temp
         new += temp
 
-    # out = open(fname+".data", "w")
-<<<<<<< HEAD
-    out = open(fname + ".tab", "w")
-=======
-    out = open(fname+".tab", "w")
->>>>>>> 664578536f97317d67b70abe10652d79c66ebff8
+    out = open(fname+".data", "w")
+    # out = open(fname + ".tab", "w")
     print >> out, new
 
 
 if __name__ == '__main__':
-    data_to_tab()
-    # main()
+    # data_to_tab()
+    main()

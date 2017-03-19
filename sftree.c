@@ -1,9 +1,6 @@
 /*
 1. When deleting a child of a node, fix the child_list as well as the item_list
 2. When removing nodes, also fix the header table
-<<<<<<< HEAD
-3. Header table is now not being recreated from scratch, it is being updated periodically
-=======
 3. Header table is now not being recreated from scratch, it is being updated periodically using the sf_update_header_table function
 4. But the tree is being constructed ie. next_similar and prev_similar pointers are being given periodically just before pruning
 */
@@ -168,7 +165,7 @@ void sf_delete_sforest(sforest forest)
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
         sf_delete_sftree(forest[idx]);
-    }    
+    }
 }
 
 int sf_size_of_sforest(sforest forest)
@@ -305,7 +302,7 @@ int sf_verify_node(sfnode current_node)
         printf("not equal number of children and itemlist: %d, %d\n", sf_no_children(current_node), sf_no_dataitem(current_node));
         return res;
     }
-    
+
     current_child_ptr = current_node->children;
     data* current_data_ptr = current_node->item_list;
 
@@ -391,81 +388,95 @@ buffer sf_pop_buffer(sfnode curr)
     return temp;
 }
 
-void sf_insert_itemset_helper(sfnode current_node, header_table* htable, int tid)
+void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 {
     // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
     // if the flag is up then we insert the remaining itemset into the bufferlist of that node and reset the flag
-    assert(current_node != NULL);
+    assert(node != NULL);
     extern int leave_as_buffer;
 
     // sf_print_buffer(current_node);
+    QStack* qstack = createQStack();
+    push(qstack, node);
+    sfnode current_node;
 
-    buffer popped = sf_pop_buffer(current_node);
-
-    if(popped)
-        assert(popped->next == NULL); /* 'popped' is the last item*/
-
-    data d = popped->itemset;
-
-    /* this controls pre-emption*/
-    if(leave_as_buffer)
+    while(qstack->size > 0)
     {
-        /* inserted in LIFO order*/
-        printf("leaving in buffer at node %d: ", current_node->data_item);
-        sf_print_data_node(d);
-        current_node->bufferSize++;
-        leave_as_buffer = 0;
-        return;
-    }
+        current_node = get(qstack);
+        assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
 
-    sfnode* current_child_ptr = current_node->children;
-    data* current_data_ptr = current_node->item_list;
+        current_node->freq *= pow(DECAY, tid - current_node->tid);
+        current_node->freq++;
+        current_node->tid = tid;
 
-    data temp = popped->itemset;
+        buffer popped = sf_pop_buffer(current_node);
+        if(popped)
+            assert(popped->next == NULL); /* 'popped' is the last item*/
 
-    int idx;
-    while(temp)
-    {
-        idx = index(temp->data_item, current_node->data_item);
-        
-        /* this code just creates the nodes*/
-        if(current_child_ptr[idx] == NULL)
+        data d = popped->itemset;
+
+        /* this controls pre-emption*/
+        if(leave_as_buffer)
         {
-            /*data item has to be inserted as new child*/
-            assert(current_child_ptr[idx] == NULL);
-            assert(current_data_ptr[idx] == NULL);
-            sf_create_and_insert_new_child(current_node, temp, tid);
+            /* inserted in LIFO order*/
+            printf("leaving in buffer at node %d: ", current_node->data_item);
+            sf_print_data_node(d);
+            current_node->bufferSize++;
+            leave_as_buffer = 0;
+            delete_qstack(qstack);
+            return;
         }
 
-        assert(current_node->children[idx] != NULL);
+        sfnode* current_child_ptr = current_node->children;
+        data* current_data_ptr = current_node->item_list;
 
-        sfnode this_child = current_child_ptr[idx];
-        data this_data_item = current_data_ptr[idx];
-        assert(is_equal(this_data_item, temp));
-        
-        if(temp->next)
-            sf_append_buffer(current_child_ptr[idx], temp->next, tid);
+        data temp = popped->itemset;
 
-        /*updating the frequency of the node according to the formula*/
-        current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->tid);
-        current_child_ptr[idx]->freq++;
-        current_child_ptr[idx]->tid = tid;
-        temp = temp->next;
+        int idx;
+        while(temp)
+        {
+            idx = index(temp->data_item, current_node->data_item);
+
+            /* this code just creates the nodes*/
+            if(current_child_ptr[idx] == NULL)
+            {
+                /*data item has to be inserted as new child*/
+                assert(current_child_ptr[idx] == NULL);
+                assert(current_data_ptr[idx] == NULL);
+                sf_create_and_insert_new_child(current_node, temp, tid);
+            }
+
+            assert(current_node->children[idx] != NULL);
+
+            sfnode this_child = current_child_ptr[idx];
+            data this_data_item = current_data_ptr[idx];
+            assert(is_equal(this_data_item, temp));
+
+            if(temp->next)
+                sf_append_buffer(current_child_ptr[idx], temp->next, tid);
+
+            /*updating the frequency of the node according to the formula*/
+            current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->tid);
+            current_child_ptr[idx]->freq++;
+            current_child_ptr[idx]->tid = tid;
+            temp = temp->next;
+        }
+
+        /* now apply the same procedure on all the children so further propagate the items*/
+        temp = popped->itemset;
+        while(temp->next) /* we wont go all the way upto the last node as it has already been updated*/
+        {
+            idx = index(temp->data_item, current_node->data_item);
+            temp = temp->next;
+            push(qstack, current_child_ptr[idx]);
+        }
+
+        /* free the popped buffer to save space*/
+        sf_delete_buffer(popped);
+        free(popped);
     }
-
-    /* now apply the same procedure on all the children so further propagate the items*/
-    temp = popped->itemset;
-    while(temp->next) /* we wont go all the way upto the last node as it has already been updated*/
-    {
-        idx = index(temp->data_item, current_node->data_item);
-        temp = temp->next;
-        sf_insert_itemset_helper(current_child_ptr[idx], htable, tid);
-    }    
-
-    /* free the popped buffer to save space*/
-    sf_delete_buffer(popped);
-    free(popped);
+    free(qstack);
     return;
 }
 
@@ -489,45 +500,49 @@ void sf_insert_itemset(sforest forest, data d, int tid)
 
 void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int pattern)
 {
-        if((pattern == 0 && node->freq >= MINSUP_SEMIFREQ) ||
-           (pattern == 1 && node->freq >= MINSUP_FREQ))
+    if(node == NULL)
+        return;
+    // printf("node = %d, freq = %lf, end = %d\n", node->data_item, node->freq, end);
+    if((pattern == 0 && node->freq >= MINSUP_SEMIFREQ) ||
+       (pattern == 1 && node->freq >= MINSUP_FREQ))
+    {
+        collected[++end] = node->data_item;
+        int idx;
+        sfnode this_child;
+        for(idx = 0; idx < last_index(node->data_item); idx++)
         {
-            collected[++end] = node->data_item;
-            int idx;
-            sfnode this_child;
-            for(idx = 0; idx < last_index(node->data_item); idx++)
-            {
-                this_child = node->children[idx];
-                sf_mine_frequent_itemsets_helper(this_child, collected, end, pattern);
-            }
+            this_child = node->children[idx];
+            sf_mine_frequent_itemsets_helper(this_child, collected, end, pattern);
         }
+    }
 
+    else if(end > 0)
+    {
+        FILE *fp;
+        if(pattern == 0)
+            fp = fopen("intermediate", "a");
         else
-        {
-            FILE *fp;
-            if(pattern == 0)
-                fp = fopen("intermediate", "a");
-            else
-                fp = fopen("output", "a");
+            fp = fopen("output", "a");
 
-            int t = end;
-            fprintf(fp, "%d", t);
-            // printf("%d", t);
+        int t = end;
+        fprintf(fp, "%d", t);
+        // printf("%d", t);
+        t--;
+        while(t >= 0)
+        {
+            fprintf(fp, " %d", collected[t]);
+            // printf(" %d", t);
             t--;
-            while(t >= 0)
-            {
-                fprintf(fp, " %d", collected[t]);
-                t--;
-            }
-            
-            if(pattern == 0)
-            {
-                fprintf(fp, " %lf", node->freq);
-                // printf(" %d", curr_header_node->freq);
-            }
-            fprintf(fp, "\n");
-            fclose(fp);
         }
+
+        if(pattern == 0)
+        {
+            fprintf(fp, " %lf", node->freq);
+            // printf(" %lf", node->freq);
+        }
+        fprintf(fp, "\n");
+        fclose(fp);
+    }
 }
 
 void sf_mine_frequent_itemsets(sforest forest, int pattern)
@@ -538,8 +553,10 @@ void sf_mine_frequent_itemsets(sforest forest, int pattern)
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
         sfnode root = forest[idx]->root;
+        // printf("root = %d, freq = %lf\n", root->data_item, root->freq);
         sf_mine_frequent_itemsets_helper(root, collected, -1, pattern);
     }
+    free(collected);
 }
 
 //////////////////////////////////////////////////////////////////////////////

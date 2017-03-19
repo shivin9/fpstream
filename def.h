@@ -21,6 +21,7 @@
 #define N 5000 //window size
 #define EPS 0.0001
 #define THETA 0.001
+#define HSIZE 10000
 
 #define SUP 18.0
 #define BATCH 15
@@ -101,6 +102,46 @@ struct sftree_node{
 };
 typedef struct sftree_node* sftree;
 typedef struct sftree_node** sforest;
+
+//////////////////////////////////////////////////////////////////////////////
+typedef struct snode snode;
+typedef snode* slink;
+typedef struct QStack QStack;
+typedef struct tuple tuple;
+typedef struct dictionary dictionary;
+typedef struct dictionary* dict;
+typedef struct hnode hnode;
+typedef hnode* hlink;
+
+// the qstack node which is a part of a doubly linked list
+struct snode
+{
+    sfnode node;
+    slink next;
+    slink prev;
+};
+
+// a QStack ie. a stack and a queue simultaneously implemented using a doubly linked list
+struct QStack
+{
+    slink head;
+    slink tail;
+    int size;
+};
+
+// a node used in the hash table
+struct hnode
+{
+    char *sig;
+    hlink next;
+};
+
+// the hash table data structure called a dictionary
+struct dictionary
+{
+    hlink table[HSIZE];
+    int size;
+};
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -1,7 +1,7 @@
 #ifndef sfTREE
 #define sfTREE
 
-#include "def.h"
+#include "qstack.h"
 
 sftree sf_create_sftree(data_type dat);
 sforest sf_create_sforest();
