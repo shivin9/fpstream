@@ -358,7 +358,6 @@ void sf_append_buffer(sfnode curr, data d, int tid)
         last->next = new;
     curr->buffertail = new;
     curr->buffertail->next = NULL;
-
 }
 
 buffer sf_pop_buffer(sfnode curr)
@@ -401,14 +400,14 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
     push(qstack, node);
     sfnode current_node;
 
+    node->freq *= pow(DECAY, tid - node->tid);
+    node->freq++;
+    node->tid = tid;
+
     while(qstack->size > 0)
     {
         current_node = get(qstack);
         assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
-
-        current_node->freq *= pow(DECAY, tid - current_node->tid);
-        current_node->freq++;
-        current_node->tid = tid;
 
         buffer popped = sf_pop_buffer(current_node);
         if(popped)
@@ -430,7 +429,6 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
         sfnode* current_child_ptr = current_node->children;
         data* current_data_ptr = current_node->item_list;
-
         data temp = popped->itemset;
 
         int idx;
@@ -476,23 +474,27 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         sf_delete_buffer(popped);
         free(popped);
     }
-    free(qstack);
+    delete_qstack(qstack);
     return;
 }
 
 
 void sf_insert_itemset(sforest forest, data d, int tid)
 {
-    sftree tree = forest[d->data_item];
-    sf_append_buffer(tree->root, d->next, tid); /* transaction: acdef, node a will have 'cdef'*/
-    if(d->next == NULL)
+    while(d)
     {
-        tree->root->freq *= pow(DECAY, tid - tree->root->tid);
-        tree->root->freq++;
-        tree->root->tid = tid;
-        return;
+        sftree tree = forest[d->data_item];
+        if(d->next == NULL)
+        {
+            tree->root->freq *= pow(DECAY, tid - tree->root->tid);
+            tree->root->freq++;
+            tree->root->tid = tid;
+            return;
+        }
+        sf_append_buffer(tree->root, d->next, tid); /* transaction: acdef, node a will have 'cdef'*/
+        sf_insert_itemset_helper(tree->root, tree->head_table, tid);
+        d = d->next;
     }
-    sf_insert_itemset_helper(tree->root, tree->head_table, tid);
 }
 
 
@@ -502,47 +504,55 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
 {
     if(node == NULL)
         return;
-    // printf("node = %d, freq = %lf, end = %d\n", node->data_item, node->freq, end);
+    // sf_print_node(node);
+
     if((pattern == 0 && node->freq >= MINSUP_SEMIFREQ) ||
        (pattern == 1 && node->freq >= MINSUP_FREQ))
     {
         collected[++end] = node->data_item;
+        if(end >= 0)
+        {
+            // sf_print_node(node);
+            // printf("end = %d\n", end);
+            // printf("**** end = %d ****\n", end);
+
+            FILE *fp;
+            if(pattern == 0)
+                fp = fopen("intermediate", "a");
+            else
+                fp = fopen("output", "a");
+
+            int t = 0;
+            fprintf(fp, "%d", end + 1);
+            // printf("%d", end + 1);
+
+            while(t <= end)
+            {
+                fprintf(fp, " %d", collected[t]);
+                // printf(" %d", collected[t]);
+                t++;
+            }
+
+            if(pattern == 0)
+            {
+                fprintf(fp, " %lf", node->freq);
+                // printf(" %lf\n", node->freq);
+            }
+            fprintf(fp, "\n");
+            fclose(fp);
+        }
+
         int idx;
         sfnode this_child;
         for(idx = 0; idx < last_index(node->data_item); idx++)
         {
             this_child = node->children[idx];
-            sf_mine_frequent_itemsets_helper(this_child, collected, end, pattern);
+            if(this_child)
+                sf_mine_frequent_itemsets_helper(this_child, collected, end, pattern);
         }
     }
 
-    else if(end > 0)
-    {
-        FILE *fp;
-        if(pattern == 0)
-            fp = fopen("intermediate", "a");
-        else
-            fp = fopen("output", "a");
-
-        int t = end;
-        fprintf(fp, "%d", t);
-        // printf("%d", t);
-        t--;
-        while(t >= 0)
-        {
-            fprintf(fp, " %d", collected[t]);
-            // printf(" %d", t);
-            t--;
-        }
-
-        if(pattern == 0)
-        {
-            fprintf(fp, " %lf", node->freq);
-            // printf(" %lf", node->freq);
-        }
-        fprintf(fp, "\n");
-        fclose(fp);
-    }
+    // else
 }
 
 void sf_mine_frequent_itemsets(sforest forest, int pattern)
