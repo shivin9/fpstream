@@ -80,9 +80,9 @@ int main(int argc, char* argv[])
             d = new_d;
         }
         /* removes duplicates items also*/
-        printf("inserting: ");
+        // printf("inserting: ");
         sf_sort_data(d, NULL);
-        sf_print_data_node(d);
+        // sf_print_data_node(d);
 
         sf_insert_itemset(forest, d, tid);
         // sf_create_header_table_helper(forest->root, forest->head_table);
@@ -119,7 +119,15 @@ int main(int argc, char* argv[])
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
     // sf_print_sforest(forest);
     printf("sizeof sf tree = %d\n", sf_size_of_sforest(forest));
+
+    gettimeofday(&t1, NULL);
     sf_mine_frequent_itemsets(forest, 0);
+    gettimeofday(&t2, NULL);
+
+    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+    printf("total time taken to mine the sf tree = %lf ms\n", elapsedTime);
+
     sf_delete_sforest(forest);
     free(forest);
     sf_delete_data_node(sorted);
