@@ -10,8 +10,8 @@ void sf_create_and_insert_new_child(sfnode, data, int);
 
 void sf_append_buffer(sfnode curr, data d, int tid);
 void sf_insert_new_child(sfnode, sfnode, data);
-void sf_insert_itemset_helper(sfnode, header_table*, int tid);
-void sf_insert_itemset(sforest, data, int tid);
+int sf_insert_itemset_helper(sfnode, header_table*, int tid);
+int sf_insert_itemset(sforest, data, int tid);
 
 void sf_delete_header_table(header_table*);
 void sf_delete_tree_structure(sfnode);

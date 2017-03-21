@@ -54,7 +54,7 @@ sftree sf_create_sftree(data_type dat)
     }
 
     node->children = calloc(last_index(dat) , sizeof(sfnode));
-    node->item_list = calloc(last_index(dat), sizeof(data));
+    // node->item_list = calloc(last_index(dat), sizeof(data));
     node->data_item = dat;
 
     new_tree->root = node;
@@ -92,11 +92,11 @@ void sf_delete_tree_structure(sfnode current_node)
             free(this_child); /* let the children go*/
             this_child = NULL;
 
-            data temp_data = current_data_ptr[idx];
-            free(temp_data); /* clear the data items*/
-            temp_data = NULL;
+            // data temp_data = current_data_ptr[idx];
+            // free(temp_data); /* clear the data items*/
+            // temp_data = NULL;
             current_child_ptr[idx] = NULL;
-            current_data_ptr[idx] = NULL;
+            // current_data_ptr[idx] = NULL;
         }
     }
     free(current_child_ptr);
@@ -184,7 +184,7 @@ int sf_size_of_tree(sfnode curr)
     if(curr == NULL)
         return 0;
     sfnode* child = curr->children;
-    int size = sizeof(&curr), idx;
+    int size = sizeof(curr) + last_index(curr->data_item)*sizeof(curr->children), idx;
     buffer buff = curr->bufferhead;
     data temp;
 
@@ -216,22 +216,22 @@ void sf_create_and_insert_new_child(sfnode current_node, data d, int tid)
     sfnode new_node = calloc(1, sizeof(struct sf_node));
     // we have pointer of children and children themselves
     new_node->children = calloc(last_index(d->data_item), sizeof(sfnode));
-    new_node->item_list = calloc(last_index(d->data_item), sizeof(data));
+    // new_node->item_list = calloc(last_index(d->data_item), sizeof(data));
     new_node->data_item = d->data_item;
     new_node->parent = current_node;
 
     int idx = index(d->data_item, current_node->data_item);
 
-    data new_data = calloc(1, sizeof(struct data_node));
-    new_data->data_item = d->data_item;
-    new_data->next = NULL;
+    // data new_data = calloc(1, sizeof(struct data_node));
+    // new_data->data_item = d->data_item;
+    // new_data->next = NULL;
 
     // //assert(sf_verify_node(new_node));
     assert(current_node->children[idx] == NULL);
-    assert(current_node->item_list[idx] == NULL);
+    // assert(current_node->item_list[idx] == NULL);
 
     current_node->children[idx] = new_node;
-    current_node->item_list[idx] = new_data;
+    // current_node->item_list[idx] = new_data;
     //assert(sf_verify_node(current_node));
 }
 
@@ -245,7 +245,7 @@ void sf_insert_new_child(sfnode current_node, sfnode new_child, data d)
     int idx = index(d->data_item, current_node->data_item);
 
     current_node->children[idx] = new_child;
-    current_node->item_list[idx] = new_data;
+    // current_node->item_list[idx] = new_data;
     //assert(sf_verify_node(new_child));
     //assert(sf_verify_node(current_node));
 }
@@ -268,7 +268,8 @@ int sf_no_children(sfnode current_node)
 
 int sf_no_dataitem(sfnode current_node)
 {
-    data* current_data_ptr = current_node->item_list;
+    // data* current_data_ptr = current_node->item_list;
+    data * current_data_ptr = NULL;
     int idx, no_dataitem = 0;
     for(idx = 0; idx < last_index(current_node->data_item); idx++)
     {
@@ -387,7 +388,7 @@ buffer sf_pop_buffer(sfnode curr)
     return temp;
 }
 
-void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
+int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 {
     // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
@@ -403,9 +404,13 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
     node->freq *= pow(DECAY, tid - node->tid);
     node->freq++;
     node->tid = tid;
+    int max = 0;
 
     while(qstack->size > 0)
     {
+        if(qstack->size > max)
+            max = qstack->size;
+
         current_node = get(qstack);
         assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
 
@@ -428,7 +433,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         }
 
         sfnode* current_child_ptr = current_node->children;
-        data* current_data_ptr = current_node->item_list;
+        // data* current_data_ptr = current_node->item_list;
         data temp = popped->itemset;
 
         int idx;
@@ -441,15 +446,15 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
             {
                 /*data item has to be inserted as new child*/
                 assert(current_child_ptr[idx] == NULL);
-                assert(current_data_ptr[idx] == NULL);
+                // assert(current_data_ptr[idx] == NULL);
                 sf_create_and_insert_new_child(current_node, temp, tid);
             }
 
             assert(current_node->children[idx] != NULL);
 
             sfnode this_child = current_child_ptr[idx];
-            data this_data_item = current_data_ptr[idx];
-            assert(is_equal(this_data_item, temp));
+            // data this_data_item = current_data_ptr[idx];
+            // assert(is_equal(this_data_item, temp));
 
             if(temp->next)
                 sf_append_buffer(current_child_ptr[idx], temp->next, tid);
@@ -475,12 +480,13 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         free(popped);
     }
     delete_qstack(qstack);
-    return;
+    return max;
 }
 
 
-void sf_insert_itemset(sforest forest, data d, int tid)
+int sf_insert_itemset(sforest forest, data d, int tid)
 {
+    int max = 0;
     while(d)
     {
         sftree tree = forest[d->data_item];
@@ -489,10 +495,12 @@ void sf_insert_itemset(sforest forest, data d, int tid)
             tree->root->freq *= pow(DECAY, tid - tree->root->tid);
             tree->root->freq++;
             tree->root->tid = tid;
-            return;
+            // printf("%d\n", max);
+            return max;
         }
         sf_append_buffer(tree->root, d->next, tid); /* transaction: acdef, node a will have 'cdef'*/
-        sf_insert_itemset_helper(tree->root, tree->head_table, tid);
+        int val = sf_insert_itemset_helper(tree->root, tree->head_table, tid);
+        max = max < val ? val:max;
         d = d->next;
     }
 }
