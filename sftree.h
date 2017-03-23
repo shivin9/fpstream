@@ -51,7 +51,7 @@ void sf_print_data_node(data d);
 void sf_print_buffer(sfnode);
 
 data sf_reverse_data(data head);
-void sf_prune(sftree, data_type);
+void sf_prune(sforest, int);
 void sf_update_ancestor(sfnode);
 
 #endif //sfTREE

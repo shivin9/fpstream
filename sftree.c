@@ -462,7 +462,9 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
             /*updating the frequency of the node according to the formula*/
             current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->tid);
             current_child_ptr[idx]->freq++;
-            current_child_ptr[idx]->tid = tid;
+            /* update the tid of only the node which won't get updated later*/
+            if(temp->next == NULL)
+                current_child_ptr[idx]->tid = tid;
             temp = temp->next;
         }
 
@@ -472,7 +474,16 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         {
             idx = index(temp->data_item, current_node->data_item);
             temp = temp->next;
-            push(qstack, current_child_ptr[idx]);
+            if(current_child_ptr[idx]->freq > EPS*current_child_ptr[idx]->tid)
+            {
+                current_child_ptr[idx]->tid = tid;
+                push(qstack, current_child_ptr[idx]);
+            }
+            else
+            {
+                sf_delete_tree_structure(current_child_ptr[idx]);
+                current_child_ptr[idx] = NULL;
+            }
         }
 
         /* free the popped buffer to save space*/
@@ -559,8 +570,6 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
                 sf_mine_frequent_itemsets_helper(this_child, collected, end, pattern);
         }
     }
-
-    // else
 }
 
 void sf_mine_frequent_itemsets(sforest forest, int pattern)
@@ -831,6 +840,33 @@ void sf_empty_buffers(sfnode curr, header_table htable, int tid)
 {
     return;
 }
+
+
+void sf_prune_helper(sfnode node, int tid)
+{
+    node->freq *= pow(DECAY, tid - node->tid);
+    int child;
+    for(child = 0; child < last_index(node->data_item); child++)
+    {
+        if(node->children[child] && node->children[child]->freq > EPS*node->tid)
+            sf_prune_helper(node->children[child], tid);
+        else
+        {
+            sf_delete_tree_structure(node->children[child]);
+            node->children[child] = NULL;
+        }
+    }
+}
+
+void sf_prune(sforest forest, int tid)
+{
+    int i;
+    for(i = 0; i < DICT_SIZE; i++)
+    {
+        sf_prune_helper(forest[i]->root, tid);
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 

@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
             // sf_print_header_table(forest->head_table);
             size = sf_size_of_sforest(forest)/1000000.0;
             printf("pruning at tid = %d, size = %lf Mb; ", tid, size);
-            // sf_prune(forest, tid);
+            sf_prune(forest, tid);
             size = sf_size_of_sforest(forest)/1000000.0;
             printf("new_size = %lf Mb\n", size);
             // break;

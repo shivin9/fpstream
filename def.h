@@ -16,17 +16,17 @@
 #define index(i,len) ((i) - (len)) /* when the arrays of nodes are of different sizes,
                                       200th item it found at index 100 in the node of item 100*/
 
-#define DECAY 1.0
-#define DICT_SIZE 100 // max. number of items
+#define DECAY 0.995
+#define DICT_SIZE 500 // max. number of items
 #define N 5000 //window size
-#define EPS 0.0001
+#define EPS 0.01
 #define THETA 0.001
 #define HSIZE 10000
 
 #define SUP 18.0
 #define BATCH 15
 
-#define MINSUP_SEMIFREQ 400  //minimum support for semi-frequent itemsets
+#define MINSUP_SEMIFREQ 40  //minimum support for semi-frequent itemsets
 #define MINSUP_FREQ 8    //minimum support for frequent itemsets
 #define SUP_ERROR 50.0 //max error for sub-frequent itemsets
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned
