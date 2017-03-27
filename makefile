@@ -2,7 +2,7 @@ CC=gcc
 FLAG=-pg -fopenmp -c -g 
 
 exe: driver.o fptree.o atstream.o
-	$(CC) -o exe -pg -fopenmp atstream.o fptree.o def.h -lm
+	$(CC) -o exe -pg -fopenmp driver.o fptree.o def.h -lm
 
 driver.o: driver.c
 	$(CC) $(FLAG) driver.c -lm

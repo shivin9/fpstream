@@ -139,7 +139,7 @@ int fp_size_of_tree(fpnode curr)
     fpnode_list child = curr->children;
     int size = sizeof(&curr);
     buffer buff = curr->itembuffer;
-    data temp;
+    data temp, itmlst = curr->item_list;
 
     while(buff)
     {
@@ -155,8 +155,9 @@ int fp_size_of_tree(fpnode curr)
 
     while(child != NULL)
     {
-        size += fp_size_of_tree(child->tree_node);
+        size += fp_size_of_tree(child->tree_node) + sizeof(child) + sizeof(itmlst);
         child = child->next;
+        itmlst = itmlst->next;
     }
     return size;
 }
@@ -1129,7 +1130,7 @@ void fp_prune_obsolete_II_patterns(header_table htable, data_type data_item, int
 
     while(fir!=NULL)
     {
-        if(fir->tid <= tid - N)
+        if(fir->tid <= tid - tid)
         {
             fp_update_ancestor(fir);
             to_free = fir;
@@ -1266,17 +1267,17 @@ void fp_prune(fptree ftree, int tid)
         if(htable->first != NULL)
         {
             // printf("data_item = %d, cnt = %lf, tid = %d\n", htable->data_item, htable->cnt, htable->tid);
-            if(htable->tid <= tid - N)
+            if(htable->tid <= tid - tid)
             {
                 // printf("pruning obsolete1\n");
                 fp_prune_obsolete_I_patterns(htable, htable->data_item, tid);
             }
-            else if(htable->tid < tid - N + THETA*N)
+            else if(htable->tid < tid - tid + THETA*tid)
             {
                 // printf("pruning infrequent1\n");
                 fp_prune_infrequent_I_patterns(htable, htable->data_item, tid);
             }
-            else if(htable->tid >= tid - N + THETA*N && fp_ineq7(htable, tid))
+            else if(htable->tid >= tid - tid + THETA*tid && fp_ineq7(htable, tid))
             {
                 // printf("pruning infrequent2\n");
                 fp_prune_infrequent_II_patterns(htable, htable->data_item, tid);
