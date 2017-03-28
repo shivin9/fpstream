@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <malloc.h>
+#include <limits.h>
 #include <omp.h>
 #include <math.h>
 
@@ -16,14 +17,14 @@
 #define index(i,len) ((i) - (len)) /* when the arrays of nodes are of different sizes,
                                       200th item it found at index 100 in the node of item 100*/
 
-#define DECAY 0.995
+#define DECAY 1.0
 #define DICT_SIZE 500 // max. number of items
 #define N 5000 //window size
-#define EPS 0.01
+#define EPS 0.1
 #define THETA 0.001
 #define HSIZE 10000
 
-#define SUP 18.0
+#define SUP 40.0
 #define BATCH 15
 
 #define MINSUP_SEMIFREQ 40  //minimum support for semi-frequent itemsets
@@ -77,7 +78,8 @@ struct sf_node{
     buffer bufferhead;
     buffer buffertail;
     int bufferSize;
-    int tid; // time stamp
+    int ltid; // latest time stamp
+    int ftid; // first seen tid
     double freq;
     data_type data_item;
     header_table hnode;
@@ -92,7 +94,8 @@ struct header_table_node{
     data_type data_item;
     sfnode first;
     double cnt;
-    int tid;
+    int ftid;
+    int ltid;
 };
 
 

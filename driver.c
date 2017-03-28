@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
     printf("sizeof sf tree = %d\n", sf_size_of_sforest(forest));
 
     printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
-
+    
     gettimeofday(&t1, NULL);
     sf_mine_frequent_itemsets(forest, 0);
     gettimeofday(&t2, NULL);
@@ -140,6 +140,8 @@ int main(int argc, char* argv[])
     printf("total time taken to mine the sf tree = %lf ms\n", elapsedTime);
     printf("max queue length = %d\n", max);
     printf("q size = %ld\n", max*sizeof(snode));
+
+    printf("no. of %lf nodes = %lu", 4.0, sf_no_of_nodes(forest[1]->root, 4.0));
 
     // int idx = 0, bnode=50;
     // cnt = 0;
