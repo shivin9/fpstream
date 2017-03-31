@@ -70,6 +70,8 @@ typedef struct buffer_node* buffer;
 
 
 typedef struct sf_node* sfnode;
+typedef struct sftree_node* sftree;
+typedef struct sftree_node** sforest;
 typedef struct header_table_node* header_table;
 
 struct sf_node{
@@ -86,9 +88,9 @@ struct sf_node{
     struct sf_node* next_similar;
     struct sf_node* prev_similar;
     struct sf_node* parent;
+    sftree fptree;
     double touched;
 };
-
 
 struct header_table_node{
     data_type data_item;
@@ -103,8 +105,6 @@ struct sftree_node{
     sfnode root;
     header_table* head_table;
 };
-typedef struct sftree_node* sftree;
-typedef struct sftree_node** sforest;
 
 //////////////////////////////////////////////////////////////////////////////
 typedef struct snode snode;

@@ -9,14 +9,16 @@ data sf_create_sorted_dummy();
 void sf_create_and_insert_new_child(sfnode, data, int);
 
 void sf_append_buffer(sfnode curr, data d, int tid);
-void sf_insert_new_child(sfnode, sfnode, data);
+void sf_insert_new_child(sfnode, sfnode, int);
 int sf_insert_itemset_helper(sfnode, header_table*, int tid);
+void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid);
 int sf_insert_itemset(sforest, data, int tid);
 
 void sf_delete_header_table(header_table*);
 void sf_delete_tree_structure(sfnode);
 void sf_delete_data_node(data);
 void sf_delete_buffer(buffer); /* clear up the buffer*/
+void sf_delete_sftree(sftree tree);
 
 int sf_size_of_sforest(sforest forest);
 int sf_size_of_tree(sfnode);
@@ -41,8 +43,9 @@ void sf_free_data_node(data);
 
 sfnode sf_dfs(sfnode, data_type);
 sftree sf_create_conditional_sf_tree(sftree, data_type, double, int);
-void sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int pattern);
-void sf_mine_frequent_itemsets(sforest, int pattern);
+void sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern);
+void sf_mine_frequent_itemsets(sforest, int tid, int pattern);
+void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnode collected, int tid, int pattern);
 
 void sf_print_node(sfnode);
 void sf_print_tree(sfnode);
