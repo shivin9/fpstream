@@ -18,7 +18,7 @@
                                       200th item it found at index 100 in the node of item 100*/
 
 #define DECAY 1.0
-#define DICT_SIZE 500 // max. number of items
+#define DICT_SIZE 7 // max. number of items
 #define N 5000 //window size
 #define EPS 0.1
 #define THETA 0.001
@@ -27,7 +27,7 @@
 #define SUP 40.0
 #define BATCH 15
 
-#define MINSUP_SEMIFREQ 40  //minimum support for semi-frequent itemsets
+#define MINSUP_SEMIFREQ 2  //minimum support for semi-frequent itemsets
 #define MINSUP_FREQ 8    //minimum support for frequent itemsets
 #define SUP_ERROR 50.0 //max error for sub-frequent itemsets
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned

@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
     
     gettimeofday(&t1, NULL);
-    sf_mine_frequent_itemsets(forest, 0);
+    sf_mine_frequent_itemsets(forest, tid, 0);
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
