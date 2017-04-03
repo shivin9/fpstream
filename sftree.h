@@ -14,7 +14,7 @@ int sf_insert_itemset_helper(sfnode, header_table*, int tid);
 void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid);
 int sf_insert_itemset(sforest, data, int tid);
 
-void sf_delete_header_table(header_table*, int data_item);
+void sf_delete_header_table(header_table*);
 void sf_delete_tree_structure(sfnode);
 void sf_delete_data_node(data);
 void sf_delete_buffer(buffer); /* clear up the buffer*/
