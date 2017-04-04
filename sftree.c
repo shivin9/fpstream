@@ -35,6 +35,7 @@ sforest sf_create_sforest()
     for(i = 0; i < DICT_SIZE; i++)
     {
         forest[i] = sf_create_sftree(i);
+        sf_create_header_table(forest[i], 0);
     }
     return forest;
 }
@@ -451,8 +452,7 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
         // curr_header_node->cnt += current_node->freq;
     }
 
-
-    // updating the frequency of the node according to the formula
+    /* updating the frequency of the node according to the formula*/
     current_node->freq *= pow(DECAY, tid - current_node->ltid);
     current_node->freq++;
     current_node->ltid = tid;
@@ -491,13 +491,12 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
     push(qstack, node);
     sfnode current_node;
 
+    int idx, root_data, max = 0;
     node->ftid = min(node->ftid, tid);
 
     node->freq *= pow(DECAY, tid - node->ltid);
     node->freq++;
     node->ltid = max(node->ltid, tid);
-
-    int max = 0, idx;
 
     while(qstack->size > 0)
     {
@@ -506,6 +505,27 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
         current_node = get(qstack);
         assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
+
+        // create the links right here only
+        if(htable && current_node->hnode == NULL && current_node->data_item != -1)
+        {
+            data_type this_data = current_node->data_item;
+            root_data = htable[0]->data_item;
+            idx = index(this_data, root_data);
+            header_table curr_header_node = htable[idx];
+            assert(this_data == curr_header_node->data_item);
+            //append to the head of the linked list for this data item
+            current_node->next_similar = curr_header_node->first;
+            current_node->hnode = curr_header_node;
+            if(curr_header_node->first)
+                curr_header_node->first->prev_similar = current_node;
+
+            curr_header_node->first = current_node;
+            curr_header_node->cnt++;
+            /*The first node next to the header table has NO previous node although a next node from the header table points to it*/
+            current_node->prev_similar = NULL;
+            // curr_header_node->cnt += node->freq;
+        }
 
         buffer popped = sf_pop_buffer(current_node);
         if(popped)
@@ -572,13 +592,6 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 /*updating the frequency of the node according to the formula*/
                 current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->ltid);
                 current_child_ptr[idx]->freq++;
-
-                /* update the tid of only the node which won't get updated later*/
-                // if(temp->next == NULL)
-                // {
-                //     current_child_ptr[idx]->ltid = tid;
-                // }
-
                 temp = temp->next;
             }
 
@@ -619,12 +632,13 @@ int sf_insert_itemset(sforest forest, data d, int tid)
     while(d)
     {
         sftree tree = forest[d->data_item];
-        if(d->next == NULL)
+        if(d->next == NULL) /* d is a single item*/
         {
             tree->root->ftid = min(tree->root->ftid, tid);
             tree->root->ltid = max(tree->root->ltid, tid);
             tree->root->freq *= pow(DECAY, tid - tree->root->ltid);
             tree->root->freq++;
+            tree->head_table[index(d->data_item, tree->head_table[0]->data_item)]->cnt++;
             // printf("%d\n", max);
             return max;
         }
