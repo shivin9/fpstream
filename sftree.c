@@ -37,7 +37,7 @@ sforest sf_create_sforest()
     for(i = 0; i < DICT_SIZE; i++)
     {
         forest[i] = sf_create_sftree(i);
-        sf_create_header_table(forest[i], 0);
+        sf_create_header_table(forest[i], INT_MAX);
     }
     return forest;
 }
@@ -541,7 +541,12 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
             current_node->prev_similar = NULL;
             // curr_header_node->cnt += node->freq;
         }
-        curr_header_node->cnt++;
+        if(curr_header_node->ltid < tid)
+        {
+            curr_header_node->cnt++;
+            curr_header_node->ftid = min(curr_header_node->ftid, tid);
+            curr_header_node->ltid = tid;
+        }
 
         buffer popped = sf_pop_buffer(current_node);
         if(popped)
@@ -1116,7 +1121,7 @@ void sf_create_header_table(sftree tree, int tid)
             htable[cnt]->data_item = cnt + tree->root->data_item;
             htable[cnt]->first = NULL;
             htable[cnt]->cnt = 0.0;
-            htable[cnt]->ftid = INT_MAX;
+            htable[cnt]->ftid = INT_MAX - 1;
             htable[cnt]->ltid = -1;
         }
         tree->head_table = htable;
@@ -1198,9 +1203,9 @@ data sf_reverse_data(data head)
 }
 
 
-// removes duplicate items also
 void sf_sort_data(data head, double* arr)
 {
+    // removes duplicate items also
     data temp = head, nxt, temp1, prev;
     data_type tdt, ori;
     int flag;
@@ -1305,7 +1310,7 @@ void sf_fp_prune(sftree node, int tid)
     return;
 }
 
-
+/* Decay the count of node in the header table and decrease some value from nodes in the bltree*/
 void sf_prune_helper(sfnode node, int tid)
 {
     node->freq *= pow(DECAY, tid - node->ltid);
@@ -1323,6 +1328,12 @@ void sf_prune_helper(sfnode node, int tid)
                 sf_prune_helper(node->children[child], tid);
             else
             {
+                sfnode par = node->parent;
+                while(par)
+                {
+                    par->freq -= node->freq;
+                    par = par->parent;
+                }
                 sf_delete_tree_structure(node->children[child]);
                 node->children[child] = NULL;
             }
@@ -1419,12 +1430,12 @@ void sf_print_header_table(header_table* h)
     {
         printf("item = %d, ftid = %d, ltid = %d, cnt = %lf\n", h[idx]->data_item, h[idx]->ftid, h[idx]->ltid, h[idx]->cnt);
         sfnode node = h[idx]->first;
-        while(node != NULL && node->next_similar != node)
-        {
-            // sf_print_node(node);
-            node = node->next_similar;
-            // z++;
-        }
+        // while(node != NULL && node->next_similar != node)
+        // {
+        //     sf_print_node(node);
+        //     node = node->next_similar;
+        //     z++;
+        // }
         // printf("\n");
     }
 }

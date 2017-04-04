@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
-    sf_print_sforest(forest);
+    // sf_print_sforest(forest);
     printf("sizeof sf tree = %d\n", sf_size_of_sforest(forest));
 
     printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
