@@ -13,11 +13,11 @@ int is_equal(data d1, data d2)
     return (d1->data_item == d2->data_item);
 }
 
-
-data sf_create_sorted_dummy()
+/* sorted_dummy is also smartly indexed now*/
+data sf_create_sorted_dummy(int start)
 {
     data d = NULL;
-    int next = 0;
+    int next = start;
     while(next < DICT_SIZE)
     {
         data new_d = (data) calloc(1, sizeof(struct data_node));
@@ -143,7 +143,7 @@ void sf_delete_header_table(header_table* h)
         return;
     int idx;
     header_table temp;
-    for(idx = 0; idx < DICT_SIZE; idx++)
+    for(idx = 0; idx < last_index(h[0]->data_item); idx++)
     {
         temp = h[idx];
         if(temp)
@@ -423,20 +423,21 @@ buffer sf_pop_buffer(sfnode curr)
 }
 
 
-void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
+void sf_fp_insert(sfnode current_node, header_table* htable, data d, int root_data, int tid)
 {
     // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
     // if the flag is up then we insert the remaining itemset into the bufferlist of that node and reset the flag
     assert(current_node != NULL);
     // assert(htable != NULL);
-
+    int idx;
     // create the links right here only
     if(htable && current_node->hnode == NULL && current_node->data_item != -1)
     {
         data_type this_data = current_node->data_item;
-        header_table curr_header_node = htable[this_data];
-
+        idx = index(this_data, root_data);
+        header_table curr_header_node = htable[idx];
+        assert(this_data == curr_header_node->data_item);
         //append to the head of the linked list for this data item
         current_node->next_similar = curr_header_node->first;
         current_node->hnode = curr_header_node;
@@ -463,7 +464,7 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
     // otherwise make a new child
     sfnode* current_child_ptr = current_node->children, prev = NULL;
     // data current_data_ptr = current_node->item_list;
-    int idx = index(d->data_item, current_node->data_item);
+    idx = index(d->data_item, current_node->data_item);
     sfnode this_child = current_child_ptr[idx];
 
     if(this_child == NULL)
@@ -474,7 +475,7 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
     
     // printf("could not find appropriate child for %d:(\n", current_node->data_item);
     // data this_data_item = current_data_ptr;
-    sf_fp_insert(current_child_ptr[idx], htable, d->next, tid);
+    sf_fp_insert(current_child_ptr[idx], htable, d->next, root_data, tid);
     return;
 }
 
@@ -534,7 +535,8 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         
         if(current_node->fptree != NULL)
         {
-            sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table, d, tid);
+            sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table,
+                         d, current_node->fptree->root->data_item, tid);
             // printf("inserting in fptree\n");
         }
 
@@ -731,7 +733,7 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
             if(node->fptree != NULL)
             {
                 sfnode collected = calloc(1, sizeof(struct sf_node));
-                data sorted = sf_create_sorted_dummy();
+                data sorted = sf_create_sorted_dummy(node->fptree->root->data_item);
                 sf_fp_mine_frequent_itemsets(node->fptree, sorted, NULL, collected, tid, pattern);
             }
             sf_print_patterns_to_file(collected, node->bufferhead, node->freq, end, pattern);
@@ -808,8 +810,9 @@ sfnode sf_dfs(sfnode node, data_type highest_priority_data_item)
 sftree sf_create_conditional_sf_tree(sftree tree, data_type data_item, double minsup, int tid)
 {
     header_table curr_head_table_node;
+    int idx = index(data_item, tree->root->data_item);
 
-    curr_head_table_node = tree->head_table[data_item];
+    curr_head_table_node = tree->head_table[idx];
     sfnode node = curr_head_table_node->first;
 
     // printf("cnt = %lf, minsup = %lf\n",  (curr_head_table_node->cnt)*pow(DECAY, tid - curr_head_table_node->tid), minsup);
@@ -882,6 +885,7 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
     //     printf("\nentered new mine sorted = %d\n", sorted->data_item);
 
     header_table curr_header_node;
+    int idx;
 
     if(till_now != NULL)
     {
@@ -896,13 +900,9 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
         while(last_item->next != NULL)
             last_item = last_item->next;
 
-        curr_header_node = tree->head_table[last_item->data_item];
-
-        // while(curr_header_node != NULL)
-        // {
-        //     if(curr_header_node->data_item == last_item->data_item)    break;
-        //     curr_header_node = curr_header_node->next;
-        // }
+        /* get the proper index*/
+        idx = index(last_item->data_item, tree->root->data_item);
+        curr_header_node = tree->head_table[idx];
 
         assert(curr_header_node != NULL);
 
@@ -1006,14 +1006,17 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
 void sf_create_header_table_helper(sfnode root, header_table* h)
 {
     /* append this node to the corresponding list for this data item in the header table*/
+    int idx;
     if(root->hnode == NULL && root->data_item != -1)
     {
         data_type this_data = root->data_item;
-        header_table curr_header_node = h[this_data];
+        idx = index(this_data, root->data_item);
+        header_table curr_header_node = h[idx];
         assert(curr_header_node->data_item == this_data);
+
         //append to the head of the linked list for this data item
         root->next_similar = curr_header_node->first;
-        root->hnode = h[this_data];
+        root->hnode = h[idx];
         if(curr_header_node->first)
             curr_header_node->first->prev_similar = root;
 
@@ -1025,7 +1028,6 @@ void sf_create_header_table_helper(sfnode root, header_table* h)
     }
 
     sfnode* current_child_ptr = root->children;
-    int idx;
     for(idx = 0; idx < last_index(root->data_item); idx++)
     {
         if(current_child_ptr[idx])
@@ -1038,15 +1040,16 @@ void sf_create_header_table_helper(sfnode root, header_table* h)
 
 
 /*  this function is updating the header table of the sftree*/
-void sf_update_header_table(header_table* htable, data dat, int tid)
+void sf_update_header_table(header_table* htable, data dat, int root_data, int tid)
 {
     header_table temp, prev;
     data tdat = dat;
     int idx;
     while(tdat)
     {
-        idx = tdat->data_item;
+        idx = index(tdat->data_item, root_data);
         temp = htable[idx];
+        // printf("t1=%d, t2=%d, root_data=%d, idx=%d\n", temp->data_item, tdat->data_item, root_data, idx);
         assert(temp->data_item == tdat->data_item);
         temp->ftid = min(temp->ftid, tid);
         temp->ftid = max(temp->ltid, tid);
@@ -1070,13 +1073,13 @@ void sf_create_header_table(sftree tree, int tid)
     if(tree->head_table == NULL)
     {
         int cnt;
-        header_table* htable = calloc(DICT_SIZE, sizeof(header_table));
+        header_table* htable = calloc(last_index(tree->root->data_item), sizeof(header_table));
         header_table curr;
 
-        for(cnt = 0; cnt < DICT_SIZE; cnt++)
+        for(cnt = 0; cnt < last_index(tree->root->data_item); cnt++)
         {
             htable[cnt] = calloc(1, sizeof(struct header_table_node));
-            htable[cnt]->data_item = cnt;
+            htable[cnt]->data_item = cnt + tree->root->data_item;
             htable[cnt]->first = NULL;
             htable[cnt]->cnt = 0.0;
             htable[cnt]->ftid = INT_MAX;
@@ -1087,8 +1090,8 @@ void sf_create_header_table(sftree tree, int tid)
     tree->root->parent = NULL;
     sf_create_header_table_helper(tree->root, tree->head_table);
 
-    data sorted = sf_create_sorted_dummy();
-    sf_update_header_table(tree->head_table, sorted, tid);
+    data sorted = sf_create_sorted_dummy(tree->root->data_item);
+    sf_update_header_table(tree->head_table, sorted, tree->root->data_item, tid);
     sf_delete_data_node(sorted);
 }
 /****************************************************************************/

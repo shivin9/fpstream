@@ -1,5 +1,5 @@
 CC=gcc
-FLAG= -pg -g -fopenmp -c -O3
+FLAG= -pg -g -fopenmp -c 
 
 exe: driver.o sftree.o qstack.o
 	$(CC) -o exe -pg -fopenmp sftree.o qstack.o driver.o def.h -lm

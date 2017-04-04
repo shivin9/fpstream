@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
     double size;
     sforest forest = NULL;
 
-    data sorted = sf_create_sorted_dummy();
+    data sorted = sf_create_sorted_dummy(0);
     forest = sf_create_sforest();
     // sf_create_header_table(forest, tid);
 
