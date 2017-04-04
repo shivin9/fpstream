@@ -11,7 +11,7 @@ void sf_create_and_insert_new_child(sfnode, data, int);
 void sf_append_buffer(sfnode curr, data d, int tid);
 void sf_insert_new_child(sfnode, sfnode, int);
 int sf_insert_itemset_helper(sfnode, header_table*, int tid);
-void sf_fp_insert(sfnode current_node, header_table* htable, data d, int root_data, int tid);
+void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid);
 int sf_insert_itemset(sforest, data, int tid);
 
 void sf_delete_header_table(header_table*);
@@ -31,7 +31,7 @@ long unsigned sf_no_of_nodes(sfnode curr, int freq);
 
 void sf_create_header_table_helper(sfnode, header_table*);
 void sf_create_header_table(sftree, int);
-void sf_update_header_table(header_table*, data, int root_data, int tid);
+void sf_update_header_table(header_table*, data, int tid);
 
 void sf_convert_helper(sfnode, sftree, double*, int*, int tid, int end);
 sftree sf_convert_to_CP(sftree, int);

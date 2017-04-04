@@ -5,28 +5,11 @@ tests/
 output
 *.out
 data/
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
 exe
 *.o
 *~
 *.h.gch
-=======
-=======
->>>>>>> new
->>>>>>> 664578536f97317d67b70abe10652d79c66ebff8
 tests/
 exe
 *.swp
-*.ignore
-*.py
-*.gnd
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> new
-=======
->>>>>>> new
->>>>>>> 664578536f97317d67b70abe10652d79c66ebff8
+massif*

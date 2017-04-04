@@ -141,9 +141,9 @@ void sf_delete_header_table(header_table* h)
 {
     if(h == NULL)
         return;
-    int idx;
+    int idx, root_data = h[0]->data_item;
     header_table temp;
-    for(idx = 0; idx < last_index(h[0]->data_item); idx++)
+    for(idx = 0; idx < last_index(root_data); idx++)
     {
         temp = h[idx];
         if(temp)
@@ -158,10 +158,10 @@ void sf_delete_header_table(header_table* h)
 void sf_delete_sftree(sftree tree)
 {
     if(tree == NULL)    return;
+    sf_delete_header_table(tree->head_table);
     sf_delete_tree_structure(tree->root);
     free(tree->root);
     tree->root = NULL;
-    sf_delete_header_table(tree->head_table);
     free(tree);
     tree = NULL;
 }
@@ -423,18 +423,19 @@ buffer sf_pop_buffer(sfnode curr)
 }
 
 
-void sf_fp_insert(sfnode current_node, header_table* htable, data d, int root_data, int tid)
+void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
 {
     // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
     // if the flag is up then we insert the remaining itemset into the bufferlist of that node and reset the flag
     assert(current_node != NULL);
     // assert(htable != NULL);
-    int idx;
+    int idx, root_data;
     // create the links right here only
     if(htable && current_node->hnode == NULL && current_node->data_item != -1)
     {
         data_type this_data = current_node->data_item;
+        root_data = htable[0]->data_item;
         idx = index(this_data, root_data);
         header_table curr_header_node = htable[idx];
         assert(this_data == curr_header_node->data_item);
@@ -472,10 +473,10 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int root_da
         sf_create_and_insert_new_child(current_node, d, tid);
     }
     assert(current_child_ptr[idx] != NULL);
-    
+
     // printf("could not find appropriate child for %d:(\n", current_node->data_item);
     // data this_data_item = current_data_ptr;
-    sf_fp_insert(current_child_ptr[idx], htable, d->next, root_data, tid);
+    sf_fp_insert(current_child_ptr[idx], htable, d->next, tid);
     return;
 }
 
@@ -495,7 +496,7 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
     node->freq *= pow(DECAY, tid - node->ltid);
     node->freq++;
     node->ltid = max(node->ltid, tid);
-    
+
     int max = 0, idx;
 
     while(qstack->size > 0)
@@ -532,11 +533,10 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
             // sf_print_node(current_node);
             // printf("*************************************************\n");
         }
-        
+
         if(current_node->fptree != NULL)
         {
-            sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table,
-                         d, current_node->fptree->root->data_item, tid);
+            sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table, d, tid);
             // printf("inserting in fptree\n");
         }
 
@@ -572,13 +572,13 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 /*updating the frequency of the node according to the formula*/
                 current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->ltid);
                 current_child_ptr[idx]->freq++;
-                
+
                 /* update the tid of only the node which won't get updated later*/
                 // if(temp->next == NULL)
                 // {
                 //     current_child_ptr[idx]->ltid = tid;
                 // }
-                
+
                 temp = temp->next;
             }
 
@@ -646,7 +646,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
         sf = fopen("intermediate", "a");
     else
         sf = fopen("output", "a");
-    
+
     if(sf == NULL)
         exit(0);
 
@@ -670,7 +670,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
         }
         fprintf(sf, "\n");
         fclose(sf);
-        return;        
+        return;
     }
 
     data temp;
@@ -1040,11 +1040,11 @@ void sf_create_header_table_helper(sfnode root, header_table* h)
 
 
 /*  this function is updating the header table of the sftree*/
-void sf_update_header_table(header_table* htable, data dat, int root_data, int tid)
+void sf_update_header_table(header_table* htable, data dat, int tid)
 {
     header_table temp, prev;
     data tdat = dat;
-    int idx;
+    int idx, root_data = htable[0]->data_item;
     while(tdat)
     {
         idx = index(tdat->data_item, root_data);
@@ -1091,7 +1091,7 @@ void sf_create_header_table(sftree tree, int tid)
     sf_create_header_table_helper(tree->root, tree->head_table);
 
     data sorted = sf_create_sorted_dummy(tree->root->data_item);
-    sf_update_header_table(tree->head_table, sorted, tree->root->data_item, tid);
+    sf_update_header_table(tree->head_table, sorted, tid);
     sf_delete_data_node(sorted);
 }
 /****************************************************************************/
@@ -1318,9 +1318,9 @@ void sf_print_node(sfnode node)
 
     if(node->fptree)
     {
-        printf("FPTREE:\n");    
+        printf("FPTREE:\n");
         sf_print_tree(node->fptree->root);
-        printf("******************************************************************************\n");        
+        printf("******************************************************************************\n");
     }
 
     // printf("BUFFER:\n");
