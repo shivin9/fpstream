@@ -117,6 +117,8 @@ int main(int argc, char* argv[])
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
+    fptree condtree = fp_create_conditional_fp_tree(ftree, 3, 3.0, tid);
+    fp_print_tree(condtree->root);
 
     // printf("\nresulting fp-tree:\n\n");
     // printf("\n");

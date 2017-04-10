@@ -1383,8 +1383,8 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
         node = node->next_similar;
     }
 
-    // printf("after touching:\n");
-    // fp_print_tree(tree->root);
+    printf("after touching:\n");
+    fp_print_tree(tree->root);
 
     //now run a DFS from the root of the given FP_tree, for all touched nodes,
     //create a copy for the conditional FP-tree

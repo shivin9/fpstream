@@ -2,8 +2,8 @@
 intermediate
 output
 *.out
-data/
-tests/
+data/*
+tests/*
 exe
 *.swp
 *.ignore
