@@ -56,7 +56,9 @@ int main(int argc, char* argv[])
 
     data sorted = sf_create_sorted_dummy(0);
     forest = sf_create_sforest();
-    // sf_create_header_table(forest, tid);
+
+    sftree tree = sf_create_sftree(0);
+    sf_create_header_table(tree, tid);
 
     struct timeval t1, t2, t3, t4;
     double elapsedTime, sum = 0, totaltime = 0;
@@ -88,6 +90,8 @@ int main(int argc, char* argv[])
         gettimeofday(&t3, NULL);
         int res = sf_insert_itemset(forest, d, tid);
         gettimeofday(&t4, NULL);
+
+        sf_fp_insert(tree->root, tree->head_table, d->next, tid);
 
         elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
         elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -135,6 +139,20 @@ int main(int argc, char* argv[])
     sf_mine_frequent_itemsets(forest, tid, 0);
     gettimeofday(&t2, NULL);
 
+    // sfnode collector = calloc(1, sizeof(struct sf_node));
+
+    // sf_print_tree(tree->root);
+    // printf("****printing Htable****\n");
+    // sf_print_header_table(tree->head_table);
+
+    /* testing the sf_dfs() function*/
+    // sftree condtree = sf_create_conditional_sf_tree(tree, 3, MINSUP_SEMIFREQ, 0);
+    // sf_print_tree(condtree->root);
+
+
+    // sf_fp_mine_frequent_itemsets(tree, sorted, NULL, collector, tid, MINSUP_SEMIFREQ);
+    // sf_print_patterns_to_file(NULL, collector->bufferhead, /*cnt = */ -1, -1, 0);
+
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
     printf("total time taken to mine the sf tree = %lf ms\n", elapsedTime);
@@ -155,6 +173,7 @@ int main(int argc, char* argv[])
     //     }
     // }
 
+    sf_delete_sftree(tree);
     sf_delete_sforest(forest);
     free(forest);
     sf_delete_data_node(sorted);

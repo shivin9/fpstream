@@ -5,6 +5,7 @@
 4. But the tree is being constructed ie. next_similar and prev_similar pointers are being given periodically just before pruning
 5. Decide whether a node can have both a buffer fptree along with prev. opened transactions or only a fptree
 6. Header tables are ignorant of the data item present in the node
+7. Have -1 as the root node surely
 */
 #include "sftree.h"
 
@@ -43,6 +44,7 @@ sforest sf_create_sforest()
 }
 
 
+/* dat tells the number of children which the node will have*/
 sftree sf_create_sftree(data_type dat)
 {
 
@@ -82,35 +84,39 @@ void sf_delete_tree_structure(sfnode current_node)
     buffer buff = current_node->bufferhead;
     int idx;
 
-    for(idx = 0; idx < last_index(current_node->data_item); idx++)
+    if(current_node->children)
     {
-        if(current_child_ptr[idx] != NULL)
+        for(idx = 0; idx < last_index(current_node->data_item); idx++)
         {
-            this_child = current_child_ptr[idx];
+            if(current_child_ptr[idx] != NULL)
+            {
+                this_child = current_child_ptr[idx];
 
-            if(this_child->prev_similar!=NULL)
-                (this_child->prev_similar)->next_similar = this_child->next_similar;
+                if(this_child->prev_similar!=NULL)
+                    (this_child->prev_similar)->next_similar = this_child->next_similar;
 
-            if(this_child->next_similar!=NULL)
-                (this_child->next_similar)->prev_similar=(this_child)->prev_similar;
+                if(this_child->next_similar!=NULL)
+                    (this_child->next_similar)->prev_similar=(this_child)->prev_similar;
 
-            if(this_child->hnode && this_child->hnode->first == this_child)
-                this_child->hnode->first = NULL;
+                if(this_child->hnode && this_child->hnode->first == this_child)
+                    this_child->hnode->first = NULL;
 
-            sf_delete_tree_structure(this_child);
-            free(this_child); /* let the children go*/
-            this_child = NULL;
+                sf_delete_tree_structure(this_child);
+                free(this_child); /* let the child go*/
+                this_child = NULL;
 
-            // data temp_data = current_data_ptr[idx];
-            // free(temp_data); /* clear the data items*/
-            // temp_data = NULL;
-            current_child_ptr[idx] = NULL;
-            // current_data_ptr[idx] = NULL;
+                // data temp_data = current_data_ptr[idx];
+                // free(temp_data); /* clear the data items*/
+                // temp_data = NULL;
+                current_child_ptr[idx] = NULL;
+                // current_data_ptr[idx] = NULL;
+            }
         }
     }
     sf_delete_sftree(current_node->fptree);
     sf_delete_buffer(buff); /* clear up the buffer*/
-    free(current_child_ptr);
+    free(current_node->children);
+    free(current_node->bufferhead);
     // free(current_data_ptr);
     current_node->bufferhead = NULL; /*free the buffer pointers*/
     current_node->buffertail = NULL;
@@ -446,14 +452,16 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
     // if the flag is up then we insert the remaining itemset into the bufferlist of that node and reset the flag
     assert(current_node != NULL);
     // assert(htable != NULL);
+
     int idx, root_data;
+    data_type this_data = current_node->data_item;
+    root_data = htable[0]->data_item;
+    idx = index(this_data, root_data);
+    header_table curr_header_node = htable[idx];
+
     // create the links right here only
     if(htable && current_node->hnode == NULL && current_node->data_item != -1)
     {
-        data_type this_data = current_node->data_item;
-        root_data = htable[0]->data_item;
-        idx = index(this_data, root_data);
-        header_table curr_header_node = htable[idx];
         assert(this_data == curr_header_node->data_item);
         //append to the head of the linked list for this data item
         current_node->next_similar = curr_header_node->first;
@@ -462,10 +470,14 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
             curr_header_node->first->prev_similar = current_node;
 
         curr_header_node->first = current_node;
+
         /*The first node next to the header table has NO previous node although a next node from the header table points to it*/
         current_node->prev_similar = NULL;
         // curr_header_node->cnt += current_node->freq;
     }
+    curr_header_node->ftid = min(curr_header_node->ftid, tid);
+    curr_header_node->ltid = tid;
+    curr_header_node->cnt++;
 
     /* updating the frequency of the node according to the formula*/
     current_node->freq *= pow(DECAY, tid - current_node->ltid);
@@ -558,18 +570,19 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         if(leave_as_buffer)
         {
             /* inserted in LIFO order*/
-            printf("leaving in buffer at node %d: ", current_node->data_item);
-            sf_print_data_node(d);
+            // printf("leaving in buffer at node %d: ", current_node->data_item);
+            // sf_print_data_node(d);
             current_node->bufferSize++;
             leave_as_buffer = 0;
             delete_qstack(qstack);
             return;
         }
 
-        if(current_node->fptree == NULL && (sf_get_height(current_node) >= 2) /*some decision*/)
+        if(current_node->fptree == NULL && (sf_get_height(current_node) >= 3) /*some decision*/)
         {
             current_node->fptree = sf_create_sftree(current_node->data_item);
             sf_create_header_table(current_node->fptree, tid);
+            // current_node->fptree->root->data_item = -1;
             // printf("made fptree at node: \n");
             // sf_print_node(current_node);
             // printf("*************************************************\n");
@@ -577,8 +590,14 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
         if(current_node->fptree != NULL)
         {
+            sfnode par = current_node;
+            while(par->parent != NULL)
+                par = par->parent;
+
+            // printf("inserting at forest = %d; transaction: ", par->data_item);
+            // sf_print_data_node(d);
             sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table, d, tid);
-            // printf("inserting in fptree\n");
+            // sf_print_node(current_node);
         }
 
         else
@@ -674,6 +693,7 @@ int sf_insert_itemset(sforest forest, data d, int tid)
 /***************************************************************************************/
 /* Various mining functions*/
 
+/* do end = -1 and collected = NULL to print buff onto the file*/
 void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, int pattern)
 {
     FILE *sf;
@@ -682,14 +702,21 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
     else
         sf = fopen("output", "a");
 
+    double minsup = pattern ? MINSUP_FREQ : MINSUP_SEMIFREQ;
+
     if(sf == NULL)
         exit(0);
 
-    if(buff == NULL)
+    /* this part is to print the transaction when the end node has no fptree*/
+    // if(buff == NULL)
     {
         int t = 0;
+
+        // fprintf(sf, "\n no_fptree trans. : ");
+
         fprintf(sf, "%d", end + 1);
-        // printf("%d", end + 1);
+        // printf("%d ", end + 1);
+        // printf("buff is null!\n");
 
         while(t <= end)
         {
@@ -704,30 +731,44 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
             // printf(" %d\n", cnt);
         }
         fprintf(sf, "\n");
-        fclose(sf);
-        return;
+        // fclose(sf);
+        // return;
     }
 
     data temp;
     while(buff)
     {
         int t = 0, len = 0;
-        // printf("%d", end + 1);
+
+        while(buff && buff->tid < minsup)
+            buff = buff->next;
+
+        if(buff == NULL)
+            break;
+        
         temp = buff->itemset;
+        sf_sort_data(temp, NULL);
+
         while(temp)
         {
             len++;
             temp = temp->next;
         }
 
-        fprintf(sf, "%d", end + 1 + len);
+        fprintf(sf, "%d", end + len);
 
-        while(t <= end)
+        if(collected)
         {
-            fprintf(sf, " %d", collected[t]);
-            // printf(" %d", collected[t]);
-            t++;
+            // fprintf(sf, " bltrans: ");
+            while(t <= end)
+            {
+                fprintf(sf, " %d", collected[t]);
+                // printf(" %d", collected[t]);
+                t++;
+            }
         }
+
+        // fprintf(sf, "\nfpmined trans: ");
 
         temp = buff->itemset;
         while(temp)
@@ -736,15 +777,17 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
             temp = temp->next;
         }
 
+        // fprintf(sf, "  cnt = %d\n", cnt < 0 ? buff->tid : min(cnt, buff->tid));
+
         if(pattern == 0)
         {
-            fprintf(sf, " %d", min(cnt, buff->tid));
+            fprintf(sf, " %d\n", cnt < 0 ? buff->tid : min(cnt, buff->tid));
             // printf(" %lf\n", node->freq);
         }
         buff = buff->next;
     }
 
-    fprintf(sf, "\n");
+    // fprintf(sf, "\n");
     fclose(sf);
 }
 
@@ -762,17 +805,29 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
         collected[++end] = node->data_item;
         if(end >= 0)
         {
+            // printf("\nprinting fptree at node\n", end);
             // sf_print_node(node);
-            // printf("end = %d\n", end);
-            // printf("**** end = %d ****\n", end);
             /* there is an FPTree at this node*/
+            sfnode collect_node = calloc(1, sizeof(struct sf_node));
             if(node->fptree != NULL)
             {
-                sfnode collected = calloc(1, sizeof(struct sf_node));
                 data sorted = sf_create_sorted_dummy(node->fptree->root->data_item);
-                sf_fp_mine_frequent_itemsets(node->fptree, sorted, NULL, collected, tid, pattern);
+                // printf("\n****before mining****\n");
+                
+                /* change the root data to -1 for mining correctly*/
+                node->fptree->root->data_item = -1;
+                sf_fp_mine_frequent_itemsets(node->fptree, sorted, NULL, collect_node, tid, EPS);
+                /* reset the old (correct) value of root node data*/
+                node->fptree->root->data_item = node->fptree->head_table[0]->data_item;
+
+                // printf("\n****node->freq = %lf, after  mining****\n", node->freq);
+                // sf_print_buffer(collect_node);
+                // sf_print_tree(node->fptree->root);
             }
-            sf_print_patterns_to_file(collected, node->bufferhead, node->freq, end, pattern);
+            sf_print_patterns_to_file(collected, collect_node->bufferhead, node->freq, end, pattern);
+            // sf_delete_buffer(collect_node->bufferhead);
+            sf_delete_tree_structure(collect_node);
+            free(collect_node);
         }
         int idx;
         sfnode this_child;
@@ -801,22 +856,17 @@ void sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
 }
 
 
-sfnode sf_dfs(sfnode node, data_type highest_priority_data_item)
+sfnode sf_dfs(sfnode node, data_type highest_priority_data_item, data_type root_data)
 {
 
     if(node->touched == 0)    return NULL;
 
     sfnode new_node = calloc(1, sizeof(struct sf_node));
     new_node->children = calloc(last_index(node->data_item), sizeof(sfnode));
-    new_node->touched = 0.0;
+
     new_node->freq = node->touched;
     new_node->ltid = node->ltid; // will see this later
     new_node->data_item = node->data_item;
-    new_node->next_similar = NULL;
-    new_node->prev_similar = NULL;
-    new_node->hnode = NULL;
-    new_node->bufferhead = NULL;
-    new_node->bufferSize = 0;
 
     if(new_node->data_item == highest_priority_data_item)
     {
@@ -826,18 +876,18 @@ sfnode sf_dfs(sfnode node, data_type highest_priority_data_item)
 
     sfnode* temp_child_list = node->children;
     // data* temp_data = node->item_list;
-    int idx;
+    int idx, last = node->data_item >= 0 ? last_index(node->data_item) : last_index(root_data);
 
-    for(idx = 0; idx < last_index(node->data_item); idx++)
+    for(idx = 0; idx < last; idx++)
     {
         if(temp_child_list[idx])
         {
             sfnode this_child = temp_child_list[idx];
             if(this_child->touched > 0)
             {
-                sfnode new_child = sf_dfs(this_child, highest_priority_data_item);
+                sfnode new_child = sf_dfs(this_child, highest_priority_data_item, root_data);
                 if(new_child == NULL)    continue;
-                sf_insert_new_child(new_node, new_child, idx);
+                sf_insert_new_child(new_node, new_child, temp_child_list[idx]->data_item);
             }
         }
     }
@@ -849,12 +899,13 @@ sfnode sf_dfs(sfnode node, data_type highest_priority_data_item)
 sftree sf_create_conditional_sf_tree(sftree tree, data_type data_item, double minsup, int tid)
 {
     header_table curr_head_table_node;
-    int idx = index(data_item, tree->root->data_item);
+    int root_data = tree->head_table[0]->data_item;
+    int idx = index(data_item, root_data);
 
     curr_head_table_node = tree->head_table[idx];
     sfnode node = curr_head_table_node->first;
 
-    // printf("cnt = %lf, minsup = %lf\n",  (curr_head_table_node->cnt)*pow(DECAY, tid - curr_head_table_node->tid), minsup);
+    // printf("cnt = %lf, minsup = %lf\n",  (curr_head_table_node->cnt)*pow(DECAY, tid - curr_head_table_node->ltid), minsup);
     if(curr_head_table_node == NULL || (curr_head_table_node->cnt)*pow(DECAY, tid - curr_head_table_node->ltid) < minsup){
         return NULL;
     }
@@ -892,13 +943,13 @@ sftree sf_create_conditional_sf_tree(sftree tree, data_type data_item, double mi
     /* now run a DFS from the root of the given FP_tree, for all touched nodes,*/
     /* create a copy for the conditional FP-tree*/
 
-    sfnode cond_sftree = sf_dfs(tree->root, data_item);
+    sfnode cond_sftree = sf_dfs(tree->root, data_item, root_data);
     if(cond_sftree == NULL){
         // printf("condtree = NULL!!!\n");
         return NULL;
     }
 
-    // printf("cond_sftree\n");
+    // printf("cond_sftree, highers_prty_item = %d\n", data_item);
     // sf_print_tree(cond_sftree);
     // printf("\n");
 
@@ -911,7 +962,7 @@ sftree sf_create_conditional_sf_tree(sftree tree, data_type data_item, double mi
 }
 
 
-void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnode collected, int tid, int pattern)
+void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnode collected, int tid, double minsup)
 {
 
     if(tree == NULL)    return;
@@ -930,7 +981,6 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
     {
         // printf("till_now = ");
         data temp = till_now;
-
         // sf_print_data_node(till_now);
 
         //current itemset is not empty
@@ -949,8 +999,7 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
 
         // printf("new_cnt=%lf\n", new_cnt);
 
-        if((pattern == 0 && new_cnt >= MINSUP_SEMIFREQ)
-                || (pattern == 1 && new_cnt >= MINSUP_FREQ))
+        if(new_cnt >= minsup)
         {
             // append the frequent itemset to the buffer of a collector code
             sf_append_buffer(collected, till_now, curr_header_node->cnt);
@@ -965,7 +1014,7 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
     while(curr_data != NULL)
     {
         sftree cond_tree = sf_create_conditional_sf_tree(tree, curr_data->data_item,
-                (pattern == 1) ? MINSUP_FREQ : MINSUP_SEMIFREQ, tid);
+                           minsup, tid);
         if(cond_tree == NULL)
         {
             // printf("skipped %d\n", curr_data->data_item);
@@ -1005,7 +1054,7 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
         // else
         //     printf("going to mine NULL\n");
 
-        sf_fp_mine_frequent_itemsets(cond_tree, curr_data->next, till_now, collected, tid, pattern);
+        sf_fp_mine_frequent_itemsets(cond_tree, curr_data->next, till_now, collected, tid, minsup);
         sf_delete_sftree(cond_tree);
 
         // if(curr_data->next != NULL)
@@ -1049,30 +1098,35 @@ void sf_create_header_table_helper(sfnode root, header_table* h)
     if(root->hnode == NULL && root->data_item != -1)
     {
         data_type this_data = root->data_item;
-        idx = index(this_data, root->data_item);
+        idx = index(this_data, h[0]->data_item);
         header_table curr_header_node = h[idx];
         assert(curr_header_node->data_item == this_data);
 
         //append to the head of the linked list for this data item
         root->next_similar = curr_header_node->first;
         root->hnode = h[idx];
+
         if(curr_header_node->first)
             curr_header_node->first->prev_similar = root;
 
         curr_header_node->first = root;
-        /*The first node next to the header table has NO previous node although a next node from the header table points to it*/
+        /* The first node next to the header table has NO previous node
+           although a next node from the header table points to it*/
         root->prev_similar = NULL;
         /* frequency updates are taking place in update function*/
         // curr_header_node->cnt += root->freq;
     }
 
     sfnode* current_child_ptr = root->children;
-    for(idx = 0; idx < last_index(root->data_item); idx++)
+    if(current_child_ptr)
     {
-        if(current_child_ptr[idx])
+        for(idx = 0; idx < last_index(root->data_item); idx++)
         {
-            sfnode this_child = current_child_ptr[idx];
-            sf_create_header_table_helper(this_child, h);
+            if(current_child_ptr[idx])
+            {
+                sfnode this_child = current_child_ptr[idx];
+                sf_create_header_table_helper(this_child, h);
+            }
         }
     }
 }
@@ -1091,7 +1145,7 @@ void sf_update_header_table(header_table* htable, data dat, int tid)
         // printf("t1=%d, t2=%d, root_data=%d, idx=%d\n", temp->data_item, tdat->data_item, root_data, idx);
         assert(temp->data_item == tdat->data_item);
         temp->ftid = min(temp->ftid, tid);
-        temp->ftid = max(temp->ltid, tid);
+        temp->ltid = tid;
         temp->cnt = 0;
         sfnode nxtnode = temp->first;
         while(nxtnode)
@@ -1132,6 +1186,7 @@ void sf_create_header_table(sftree tree, int tid)
     data sorted = sf_create_sorted_dummy(tree->root->data_item);
     sf_update_header_table(tree->head_table, sorted, tid);
     sf_delete_data_node(sorted);
+    // free(sorted);
 }
 /****************************************************************************/
 
@@ -1328,12 +1383,12 @@ void sf_prune_helper(sfnode node, int tid)
                 sf_prune_helper(node->children[child], tid);
             else
             {
-                sfnode par = node->parent;
-                while(par)
-                {
-                    par->freq -= node->freq;
-                    par = par->parent;
-                }
+                // sfnode par = node->parent;
+                // while(par)
+                // {
+                //     par->freq -= node->freq;
+                //     par = par->parent;
+                // }
                 sf_delete_tree_structure(node->children[child]);
                 node->children[child] = NULL;
             }
@@ -1402,6 +1457,7 @@ void sf_print_buffer(sfnode node)
     buffer buff = node->bufferhead;
     while(buff)
     {
+        printf("tid = %d: ", buff->tid);
         sf_print_data_node(buff->itemset);
         buff = buff->next;
     }

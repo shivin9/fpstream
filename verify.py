@@ -6,7 +6,9 @@ def main():
     with open(fname, 'r') as f:
         vals = f.read()
 
+
     gnd_trth = raw_input("enter name of ground truth\n")
+    missing = open(gnd_trth[:-4] + "_missing.ignore", 'w')
 
     dirs = os.listdir('.')
     dirs = [d for d in dirs if os.path.isdir(d)]
@@ -36,7 +38,7 @@ def main():
         vals[i] = map(int, vals[i])
         vals[i] = sorted(vals[i])
         vals[i] = map(str, vals[i])
-        vals[i] = "".join(vals[i])
+        vals[i] = ",".join(vals[i])
         vset.add(vals[i])
 
     # vals = sorted(vals)
@@ -48,7 +50,7 @@ def main():
         gnd[i] = map(int, gnd[i])
         gnd[i] = sorted(gnd[i])
         gnd[i] = map(str, gnd[i])
-        gnd[i] = "".join(gnd[i])
+        gnd[i] = ",".join(gnd[i])
         gset.add(gnd[i])
 
     # gnd = sorted(gnd)
@@ -64,6 +66,8 @@ def main():
     for pttrn in gset:
         if pttrn in vset:
             rec += 1
+        else:
+            missing.write(str(pttrn) + '\n')
 
     pres = pres / float(len(vset))
     rec = rec / float(len(gset))
@@ -73,6 +77,8 @@ def main():
 
     if pres == 1.0 and rec == 1.0 and len(gnd) == len(vals):
         print "output is CORRECT"
+
+    missing.close()
 
 
 if __name__ == '__main__':

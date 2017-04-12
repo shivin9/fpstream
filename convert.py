@@ -63,7 +63,7 @@ def main():
         # print temp
         new += temp
 
-    out = open(fname+".data", "w")
+    out = open(fname + ".data", "w")
     # out = open(fname + ".tab", "w")
     print >> out, new
 
