@@ -17,7 +17,7 @@
 #define index(i,len) ((i) - (len)) /* when the arrays of nodes are of different sizes,
                                       200th item it found at index 100 in the node of item 100*/
 
-#define DECAY 0.99995
+#define DECAY 1.0
 #define DICT_SIZE 500 // max. number of items
 #define N 5000 //window size
 #define EPS 0.001
