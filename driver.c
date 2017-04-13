@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
         int res = sf_insert_itemset(forest, d, tid);
         gettimeofday(&t4, NULL);
 
-        sf_fp_insert(tree->root, tree->head_table, d->next, tid);
+        // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
 
         elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
         elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -109,10 +109,10 @@ int main(int argc, char* argv[])
             // sf_create_header_table_helper(forest->root, forest->head_table);
             // sf_update_header_table(forest->head_table, sorted, tid);
             // sf_print_header_table(forest->head_table);
-            size = sf_size_of_sforest(forest)/1000000.0;
+            // size = sf_size_of_sforest(forest)/1000000.0;
             printf("pruning at tid = %d, size = %lf Mb; ", tid, size);
             sf_prune(forest, tid);
-            size = sf_size_of_sforest(forest)/1000000.0;
+            // size = sf_size_of_sforest(forest)/1000000.0;
             printf("new_size = %lf Mb\n", size);
             // break;
         }

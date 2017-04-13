@@ -86,6 +86,10 @@ void sf_delete_tree_structure(sfnode current_node)
     int idx;
 
     sf_delete_sftree(current_node->fptree);
+    sf_delete_buffer(buff); /* clear up the buffer*/
+    free(current_node->bufferhead);
+    // free(current_data_ptr);
+ 
     if(current_node->child == NULL && current_child_ptr != NULL)
     {
         for(idx = 0; idx < last_index(current_node->data_item); idx++)
@@ -105,6 +109,7 @@ void sf_delete_tree_structure(sfnode current_node)
 
                 sf_delete_tree_structure(this_child);
                 sf_delete_tree_structure(this_child->child);
+                sf_delete_tree_structure(this_child->next);
                 free(this_child); /* let the child go*/
                 this_child = NULL;
 
@@ -112,17 +117,18 @@ void sf_delete_tree_structure(sfnode current_node)
                 // free(temp_data); /* clear the data items*/
                 // temp_data = NULL;
                 current_child_ptr[idx] = NULL;
+                // free(current_child_ptr);
                 // current_data_ptr[idx] = NULL;
             }
         }
+        free(current_node->children);
     }
 
-    if(current_node->child)
+    else
     {
         this_child = current_node->child;
         while(this_child)
         {
-            // printf("deleting children!\n");
             temp = this_child->next;
 
             if(this_child->prev_similar != NULL)
@@ -134,20 +140,15 @@ void sf_delete_tree_structure(sfnode current_node)
             if(this_child->hnode && this_child->hnode->first == this_child)
                 this_child->hnode->first = NULL;
 
-            sf_delete_tree_structure(this_child);
-            // free(this_child->next);
             free(this_child->children);
+            sf_delete_tree_structure(this_child);
+            // free(this_child->child);
+            free(this_child);
+            // free(this_child->next);
             this_child = temp;            
         }
-        free(current_node->child);
+        free(current_node->children);
     }
-    sf_delete_buffer(buff); /* clear up the buffer*/
-    free(current_node->children);
-    // free(current_node->child);
-    free(current_node->bufferhead);
-    // free(current_data_ptr);
-    current_node->bufferhead = NULL; /*free the buffer pointers*/
-    current_node->buffertail = NULL;
 }
 
 
@@ -339,12 +340,26 @@ void sf_insert_new_child(sfnode current_node, sfnode new_child, int d)
 int sf_no_children(sfnode current_node)
 {
     sfnode* current_child_ptr = current_node->children;
+    sfnode child = current_node->child;
     int idx, no_children = 0;
-    for(idx = 0; idx < last_index(current_node->data_item); idx++)
+    if(child == NULL && current_child_ptr)
     {
-        if(current_child_ptr[idx])
-            no_children++;
+        for(idx = 0; idx < last_index(current_node->data_item); idx++)
+        {
+            if(current_child_ptr[idx])
+                no_children++;
+        }
     }
+
+    else if(child != NULL)
+    {
+        while(child != NULL)
+        {
+            no_children++;
+            child = child->next;
+        }
+    }
+
     return no_children;
 }
 
@@ -353,12 +368,27 @@ int sf_no_dataitem(sfnode current_node)
 {
     // data* current_data_ptr = current_node->item_list;
     data * current_data_ptr = NULL;
+    sfnode child = current_node->child;
     int idx, no_dataitem = 0;
-    for(idx = 0; idx < last_index(current_node->data_item); idx++)
+
+    if(child == NULL && current_data_ptr)
     {
-        if(current_data_ptr[idx])
-            no_dataitem++;
+        for(idx = 0; idx < last_index(current_node->data_item); idx++)
+        {
+            if(current_data_ptr[idx])
+                no_dataitem++;
+        }
     }
+
+    else if(child != NULL)
+    {
+        while(child != NULL)
+        {
+            no_dataitem++;
+            child = child->next;
+        }
+    }
+
     return no_dataitem;
 }
 
@@ -512,7 +542,8 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
 
         curr_header_node->first = current_node;
 
-        /*The first node next to the header table has NO previous node although a next node from the header table points to it*/
+        /* The first node next to the header table has NO previous node although a 
+          next node from the header table points to it*/
         current_node->prev_similar = NULL;
         // curr_header_node->cnt += current_node->freq;
     }
@@ -545,6 +576,7 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
     {
         // copying the functionality of 'sf_create_and_insert_new_child(current_node, d, tid)'
         sfnode new_node = calloc(1, sizeof(struct sf_node));
+        // printf("created node: %d\n", d->data_item);
         temp = current_node->child;
         new_node->next = temp;
         current_node->child = new_node;
@@ -1519,12 +1551,25 @@ void sf_print_tree(sfnode node)
 {
     sf_print_node(node);
     sfnode* curr_child_list = node->children;
+    sfnode temp = node->child;
     int idx;
-    for(idx = 0; idx < last_index(node->data_item); idx++)
+    if(node->child == NULL && curr_child_list)
     {
-        if(curr_child_list[idx] != NULL)
-            sf_print_tree(curr_child_list[idx]);
-        // printf("going to child %d %d\n", this_child->data_item, curr_data->data_item);
+        for(idx = 0; idx < last_index(node->data_item); idx++)
+        {
+            if(curr_child_list[idx] != NULL)
+                sf_print_tree(curr_child_list[idx]);
+            // printf("going to child %d %d\n", this_child->data_item, curr_data->data_item);
+        }
+    }
+
+    else if(node->child)
+    {
+        while(temp)
+        {
+            sf_print_tree(temp);
+            temp = temp->next;
+        }
     }
 }
 
