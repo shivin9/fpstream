@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
         exit(0);
     }
     // sfstream(argv[1]);
-
+    
     int sz, tid = 1, cnt, batch_size = 10000;
     double size;
     sforest forest = NULL;

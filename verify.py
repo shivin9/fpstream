@@ -8,7 +8,6 @@ def main():
 
 
     gnd_trth = raw_input("enter name of ground truth\n")
-    missing = open(gnd_trth[:-4] + "_missing.ignore", 'w')
 
     dirs = os.listdir('.')
     dirs = [d for d in dirs if os.path.isdir(d)]
@@ -21,9 +20,13 @@ def main():
         os.chdir("../")
 
     vals = vals.split("\n")
-    vset = set()
+    vset = dict()
 
-    for i in range(len(vals)):
+    op = 0
+    cnt = 0
+
+    # reading the test file
+    for i in range(len(vals) - 1):
         vals[i] = vals[i].split(" ")
 
         if i == 0:
@@ -31,42 +34,66 @@ def main():
                 op = 0
             else:
                 op = 1
+
         vals[i] = vals[i][1:]
 
         if op == 1:
+            cnt = str(vals[i][-1])
             vals[i] = vals[i][:-1]
         vals[i] = map(int, vals[i])
         vals[i] = sorted(vals[i])
         vals[i] = map(str, vals[i])
         vals[i] = ",".join(vals[i])
-        vset.add(vals[i])
+        if op == 1:
+            vset[vals[i]] = cnt
+        else:
+            vset[vals[i]] = '0'
 
     # vals = sorted(vals)
     gnd = gnd.split("\n")
-    gset = set()
-    for i in range(len(gnd)):
+    gset = dict()
+    for i in range(len(gnd) - 1):
         gnd[i] = gnd[i].split(" ")
+        
+        if op == 1:
+            cnt = str(gnd[i][-1][1:-1])
+
         gnd[i] = gnd[i][:-1]
         gnd[i] = map(int, gnd[i])
         gnd[i] = sorted(gnd[i])
         gnd[i] = map(str, gnd[i])
         gnd[i] = ",".join(gnd[i])
-        gset.add(gnd[i])
-
+        
+        if op == 1:
+            gset[gnd[i]] = cnt
+        else:
+            gset[gnd[i]] = '0'
+        
     # gnd = sorted(gnd)
     print "len(vals) = " + str(len(vals)) + " len(gnd) = " + str(len(gnd))
 
     pres = 0
     rec = 0
+    wrng_cnt = 0
+    flag = 0
 
     for pttrn in vset:
         if pttrn in gset:
-            pres += 1
+            if vset[pttrn] == gset[pttrn]:
+                pres += 1
+            else:
+                wrng_cnt += 1
+
+    # wrng_cnt = 0
 
     for pttrn in gset:
         if pttrn in vset:
             rec += 1
         else:
+            flag += 1
+            if flag == 1:
+                missing = open(gnd_trth[:-4] + "_missing.ignore", 'w')
+
             missing.write(str(pttrn) + '\n')
 
     pres = pres / float(len(vset))
@@ -74,11 +101,13 @@ def main():
 
     print "precision = " + str(pres)
     print "recall = " + str(rec)
+    print "wrong count = " + str(wrng_cnt)
 
     if pres == 1.0 and rec == 1.0 and len(gnd) == len(vals):
         print "output is CORRECT"
 
-    missing.close()
+    if flag:
+        missing.close()
 
 
 if __name__ == '__main__':

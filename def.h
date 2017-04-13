@@ -76,6 +76,8 @@ typedef struct header_table_node* header_table;
 
 struct sf_node{
     sfnode* children;
+    sfnode child;
+    sfnode next;
     data* item_list;
     buffer bufferhead;
     buffer buffertail;
