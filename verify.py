@@ -54,7 +54,7 @@ def main():
     gset = dict()
     for i in range(len(gnd) - 1):
         gnd[i] = gnd[i].split(" ")
-        
+
         if op == 1:
             cnt = str(gnd[i][-1][1:-1])
 
@@ -63,12 +63,12 @@ def main():
         gnd[i] = sorted(gnd[i])
         gnd[i] = map(str, gnd[i])
         gnd[i] = ",".join(gnd[i])
-        
+
         if op == 1:
             gset[gnd[i]] = cnt
         else:
             gset[gnd[i]] = '0'
-        
+
     # gnd = sorted(gnd)
     print "len(vals) = " + str(len(vals)) + " len(gnd) = " + str(len(gnd))
 

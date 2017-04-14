@@ -67,6 +67,7 @@ void sf_print_buffer(sfnode);
 
 /* PRUNING FUNCTIONS*/
 data sf_reverse_data(data head);
+void sf_prune_helper(sfnode, header_table*, int);
 void sf_prune(sforest, int);
 void sf_update_ancestor(sfnode);
 
