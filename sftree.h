@@ -8,6 +8,7 @@ sftree sf_create_sftree(data_type dat);
 sforest sf_create_sforest();
 data sf_create_sorted_dummy(int start);
 void sf_create_and_insert_new_child(sfnode, data, int);
+void sf_create_update_header_node(header_table*, data_type d, int root_data, int tid);
 
 /* INSERTING FUNCTIONS*/
 void sf_append_buffer(sfnode curr, data d, int tid);
@@ -35,7 +36,7 @@ long unsigned sf_no_of_nodes(sfnode curr, int freq);
 /* HEADER TABLE FUNCTIONS*/
 void sf_create_header_table_helper(sfnode, header_table*);
 void sf_create_header_table(sftree, int);
-void sf_update_header_table(header_table*, data, int tid);
+void sf_update_header_table(sftree, int tid);
 
 /* CP-TREE FUNCTIONS*/
 void sf_convert_helper(sfnode, sftree, double*, int*, int tid, int end);
