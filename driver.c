@@ -5,20 +5,6 @@
 
     CP and sf trees are working alright
 */
-// call this function to start a nanosecond-resolution timer
-// struct timespec timer_start(){
-//     struct timespec start_time;
-//     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
-//     return start_time;
-// }
-
-// // call this function to end a timer, returning nanoseconds elapsed as a long
-// long timer_end(struct timespec start_time){
-//     struct timespec end_time;
-//     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
-//     long diffInNanos = end_time.tv_nsec - start_time.tv_nsec;
-//     return diffInNanos;
-// }
 
 /*DESCENDING order here*/
 int cmpfunc (const void * a, const void * b)
@@ -49,7 +35,7 @@ int main(int argc, char* argv[])
         exit(0);
     }
     // sfstream(argv[1]);
-    
+
     int sz, tid = 1, cnt, batch_size = 10000;
     double size;
     sforest forest = NULL;
@@ -131,6 +117,7 @@ int main(int argc, char* argv[])
 
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
     // sf_print_sforest(forest);
+    // sf_print_sforest_lvl(forest);
     printf("sizeof sf tree = %d\n", sf_size_of_sforest(forest));
 
     printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);

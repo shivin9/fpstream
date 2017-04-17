@@ -8,6 +8,7 @@ def main():
 
 
     gnd_trth = raw_input("enter name of ground truth\n")
+    missing = open(gnd_trth[:-4] + "_missing.ignore", 'w')
 
     dirs = os.listdir('.')
     dirs = [d for d in dirs if os.path.isdir(d)]
@@ -79,9 +80,8 @@ def main():
 
     for pttrn in vset:
         if pttrn in gset:
-            if vset[pttrn] == gset[pttrn]:
-                pres += 1
-            else:
+            pres += 1
+            if vset[pttrn] != gset[pttrn]:
                 wrng_cnt += 1
 
     # wrng_cnt = 0
@@ -90,11 +90,9 @@ def main():
         if pttrn in vset:
             rec += 1
         else:
-            flag += 1
-            if flag == 1:
-                missing = open(gnd_trth[:-4] + "_missing.ignore", 'w')
-
+            flag+=1
             missing.write(str(pttrn) + '\n')
+            # print str(pttrn)
 
     pres = pres / float(len(vset))
     rec = rec / float(len(gset))
@@ -106,8 +104,11 @@ def main():
     if pres == 1.0 and rec == 1.0 and len(gnd) == len(vals):
         print "output is CORRECT"
 
-    if flag:
+    if flag > 0:
+        missing.flush()
         missing.close()
+    else:
+        os.remove("./" + gnd_trth[:-4] + "_missing.ignore")
 
 
 if __name__ == '__main__':

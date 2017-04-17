@@ -27,7 +27,7 @@
 #define SUP 40.0
 #define BATCH 15
 
-#define MINSUP_SEMIFREQ 40 //minimum support for semi-frequent itemsets
+#define MINSUP_SEMIFREQ 4 //minimum support for semi-frequent itemsets
 #define MINSUP_FREQ 8    //minimum support for frequent itemsets
 #define SUP_ERROR 50.0 //max error for sub-frequent itemsets
 #define SIZE_LMT 16192 // max. size of tree after which it is pruned
@@ -74,7 +74,8 @@ typedef struct sftree_node* sftree;
 typedef struct sftree_node** sforest;
 typedef struct header_table_node* header_table;
 
-struct sf_node{
+struct sf_node
+{
     sfnode* children;
     sfnode child;
     sfnode next;
@@ -94,7 +95,8 @@ struct sf_node{
     double touched;
 };
 
-struct header_table_node{
+struct header_table_node
+{
     data_type data_item;
     sfnode first;
     double cnt;
@@ -103,7 +105,8 @@ struct header_table_node{
 };
 
 
-struct sftree_node{
+struct sftree_node
+{
     sfnode root;
     header_table* head_table;
 };
