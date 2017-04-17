@@ -11,31 +11,29 @@
 #include <omp.h>
 #include <math.h>
 
+// GLOBAL VARIABLES
+#ifndef GLOBAL_VARS
+#define GLOBAL_VARS
+extern int DICT_SIZE;
+extern double DECAY;
+extern long int N;
+extern double EPS;
+extern double THETA;
+extern int HSIZE;
+extern double SUP;
+extern int BATCH;
+extern double MINSUP_SEMIFREQ;
+extern double MINSUP_FREQ;
+extern int LEAVE_AS_BUFFER;
+extern char OUT_FILE[100];
+#endif
+
 #define max(a,b) ((a) > (b) ? a : b)
 #define min(a,b) ((a) < (b) ? a : b)
 #define last_index(x) ((DICT_SIZE) - (x) + (1))
 #define index(i,len) ((i) - (len)) /* when the arrays of nodes are of different sizes,
                                       200th item it found at index 100 in the node of item 100*/
 
-#define DECAY 1.0
-#define DICT_SIZE 100 // max. number of items
-#define N 5000 //window size
-#define EPS 0.0
-#define THETA 0.001
-#define HSIZE 10000
-
-#define SUP 40.0
-#define BATCH 15
-
-#define MINSUP_SEMIFREQ 4 //minimum support for semi-frequent itemsets
-#define MINSUP_FREQ 8    //minimum support for frequent itemsets
-#define SUP_ERROR 50.0 //max error for sub-frequent itemsets
-#define SIZE_LMT 16192 // max. size of tree after which it is pruned
-
-
-// FLAGS
-int leave_as_buffer;
-static int curr_tree;
 
 // -1: something in between
 // 0: ready
@@ -147,7 +145,7 @@ struct hnode
 // the hash table data structure called a dictionary
 struct dictionary
 {
-    hlink table[HSIZE];
+    hlink table[10000];
     int size;
 };
 

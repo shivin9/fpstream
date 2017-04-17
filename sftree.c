@@ -635,12 +635,11 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
 }
 
 
-int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
+void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 {
     /* currently node is the root node*/
     assert(node != NULL);
-    extern int leave_as_buffer;
-
+    
     // sf_print_buffer(current_node);
     QStack* qstack = createQStack(); /* initialize a qstack*/
     push(qstack, node); /* push the root node in the qstack*/
@@ -648,7 +647,7 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
     sfnode* current_child_ptr;
     data temp, d;
 
-    int idx, root_data, max = 0;
+    int idx, root_data, no_trans = 0;
     node->ftid = min(node->ftid, tid);
     node->freq *= pow(DECAY, tid - node->ltid);
     node->freq++;
@@ -656,9 +655,6 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
     while(qstack->size > 0) /* we go on till the time we have nodes in the stack*/
     {
-        if(qstack->size > max)
-            max = qstack->size;
-
         current_node = get(qstack); /* get the node in LIFO manner ie. queue.
                                        This is to get the nodes level by level*/
         assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
@@ -696,19 +692,19 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         d = popped->itemset; /* get the itemset which is in the popped buffer*/
 
         /* this controls pre-emption*/
-        if(leave_as_buffer)
+        if(LEAVE_AS_BUFFER)
         {
             /* inserted in LIFO order*/
             // printf("leaving in buffer at node %d: ", current_node->data_item);
             // sf_print_data_node(d);
             current_node->bufferSize++;
-            leave_as_buffer = 0;
+            LEAVE_AS_BUFFER = 0;
             delete_qstack(qstack);
             return;
         }
 
         /* this is to insert the transaction in the fptree*/
-        if(current_node->fptree == NULL && (sf_get_height(current_node) >= 1) /*some decision*/)
+        if(current_node->fptree == NULL && (sf_get_height(current_node) >= 3) /*some decision*/)
         {
             /* this is because we dont want the children array in fp-tree nodes*/
             current_node->fptree = sf_create_sftree(DICT_SIZE + 1);
@@ -814,29 +810,26 @@ int sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
     }
 
     delete_qstack(qstack);
-    return max;
+    return;
 }
 
 
-int sf_insert_itemset(sforest forest, data d, int tid)
+void sf_insert_itemset(sforest forest, data d, int tid)
 {
-    int max = 0;
     while(d)
     {
         sftree tree = forest[d->data_item];
         if(d->next == NULL) /* d is a single item*/
         {
-            // printf("%d\n", max);
             tree->root->freq *= pow(DECAY, tid - tree->root->ltid);
             tree->root->ftid = min(tree->root->ftid, tid);
             tree->root->ltid = tid;
             tree->root->freq++;
             tree->head_table[index(d->data_item, tree->head_table[0]->data_item)]->cnt++;
-            return max;
+            return;
         }
         sf_append_buffer(tree->root, d->next, tid); /* transaction: acdef, node a will have 'cdef'*/
-        int val = sf_insert_itemset_helper(tree->root, tree->head_table, tid);
-        max = max < val ? val:max;
+        sf_insert_itemset_helper(tree->root, tree->head_table, tid);
         d = d->next;
     }
 }
@@ -851,10 +844,13 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
     FILE *sf;
     if(pattern == 0)
         sf = fopen("intermediate", "a");
-    else
+    else if(pattern ==1)
         sf = fopen("output", "a");
+    else if(pattern == 2)
+        sf = fopen(OUT_FILE, "a");
 
-    double minsup = pattern ? MINSUP_FREQ : MINSUP_SEMIFREQ;
+    double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
+    minsup *= N;
 
     if(sf == NULL)
         exit(0);
@@ -870,7 +866,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
             t++;
         }
 
-        if(pattern == 0)
+        if(pattern%2 == 0)
         {
             fprintf(sf, " %d", cnt);
         }
@@ -928,7 +924,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
 
         // fprintf(sf, "  cnt = %d\n", cnt < 0 ? buff->tid : min(cnt, buff->tid));
 
-        if(pattern == 0)
+        if(pattern%2 == 0)
         {
             fprintf(sf, " %d\n", cnt < 0 ? buff->tid : min(cnt, buff->tid));
             // printf(" %lf\n", node->freq);
@@ -948,8 +944,9 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
     // sf_print_node(node);
     node->freq *= pow(DECAY, tid - node->ltid);
 
-    if((pattern == 0 && node->freq >= MINSUP_SEMIFREQ) ||
-       (pattern == 1 && node->freq >= MINSUP_FREQ))
+    if((pattern == 0 && node->freq >= N*MINSUP_SEMIFREQ) ||
+       (pattern == 1 && node->freq >= N*MINSUP_FREQ) ||
+       (pattern == 2 && node->freq >= N*SUP))
     {
         collected[++end] = node->data_item;
         if(end >= 0)
@@ -999,6 +996,8 @@ void sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
 {
     int idx;
     int* collected = calloc(DICT_SIZE, sizeof(int));
+    double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
+    printf("mining the tree with support: %lf\n", N*minsup);
 
     for(idx = 0; idx < DICT_SIZE; idx++)
     {

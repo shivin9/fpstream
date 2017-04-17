@@ -13,9 +13,9 @@ void sf_create_update_header_node(header_table*, data_type d, int root_data, int
 /* INSERTING FUNCTIONS*/
 void sf_append_buffer(sfnode curr, data d, int tid);
 void sf_insert_new_child(sfnode, sfnode, int);
-int sf_insert_itemset_helper(sfnode, header_table*, int tid);
+void sf_insert_itemset_helper(sfnode, header_table*, int tid);
 void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid);
-int sf_insert_itemset(sforest, data, int tid);
+void sf_insert_itemset(sforest, data, int tid);
 
 /* DELETION FUNCTIONS*/
 void sf_delete_header_table(header_table*);

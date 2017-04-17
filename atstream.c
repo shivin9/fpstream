@@ -11,7 +11,8 @@ int main(int argc, char* argv[])
     double elapsedTime;
     gettimeofday(&t1, NULL);
 
-    int batch_no = 0, stream_batch = 0, sleepTime = 100, tree_to_prune, sz, batch_size, cnt, item_ready, i, leavecnt = 1, tid = 1;
+    int batch_no = 0, stream_batch = 0, sleepTime = 100, tree_to_prune, sz, batch_size, cnt,\
+        item_ready, i, leavecnt = 1, tid = 1;
 
     if(argc == 3)
         sleepTime = atoi(argv[2]);
@@ -31,7 +32,7 @@ int main(int argc, char* argv[])
     fptree ftree = NULL, temp = NULL, aux = NULL;
 
     buffer stream = NULL, end = NULL, curr = NULL;
-    stream =  (buffer) calloc(1, sizeof(struct buffer_node));
+    stream = (buffer) calloc(1, sizeof(struct buffer_node));
     stream->itemset = (data) calloc(1, sizeof(struct data_node));
     stream->itemset->next = NULL;
     stream->next = NULL;
