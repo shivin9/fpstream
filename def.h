@@ -59,7 +59,7 @@ typedef struct data_node* data;
 struct buffer_node
 {
     data itemset;
-    int tid;
+    double tid;
     struct buffer_node* next;
 };
 

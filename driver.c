@@ -30,12 +30,16 @@ int main(int argc, char* argv[])
     if(argc == 1)
     {
         printf("format is ./exe <INPUT_filename><OUTPUT_filename>\n\
-                <DICT_SIZE><TOTAL_SIZE>\n\
-                <BATCH_SIZE>\n\
-                <DECAY><EPS>\n\
-                <THETA><SUP>\n\
-                <min_sup_semifreq>\n\
-                <min_sup_freq>\n");
+                -D<DICT_SIZE>\n\
+                -B<BATCH_SIZE>\n\
+                -d<DECAY>\n\
+                -e<EPS>\n\
+                -t<THETA>\n\
+                -(S/s)<SUP>\n\
+                -m<min_sup_semifreq>\n\
+                -M<min_sup_freq>\n\
+                -L<LEAVE_LVL>\n\
+                -p<pattern>\n");
         exit(-1);
     }
 
@@ -149,10 +153,10 @@ int main(int argc, char* argv[])
             // sf_create_header_table_helper(forest->root, forest->head_table);
             // sf_update_header_table(forest->head_table, sorted, tid);
             // sf_print_header_table(forest->head_table);
-            // size = sf_size_of_sforest(forest)/1000000.0;
+            // size = sf_size_of_sforest(forest);
             printf("pruning at tid = %d, size = %lf Mb; ", tid, size);
             sf_prune(forest, tid);
-            // size = sf_size_of_sforest(forest)/1000000.0;
+            // size = sf_size_of_sforest(forest);
             printf("new_size = %lf Mb\n", size);
             // break;
         }
@@ -176,7 +180,7 @@ int main(int argc, char* argv[])
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
     // sf_print_sforest(forest);
     // sf_print_sforest_lvl(forest);
-    printf("sizeof sf tree = %d\n", sf_size_of_sforest(forest));
+    printf("sizeof sf tree = %lf\n", sf_size_of_sforest(forest));
 
     printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
 

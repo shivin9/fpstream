@@ -247,9 +247,9 @@ void sf_delete_sforest(sforest forest)
 }
 
 
-int sf_size_of_sforest(sforest forest)
+double sf_size_of_sforest(sforest forest)
 {
-    int size = 0;
+    double size = 0;
     int idx;
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
@@ -259,24 +259,25 @@ int sf_size_of_sforest(sforest forest)
 }
 
 
-int sf_size_of_tree(sfnode curr)
+double sf_size_of_tree(sfnode curr)
 {
     if(curr == NULL)
         return 0;
     sfnode* child = curr->children;
     sfnode new_child = curr->child;
 
-    int size = sizeof(curr) + last_index(curr->data_item)*sizeof(curr->children), idx;
+    double size = 1*sizeof(struct sf_node) + last_index(curr->data_item)*sizeof(curr->children);
+    int idx;
     buffer buff = curr->bufferhead;
     data temp;
 
     while(buff)
     {
-        size += sizeof(buff);
+        size += sizeof(struct buffer_node);
         temp = buff->itemset;
         while(temp)
         {
-            size += sizeof(temp);
+            size += sizeof(struct data_node);
             temp = temp->next;
         }
         buff = buff->next;
@@ -284,10 +285,9 @@ int sf_size_of_tree(sfnode curr)
 
     if(new_child == NULL && child != NULL)
     {
-        for(idx = 0; idx < last_index(curr->data_item); idx++)
+        for(idx = 0; idx < last_index(curr->data_item) && child[idx]; idx++)
         {
-            if(child[idx])
-                size += sf_size_of_tree(child[idx]);
+            size += sf_size_of_tree(child[idx]);
         }
     }
     while(new_child)
@@ -295,6 +295,7 @@ int sf_size_of_tree(sfnode curr)
             size += sf_size_of_tree(new_child);
             new_child = new_child->next;
     }
+    size = size/(1024*1024);
     size += sf_size_of_tree(curr->fptree ? curr->fptree->root : NULL);
     return size;
 }
@@ -857,7 +858,7 @@ void sf_insert_itemset(sforest forest, data d, int tid)
 /* Various mining functions*/
 
 /* do end = -1 and collected = NULL to print buff onto the file*/
-void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, int pattern)
+void sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern)
 {
     FILE *sf;
     if(pattern == 0)
@@ -886,7 +887,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
 
         if(pattern%2 == 0)
         {
-            fprintf(sf, " %d", cnt);
+            fprintf(sf, " %lf", cnt);
         }
         fprintf(sf, "\n");
     }
@@ -944,7 +945,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
 
         if(pattern%2 == 0)
         {
-            fprintf(sf, " %d\n", cnt < 0 ? buff->tid : min(cnt, buff->tid));
+            fprintf(sf, " %lf\n", cnt < 0 ? buff->tid : min(cnt, buff->tid));
             // printf(" %lf\n", node->freq);
         }
         buff = buff->next;
@@ -1581,7 +1582,6 @@ void sf_empty_buffers(sfnode curr, header_table htable, int tid)
     return;
 }
 
-
 void sf_fp_merge1(sfnode parent, sfnode child, int tid)
 {
 
@@ -1598,7 +1598,6 @@ void sf_fp_merge1(sfnode parent, sfnode child, int tid)
     }
 
     sfnode childptr = parent->child, prev = NULL;
-    sfnode selected_child, tempnode;
     header_table htemp;
     // data curr_item = parent->item_list, prev_item = NULL;
     data_type dat = child->data_item;
@@ -1631,11 +1630,10 @@ void sf_fp_merge1(sfnode parent, sfnode child, int tid)
     // assert(curr_item != NULL);
     // assert(childptr->data_item == curr_item->data_item);
 
-    selected_child = childptr;
-    selected_child->freq = selected_child->freq * pow(DECAY, tid - selected_child->ltid)\
-    					   + child->freq * pow(DECAY, tid - selected_child->ltid);
-    selected_child->ltid = max(selected_child->ltid, child->ltid);
-    selected_child->ftid = max(selected_child->ftid, child->ftid);
+    childptr->freq = childptr->freq * pow(DECAY, tid - childptr->ltid)\
+    					   + child->freq * pow(DECAY, tid - childptr->ltid);
+    childptr->ltid = max(childptr->ltid, child->ltid);
+    childptr->ftid = max(childptr->ftid, child->ftid);
 
 
     if(child->next_similar != NULL)
@@ -1652,7 +1650,7 @@ void sf_fp_merge1(sfnode parent, sfnode child, int tid)
     while(child_child)
     {
         // child_child->tree_node->parent = NULL;
-        sf_fp_merge1(selected_child, child_child, tid);
+        sf_fp_merge1(childptr, child_child, tid);
         prev = child_child->next;
         // free(child_child);
         child_child = prev;
@@ -2003,7 +2001,7 @@ void sf_print_buffer(sfnode node)
     buffer buff = node->bufferhead;
     while(buff)
     {
-        printf("tid: %d --> ", buff->tid);
+        printf("tid: %lf --> ", buff->tid);
         sf_print_data_node(buff->itemset);
         buff = buff->next;
     }

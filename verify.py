@@ -107,7 +107,7 @@ def main():
     if flag > 0:
         missing.flush()
         missing.close()
-    else:
+    if "./" + gnd_trth[:-4] + "_missing.ignore" in os.listdir('.'):
         os.remove("./" + gnd_trth[:-4] + "_missing.ignore")
 
 

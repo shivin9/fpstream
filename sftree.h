@@ -25,8 +25,8 @@ void sf_delete_buffer(buffer); /* clear up the buffer*/
 void sf_delete_sftree(sftree tree);
 
 /* AUXILLARY FUNCTIONS*/
-int sf_size_of_sforest(sforest forest);
-int sf_size_of_tree(sfnode);
+double sf_size_of_sforest(sforest forest);
+double sf_size_of_tree(sfnode);
 buffer sf_pop_buffer(sfnode);
 int  sf_no_children(sfnode);
 int  sf_no_dataitem(sfnode);
@@ -55,7 +55,7 @@ sftree sf_create_conditional_sf_tree(sftree, data_type, double, int);
 void sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern);
 void sf_mine_frequent_itemsets(sforest, int tid, int pattern);
 void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnode collected, int tid, double minsup);
-void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, int pattern);
+void sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern);
 
 /* PRINTING FUNCTIONS*/
 void sf_print_node(sfnode);
