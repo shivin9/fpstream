@@ -588,8 +588,11 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
         // curr_header_node->cnt += current_node->freq;
     }
     curr_header_node->ftid = min(curr_header_node->ftid, tid);
-    curr_header_node->ltid = tid;
+    curr_header_node->cnt *= pow(DECAY, tid - curr_header_node->ltid);
     curr_header_node->cnt++;
+    curr_header_node->ltid = tid;
+    if(current_node->data_item != root_data)
+    	assert(current_node->parent != NULL);
 
     /* updating the frequency of the node according to the formula*/
     current_node->freq *= pow(DECAY, tid - current_node->ltid);
@@ -639,7 +642,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 {
     /* currently node is the root node*/
     assert(node != NULL);
-    
+
     // sf_print_buffer(current_node);
     QStack* qstack = createQStack(); /* initialize a qstack*/
     push(qstack, node); /* push the root node in the qstack*/
@@ -704,7 +707,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         }
 
         /* this is to insert the transaction in the fptree*/
-        if(current_node->fptree == NULL && (sf_get_height(current_node) >= 3) /*some decision*/)
+        if(current_node->fptree == NULL && (sf_get_height(current_node) >= LEAVE_LVL) /*some decision*/)
         {
             /* this is because we dont want the children array in fp-tree nodes*/
             current_node->fptree = sf_create_sftree(DICT_SIZE + 1);
@@ -893,7 +896,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, int cnt, int end, in
             temp = temp->next;
         }
 
-        /* this is to prevent the cases when the last transaction in collected matches the 
+        /* this is to prevent the cases when the last transaction in collected matches the
            first transaction in temp*/
         temp = buff->itemset;
         if(temp->data_item == collected[end])
@@ -1032,7 +1035,7 @@ sfnode sf_dfs(sfnode node, header_table* htable, data_type highest_priority_data
 
     curr_head_table_node = htable[idx];
     sfnode new_node = calloc(1, sizeof(struct sf_node));
-    
+
     if(new_node->hnode == NULL)
     {
         //append to the head of the linked list for this data item
@@ -1106,7 +1109,7 @@ sftree sf_create_conditional_sf_tree(sftree tree, data_type data_item, double mi
     // printf("prospects for %d\n", data_item);
     // printf("cnt = %lf, minsup = %lf\n", (curr_head_table_node->cnt)*\
     		pow(DECAY, tid - curr_head_table_node->ltid), minsup);
-    
+
     if(curr_head_table_node == NULL || (curr_head_table_node->cnt)*\
        pow(DECAY, tid - curr_head_table_node->ltid) < minsup)
     {
@@ -1564,16 +1567,231 @@ void sf_empty_buffers(sfnode curr, header_table htable, int tid)
 }
 
 
-void sf_fp_prune(sftree node, int tid)
+void sf_fp_merge1(sfnode parent, sfnode child, int tid)
 {
+
+    // child's parent has been detached
+    // assert(child->parent->parent == NULL);
+    child->parent = parent;
+    if(parent->children == NULL)
+    {
+        assert(parent->item_list == NULL);
+        parent->child = calloc(1, sizeof(struct sf_node));
+        parent->child = child;
+        return;
+    }
+
+    sfnode childptr = parent->child, prev = NULL;
+    sfnode selected_child, tempnode;
+    header_table htemp;
+    // data curr_item = parent->item_list, prev_item = NULL;
+    data_type dat = child->data_item;
+
+    while(childptr && childptr->data_item != dat)
+    {
+        prev = childptr;
+        // prev_item = curr_item;
+        // assert(prev->data_item == prev_item->data_item);
+        childptr = childptr->next;
+        // curr_item = curr_item->next;
+    }
+
+    if(childptr == NULL)
+    {
+        // assert(curr_item == NULL);
+        prev->next = (sfnode) calloc(1, sizeof(struct sf_node));
+        // prev->next->tree_node = child;
+        prev->next->next = NULL;
+        child->parent = parent;
+
+        // prev_item->next = (data) calloc(1, sizeof(struct data_node));
+        // prev_item->next->data_item = child->data_item;
+        // prev_item->next->next = NULL;
+        return;
+    }
+
+    assert(childptr != NULL);
+    // assert(curr_item != NULL);
+    // assert(childptr->data_item == curr_item->data_item);
+
+    selected_child = childptr;
+    selected_child->freq = selected_child->freq * pow(DECAY, tid - selected_child->ltid)\
+    					   + child->freq * pow(DECAY, tid - selected_child->ltid);
+    selected_child->ltid = tid;
+
+
+    if(child->next_similar != NULL)
+        (child->next_similar)->prev_similar = child->prev_similar;
+
+    if(child->prev_similar != NULL)
+        (child->prev_similar)->next_similar=child->next_similar;
+
+    else
+        child->hnode->first = child->next_similar;
+
+    sfnode child_child = child->child;
+    child->children = NULL;
+    while(child_child)
+    {
+        // child_child->tree_node->parent = NULL;
+        sf_fp_merge1(selected_child, child_child, tid);
+        prev = child_child->next;
+        free(child_child);
+        child_child = prev;
+        prev = NULL;
+    }
+    free(child);
+    child = NULL;
     return;
+}
+
+
+int sf_fp_prune(header_table* htable, int idx, int tid)
+{
+    header_table htemp = htable[idx];
+    sfnode fir = htemp->first, temp2, parent;
+    // htemp->first = NULL;
+    sfnode temp, ori, temp1;
+    data prntdata, tmpdata;
+    if(fir)
+    {
+        printf("\nchildren of fir = %d:", fir->data_item);
+        temp = fir->child;
+        while(temp)
+        {
+            printf("-->%d", temp->data_item);
+            temp = temp->next;
+        }
+    }
+    // 	fir->parent ? sf_print_tree(fir->parent) : sf_print_tree(fir);
+    int root_data = htable[0]->data_item;
+
+    while(fir != NULL)
+    {
+        parent = fir->parent;
+	    if(fir->data_item == root_data)
+	    {
+	    	return 1;
+	    }
+        assert(parent->child != NULL);
+        // fir->parent = NULL;
+        printf("in pruing parent %d, children = %d: ", parent->data_item, sf_no_children(parent));
+        // fp_print_data_node(parent->item_list);
+
+        /* this code is separating the child from the parent and then we will merge\
+           the parent and it's grandchildren*/
+        // printf("fir(%d) is a child of parent(%d)!\n", fir->data_item, parent->data_item);
+        // sf_print_tree(fir);
+        if(parent->child == fir)
+        {
+            printf("fir(%d) is first child of parent(%d)!\n", fir->data_item, parent->data_item);
+            temp = parent->child;
+            // tmpdata = parent->item_list;
+            parent->child = parent->child->next;
+            // parent->item_list = parent->item_list->next;
+            // assert(temp == fir);
+            // free(temp);
+            // free(tmpdata);
+        }
+        else
+        {
+            temp = parent->child;
+            // prntdata = parent->item_list;
+            ori = NULL;
+            while(temp->next != NULL)
+            {
+                if(temp->next == fir)
+                {
+                    // ori is the child pointer which points to fir, so we must free it to save space
+                    ori = temp->next;
+                    // tmpdata = prntdata->next;
+
+                    temp->next = temp->next->next;
+                    // prntdata->next = prntdata->next->next;
+
+                    // free(ori);
+                    // free(tmpdata);
+                    break;
+                }
+                temp = temp->next;
+                // prntdata = prntdata->next;
+            }
+        }
+        /* temp holds a pointer to fir*/
+        // printf("separated child = %d with %d children: ", fir->data_item, sf_no_children(fir));
+        // fp_print_data_node(fir->item_list);
+
+        temp1 = fir->child;
+
+        while(temp1 != NULL)
+        {
+            if(fir)
+            {
+                printf("\nchildren of fir b4 merging = %d:", fir->data_item);
+                temp = fir->child;
+                while(temp)
+                {
+                    printf("-->%d", temp->data_item);
+                    temp = temp->next;
+                }
+            }
+
+            printf("merging %d, %d\n", fir->parent->data_item, temp1->data_item);
+            printf("before:- parent %d, children = %d, items = %d: \n", parent->data_item,\
+            		sf_no_children(parent), sf_no_dataitem(parent));
+
+            // fp_print_data_node(parent->item_list);
+            sf_print_tree(parent);
+            // assert(fp_verify_node(parent));
+
+            sf_fp_merge1(parent, temp1, tid);
+
+            //assert(fp_verify_node(parent));
+
+            printf("after:- parent %d, children = %d, items = %d: \n", parent->data_item,\
+            		sf_no_children(parent), sf_no_dataitem(parent));
+
+            // fp_print_data_node(parent->item_list);
+            sf_print_tree(parent);
+
+            // this is deleting the children pointers of fir as we will delete it eventually
+            temp = temp1;
+            temp1 = temp1->next;
+            fir->child = temp1;
+            temp->next = NULL;
+            free(temp);
+        }
+
+        temp2 = fir;
+        assert(fir != fir->next_similar);
+        assert(fir->child == NULL);
+        if(fir->next_similar)
+            assert(fir->data_item == fir->next_similar->data_item);
+        fir = fir->next_similar;
+        // Do not do fp_delete_tree_structure(temp2); it will delete the children of temp2 also which we are merging!
+
+        if(temp2->prev_similar!=NULL)
+            (temp2->prev_similar)->next_similar = temp2->next_similar;
+
+        if(temp2->next_similar!=NULL)
+            (temp2->next_similar)->prev_similar = temp2->prev_similar;
+
+        if(temp2->hnode && temp2->hnode->first == temp2)
+            temp2->hnode->first = NULL;
+
+        // fp_delete_data_node(temp2->item_list);
+        // assert(temp2->children == NULL);
+        // free(temp2);
+    }
+    htemp->first = NULL;
+    return 0;
 }
 
 /* Decay the count of node in the header table and decrease some value from nodes in the bltree*/
 void sf_prune_helper(sfnode node, header_table* htable, int tid)
 {
     node->freq *= pow(DECAY, tid - node->ltid);
-    int child, idx, root_data = htable[0]->data_item;
+    int child, idx, root_data = htable[0]->data_item, i;
     sfnode first, next, curr;
     QStack* qstack = createQStack();
 
@@ -1615,6 +1833,7 @@ void sf_prune_helper(sfnode node, header_table* htable, int tid)
     // }
 
     push(qstack, node);
+    header_table* child_htable;
     while(qstack->size > 0)
     {
         node = get(qstack);
@@ -1622,21 +1841,36 @@ void sf_prune_helper(sfnode node, header_table* htable, int tid)
         {
             if(node->children[child])
             {
-                if(node->children[child]->fptree)
-                {
-                    sf_fp_prune(node->children[child]->fptree, tid);
-                }
 
-                if(node->children[child]->freq > EPS*(tid - node->children[child]->ftid))
-                {
-                    push(qstack, node->children[child]);
-                //     sf_prune_helper(node->children[child], htable, tid);
-                }
-                else
+                if(node->children[child]->freq <= EPS*(tid - node->children[child]->ftid))
                 {
                     sf_delete_tree_structure(node->children[child]);
                     node->children[child] = NULL;
                 }
+
+                else
+                {
+                    push(qstack, node->children[child]);
+	                if(node->children[child]->fptree)
+	                {
+	 					child_htable = node->children[child]->fptree->head_table;
+	 					root_data = child_htable[0]->data_item;
+	 					for(i = 0; i < last_index(root_data) && child_htable[i]; i++)
+	 					{
+	 						if(child_htable[i]->cnt < EPS*(tid - child_htable[i]->ftid))
+	 						{
+                    			// printf("child: %d, i: %d\n", child, i);
+	 							if(sf_fp_prune(child_htable, i, tid))
+	 							{
+                    				sf_delete_sftree(node->children[child]->fptree);
+                    				node->children[child]->fptree = NULL;
+	                    			child_htable = NULL;
+	                    			break;
+	 							}
+	                    	}
+	 					}
+	                }
+	            }
             }
         }
     }

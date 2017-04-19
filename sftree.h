@@ -68,6 +68,8 @@ void sf_print_buffer(sfnode);
 
 /* PRUNING FUNCTIONS*/
 data sf_reverse_data(data head);
+int sf_fp_prune(header_table*, int idx, int tid);
+void sf_fp_merge1(sfnode parent, sfnode child, int tid);
 void sf_prune_helper(sfnode, header_table*, int);
 void sf_prune(sforest, int);
 void sf_update_ancestor(sfnode);

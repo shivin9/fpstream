@@ -9,13 +9,13 @@
 
 int BATCH = 1000,\
     DICT_SIZE = 100, HSIZE = 10000,\
-    LEAVE_AS_BUFFER = 0;
+    LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3;
 
 long int N;
 char OUT_FILE[100];
 
-double DECAY = 0.9995, EPS = 0.01, THETA = 0.1,\
-       SUP, MINSUP_FREQ, MINSUP_SEMIFREQ;
+double DECAY = 1.0, EPS = 0.0, THETA = 0.1,\
+       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01;
 
 /*DESCENDING order here*/
 int cmpfunc (const void * a, const void * b)
@@ -67,10 +67,11 @@ int main(int argc, char* argv[])
                     case 's': SUP    = strtof(s, &s);          break;
                     case 'm': MINSUP_SEMIFREQ = strtof(s, &s); break;
                     case 'M': MINSUP_FREQ = strtof(s, &s);     break;
-                    case 'b': BATCH  =       strtod(s, &s);    break;
+                    case 'B': BATCH  =       strtod(s, &s);    break;
                     case 'p': pattern  =   strtod(s, &s);      break;
                     case 'D': DICT_SIZE =  strtod(s, &s);      break;
                     case 'S': SUP =  strtod(s, &s);            break;
+                    case 'L': LEAVE_LVL =  strtod(s, &s);      break;
                     default : printf("UNKNOWN ARGUMENT! %c", *(s-1)); 
                               exit(-1);                        break;
                 }
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
         sf_delete_data_node(d);
         // sf_prune(forest, tid);
         // break;
-        if(tid%1000 == 0)
+        if(tid%BATCH == 0)
         {
             // sf_create_header_table_helper(forest->root, forest->head_table);
             // sf_update_header_table(forest->head_table, sorted, tid);
