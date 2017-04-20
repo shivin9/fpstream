@@ -83,8 +83,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    printf("EPS = %lf\n", EPS);
-
     sf = fopen(OUT_FILE, "w");
     fclose(sf);
 
@@ -95,8 +93,7 @@ int main(int argc, char* argv[])
         exit(0);
     }
     
-    // output = argv[2];
-    double size;
+    long unsigned size;
     sforest forest = NULL;
 
     data sorted = sf_create_sorted_dummy(0);
@@ -153,11 +150,20 @@ int main(int argc, char* argv[])
             // sf_create_header_table_helper(forest->root, forest->head_table);
             // sf_update_header_table(forest->head_table, sorted, tid);
             // sf_print_header_table(forest->head_table);
-            // size = sf_size_of_sforest(forest);
-            printf("pruning at tid = %d, size = %lf Mb; ", tid, size);
+            size = 0;
+            int i;
+            // for(i = 0; i < DICT_SIZE; i++)
+            //     size += sf_no_of_nodes(forest[i]->root);
+
+            // printf("pruning at tid = %d\n", tid);
             sf_prune(forest, tid);
-            // size = sf_size_of_sforest(forest);
-            printf("new_size = %lf Mb\n", size);
+
+            size = 0;
+            // for(i = 0; i < DICT_SIZE; i++)
+            //     size += sf_no_of_nodes(forest[i]->root);
+            
+            // // size = sf_size_of_sforest(forest);
+            // printf("new_size = %ld\n", size);
             // break;
         }
         tid++;
@@ -180,7 +186,7 @@ int main(int argc, char* argv[])
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
     // sf_print_sforest(forest);
     // sf_print_sforest_lvl(forest);
-    printf("sizeof sf tree = %lf\n", sf_size_of_sforest(forest));
+    // printf("sizeof sf tree = %lf\n", sf_size_of_sforest(forest));
 
     printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
 
@@ -222,5 +228,5 @@ int main(int argc, char* argv[])
     sf_delete_sforest(forest);
     free(forest);
     sf_delete_data_node(sorted);
-    return 0;
+    return 1;
 }

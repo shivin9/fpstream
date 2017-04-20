@@ -31,7 +31,7 @@ buffer sf_pop_buffer(sfnode);
 int  sf_no_children(sfnode);
 int  sf_no_dataitem(sfnode);
 int sf_get_height(sfnode node);
-long unsigned sf_no_of_nodes(sfnode curr, int freq);
+long unsigned sf_no_of_nodes(sfnode curr);
 
 /* HEADER TABLE FUNCTIONS*/
 void sf_create_header_table_helper(sfnode, header_table*);

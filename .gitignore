@@ -1,4 +1,6 @@
 intermediate
+[0-9]*
+temp*
 *.ignore
 *.py
 tests/
