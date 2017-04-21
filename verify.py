@@ -1,13 +1,17 @@
+#!/usr/bin/python
+import sys
 import os
 
 
 def main():
-    fname = raw_input("enter name of file\n")
+    args = sys.argv
+    fname = args[1]
+    print fname
     with open(fname, 'r') as f:
         vals = f.read()
 
 
-    gnd_trth = raw_input("enter name of ground truth\n")
+    gnd_trth = args[2]
     missing = open(gnd_trth[:-4] + "_missing.ignore", 'w')
 
     dirs = os.listdir('.')

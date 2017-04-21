@@ -12,34 +12,35 @@
 #data_folder=
 data_folder=./data/
 data_set = $1
-m=$4
-M=$5
-Epsilon=$6
-k=$7
-MINPOINTS=2000
-UNDEFINED=10000000
-QT=$9
+Decay=$2
+Epsilon=$3
+Dict=$4
+m=$5
+M=$6
+Lvl=$7
+Sup=$8
+Batch=$9
 
 echo "=========================================="
 echo "Following code was profiled on : `date`"
 echo "Script for Profiling serial Code"
-echo "\nFiles given->\n\t$1\n\t$2"
+echo "\nFiles given->\n\t$1"
 echo "=========================================="
 echo
-echo "\tCompiling Code..."
-make clean && make -j4
-if [ $? -eq 1 ] ;	then
-	echo "\tError occured during compilation\nTerminating script\n"
-	exit 1
-else
-	echo "\n\tCompilation done successfully.\n"
-fi
+# echo "\tCompiling Code..."
+# make clean && make -j4
+# if [ $? -eq 1 ] ;	then
+# 	echo "\tError occured during compilation\nTerminating script\n"
+# 	exit 1
+# else
+# 	echo "\n\tCompilation done successfully.\n"
+# fi
 #executable file name
-exename=exe
+exename=bltree
 temp=./temp/
 tests=./tests
-rm -rf $temp
-mkdir $temp
+# rm -rf $temp
+# mkdir $temp
 
 echo "\t\tRunning Code..."
 
@@ -49,9 +50,13 @@ echo "\t\tRunning Code..."
 
 
 #valgrind --tool=memcheck --leak-check=yes ./output $data_folder$1 output_$1\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt $m $M $Epsilon $MINPOINTS $UNDEFINED $k $data_folder$8 $QT
+touch temp1 temp2
 
-./$exename  $data_folder$1 $temp$output_$1\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt $m $M $Epsilon $MINPOINTS $UNDEFINED $k $data_folder$8 $QT
-#gprof -z output > gprof_dataset-$2\_m=$m\_M=$M\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt 
+(./$exename $data_folder$1 ./temp/Res-[$1\_m=$m\_M=$M\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch].res -m$m -M$M -e$Epsilon -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup>temp1) & (./calc_mem.sh > temp2)
+cat temp2 >> temp1
+gprof ./$exename gmon.out >> temp1
+# cat tmp
+# python verify.py 
 
 if [ $? -ne 0 ] ;	then
 	echo "\tError occured. Terminating script...\n"
@@ -61,8 +66,8 @@ fi
 echo "Exeuction Done on : `date`"
 #cd $temp
 #cd ..
-cp $temp/$1_$2.prof.txt Profiling_result[dataset-$1\_$QT\_m=$m\_M=$M\_K=$k].txt
-
+# touch $tempProfiling_result_dataset-$1\_m=$m\_M=$M\_EPS=$Epsilon\_Lvl=$Lvl\_Dict=$Dict\_Decay=$Decay\_Sup=$Sup].prof
+cat temp1 > ./temp/ProfRes-[$1\_m=$m\_M=$M\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch].prof
+# make clean
+rm temp1 temp2 gmon.out 1
 #rm -rf $temp
-
-echo "Unification completed on : `date`"

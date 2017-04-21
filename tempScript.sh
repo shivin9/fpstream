@@ -1,29 +1,22 @@
 #R Tree now
 #cd grid/RTree/
-#sh serialProf.sh 3D_spatial_network_transformed output makefile_profiler 9 18 0.05 4 3D_spatial_network_transformed NBHQUERY
-sh serialProf.sh kddbioZscore output makefile 6 12 0.01 4 kddbioZscore NBHQUERY
-#sh serialProf.sh 3D_spatial_network_transformed_dense_cells_more_than_3000pts_increased_to_10000pts_withNBH_increased output makefile_profiler 10 20 0.05 4 3D_spatial_network_transformed_dense_cells_greater_than_3000pts_increased_to_1000pts_withoutNBH NBHQUERY
-#sh serialProf.sh deluciaD32lac output makefile_profiler 12 24 2 4 deluciaD32lac NBHQUERY
-#sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize2 output makefile_profiler 12 24 2 4 deluciaD32lac_dense_cells_more_than_3000pts_extd_to10000_CellSize2 NBHQUERY
-#sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize3 output makefile_profiler 12 24 2 4 deluciaD32lac_dense_cells_more_than_3000pts_extd_to10000_CellSize3 NBHQUERY
-#
 
 # KNN for R Tree
-<<COMMENT1
-cd ../RTree/
-sh serialProf.sh 3D_spatial_network_transformed output makefile_profiler 9 18 0.05 4 3D_spatial_network_transformed KNNQUERY
-sh serialProf.sh 3D_spatial_network_transformed_dense_cells_more_than_3000pts_increased_to_10000pts_withNBH_increased output makefile_profiler 10 20 0.05 4 3D_spatial_network_transformed_dense_cells_greater_than_3000pts_increased_to_1000pts_withoutNBH KNNQUERY
-sh serialProf.sh deluciaD32lac output makefile_profiler 12 24 2 4 deluciaD32lac KNNQUERY
-sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize2 output makefile_profiler 12 24 2 4 deluciaD32lac_dense_cells_more_than_3000pts_extd_to10000_CellSize2 KNNQUERY
-sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize3 output makefile_profiler 12 24 2 4 deluciaD32lac_dense_cells_more_than_3000pts_extd_to10000_CellSize3 KNNQUERY
-COMMENT1
+# <dataset> <decay> <eps> <Dict_Size> <m> <M> <TreeLvl> <Sup_cnt> <Batch_Size>
+# sh serialProf.sh 2kD100T10.data 1.0 0.01 100 0.05 0.1 3 0.01 100
+# sh serialProf.sh 10kD100T10.data 1.0 0.01 100 0.05 0.1 3 0.01 1000
+# sh serialProf.sh 100kD100T10.data 1.0 0.01 100 0.05 0.1 3 0.01 1000
+# sh serialProf.sh 100kD500T10.data 1.0 0.01 500 0.05 0.1 3 0.01 1000
+# sh serialProf.sh 100kD1000T10.data 1.0 0.01 1000 0.05 0.1 3 0.01 1000
+# # increasing the level
+# sh serialProf.sh 100kD1000T10.data 1.0 0.01 1000 0.05 0.1 4 0.01 1000
+# # increasing the level with less EPS but more pruning
+# sh serialProf.sh 500kD500T10.data 0.9995 0.005 500 0.05 0.1 4 0.01 10000
+# # changing the pruning interval
+# sh serialProf.sh 500kD500T10.data 1.0 0.005 500 0.05 0.1 3 0.01 10000
 
-<<COMMENT2
-cd ../RTree/
-sh serialProf.sh 3D_spatial_network_transformed_dense_cells_more_than_3000pts_increased_to_10000pts_withNBH_increased output makefile_profiler 10 20 0.05 4 3D_spatial_network_transformed_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000 NBHQUERY
-sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize2 output makefile_profiler 12 24 2 4 deluciaD32lac_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000_CELLSIZE2 NBHQUERY
-sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize3 output makefile_profiler 12 24 2 4 deluciaD32lac_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000_CELLSIZE3 NBHQUERY
-sh serialProf.sh 3D_spatial_network_transformed_dense_cells_more_than_3000pts_increased_to_10000pts_withNBH_increased output makefile_profiler 10 20 0.05 4 3D_spatial_network_transformed_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000 KNNQUERY
-sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize2 output makefile_profiler 12 24 2 4 deluciaD32lac_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000_CELLSIZE2 KNNQUERY
-sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize3 output makefile_profiler 12 24 2 4 deluciaD32lac_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000_CELLSIZE3 KNNQUERY
-COMMENT2
+sh serialProf.sh 1MD1000T15.data 1.0 0.01 1000 0.05 0.1 3 0.01 10000
+# introducing decay factor
+sh serialProf.sh 1MD1000T15.data 0.9995 0.01 1000 0.05 0.1 3 0.01 10000
+# increasing avglen(transaction)
+sh serialProf.sh 100kD1000T15.data 0.9995 0.01 1000 0.05 0.1 3 0.01 1000

@@ -285,7 +285,7 @@ double sf_size_of_tree(sfnode curr)
 
     if(new_child == NULL && child != NULL)
     {
-        for(idx = 0; idx < last_index(curr->data_item) && child[idx]; idx++)
+        for(idx = 0; idx < last_index(curr->data_item); idx++)
         {
             size += sf_size_of_tree(child[idx]);
         }
@@ -301,17 +301,18 @@ double sf_size_of_tree(sfnode curr)
 }
 
 
-long unsigned sf_no_of_nodes(sfnode curr, int freq)
+long unsigned sf_no_of_nodes(sfnode curr)
 {
     if(curr == NULL)
+    {
         return 0;
-    long unsigned sum = 0;
+    }
+    long unsigned sum = 1;
     int i;
     for(i = 0; i < last_index(curr->data_item); i++)
     {
-        if(curr->children[i] && curr->children[i]->freq == freq)
-            sum++;
-        sum += sf_no_of_nodes(curr->children[i], freq);
+        // printf("sum = %lu\n");
+        sum += sf_no_of_nodes(curr->children[i]);
     }
     return sum;
 }
