@@ -11,6 +11,22 @@
 #include <omp.h>
 #include <math.h>
 
+typedef int data_type;    //the data type of individual items in the transaction
+typedef struct hnode hnode;
+typedef struct snode snode;
+typedef hnode* hlink;
+typedef snode* slink;
+typedef struct tuple tuple;
+typedef struct QStack QStack;
+typedef struct data_node* data;
+typedef struct sf_node* sfnode;
+typedef struct dictionary* dict;
+typedef struct buffer_node* buffer;
+typedef struct sftree_node* sftree;
+typedef struct sftree_node** sforest;
+typedef struct dictionary dictionary;
+typedef struct header_table_node* header_table;
+
 // GLOBAL VARIABLES
 #ifndef GLOBAL_VARS
 #define GLOBAL_VARS
@@ -27,6 +43,7 @@ extern double MINSUP_FREQ;
 extern int LEAVE_AS_BUFFER;
 extern char OUT_FILE[100];
 extern int LEAVE_LVL;
+extern QStack* mem_bin;
 #endif
 
 #define max(a,b) ((a) > (b) ? a : b)
@@ -45,7 +62,6 @@ static int T2;
 static int batch_ready;
 
 ////////////////////////////////////////////////////////////////////////////////
-typedef int data_type;    //the data type of individual items in the transaction
 
 // linked list of data_items ie. an itemset
 struct data_node
@@ -54,7 +70,6 @@ struct data_node
     struct data_node* next;
 };
 
-typedef struct data_node* data;
 
 struct buffer_node
 {
@@ -63,15 +78,8 @@ struct buffer_node
     struct buffer_node* next;
 };
 
-typedef struct buffer_node* buffer;
 
 //////////////////////////////////////////////////////////////////////////////
-
-
-typedef struct sf_node* sfnode;
-typedef struct sftree_node* sftree;
-typedef struct sftree_node** sforest;
-typedef struct header_table_node* header_table;
 
 struct sf_node
 {
@@ -111,19 +119,12 @@ struct sftree_node
 };
 
 //////////////////////////////////////////////////////////////////////////////
-typedef struct snode snode;
-typedef snode* slink;
-typedef struct QStack QStack;
-typedef struct tuple tuple;
-typedef struct dictionary dictionary;
-typedef struct dictionary* dict;
-typedef struct hnode hnode;
-typedef hnode* hlink;
 
 // the qstack node which is a part of a doubly linked list
 struct snode
 {
     sfnode node;
+    header_table* htable;
     slink next;
     slink prev;
 };
@@ -149,47 +150,5 @@ struct dictionary
     hlink table[10000];
     int size;
 };
-
-//////////////////////////////////////////////////////////////////////////////
-
-struct tilted_tw_table
-{
-    int starting_batch;
-    int ending_batch;
-    double freq;
-
-    int buffer_empty;
-    int buffer_starting_batch;
-    int buffer_ending_batch;
-    int buffer_freq;
-
-    struct tilted_tw_table* next;
-};
-typedef struct tilted_tw_table* tilted_tw_table;
-typedef struct pattern_node_list_node* pattern_node_list;
-
-struct pattern_node_
-{
-    pattern_node_list children;
-    data item_list;
-    data_type data_item;
-    tilted_tw_table table;
-};
-typedef struct pattern_node_* pattern_node;
-
-
-struct pattern_node_list_node
-{
-    pattern_node tree_node;
-    pattern_node_list next;
-};
-
-
-struct pattern_tree
-{
-    pattern_node root;
-};
-typedef struct pattern_tree* patterntree;
-
 
 #endif //STRUCT_DEF

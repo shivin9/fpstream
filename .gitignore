@@ -1,4 +1,5 @@
 intermediate
+bltree
 [0-9]*
 temp*
 *.ignore

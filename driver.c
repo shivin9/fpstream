@@ -17,6 +17,8 @@ char OUT_FILE[100];
 double DECAY = 1.0, EPS = 0.0, THETA = 0.1,\
        SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01;
 
+QStack* mem_bin;
+
 /*DESCENDING order here*/
 int cmpfunc (const void * a, const void * b)
 {
@@ -92,18 +94,22 @@ int main(int argc, char* argv[])
         printf("invalid file\n");
         exit(0);
     }
+
+
+    struct timeval t1, t2, t3, t4, ts, tf;
+    double elapsedTime, sum = 0, totaltime = 0;
+
+    gettimeofday(&ts, NULL);
     
     long unsigned size;
     sforest forest = NULL;
 
     data sorted = sf_create_sorted_dummy(0);
     forest = sf_create_sforest();
-
+    mem_bin = createQStack();
+    
     sftree tree = sf_create_sftree(0);
     sf_create_header_table(tree, tid);
-
-    struct timeval t1, t2, t3, t4;
-    double elapsedTime, sum = 0, totaltime = 0;
 
     gettimeofday(&t1, NULL);
 
@@ -145,26 +151,13 @@ int main(int argc, char* argv[])
         sf_delete_data_node(d);
         // sf_prune(forest, tid);
         // break;
+        
+        if(mem_bin->size > 1000)
+            sf_clear_garbage();
+
         if(tid%BATCH == 0)
         {
-            // sf_create_header_table_helper(forest->root, forest->head_table);
-            // sf_update_header_table(forest->head_table, sorted, tid);
-            // sf_print_header_table(forest->head_table);
-            size = 0;
-            int i;
-            // for(i = 0; i < DICT_SIZE; i++)
-            //     size += sf_no_of_nodes(forest[i]->root);
-
-            // printf("pruning at tid = %d\n", tid);
             sf_prune(forest, tid);
-
-            size = 0;
-            // for(i = 0; i < DICT_SIZE; i++)
-            //     size += sf_no_of_nodes(forest[i]->root);
-            
-            // // size = sf_size_of_sforest(forest);
-            // printf("new_size = %ld\n", size);
-            // break;
         }
         tid++;
     }
@@ -173,12 +166,12 @@ int main(int argc, char* argv[])
     /* Create the perfect, final tree after emptying the buffers*/
     // sf_empty_buffers(forest, forest, tid);
     // sf_prune(forest, tid);
+    gettimeofday(&t2, NULL);
     N = tid;
     /* this is to accomodate hard support counts instead of %*/
     if(SUP > 1.0)
         SUP = SUP/N;
 
-    gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
@@ -224,9 +217,16 @@ int main(int argc, char* argv[])
     //     }
     // }
 
+    sf_clear_garbage();
     sf_delete_sftree(tree);
     sf_delete_sforest(forest);
     free(forest);
     sf_delete_data_node(sorted);
+
+    gettimeofday(&tf, NULL);
+
+    elapsedTime = (tf.tv_sec - ts.tv_sec) * 1000.0;
+    elapsedTime += (tf.tv_usec - ts.tv_usec) / 1000.0;
+    printf("TOTAL time taken = %lf ms\n", elapsedTime);
     return 1;
 }

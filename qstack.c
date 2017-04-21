@@ -80,8 +80,11 @@ int find(dict htable, char* key)
 
 
 /* to push a node onto the QStack.*/
-void push(QStack* l, sfnode v)
+void push(QStack* l, sfnode v, header_table* head_table)
 {
+    if(l == NULL)
+        l = createQStack();
+
     slink temp = l->head;
     (l->size)++;
 
@@ -89,6 +92,7 @@ void push(QStack* l, sfnode v)
     {
         slink new = (slink) malloc(sizeof(snode));
         new->node = v;
+        new->htable = head_table;
         new->next = NULL;
         new->prev = NULL;
         l->head = new;
@@ -101,6 +105,7 @@ void push(QStack* l, sfnode v)
         temp->next = new;
         l->tail = new;
         new->node = v;
+        new->htable = head_table;
         new->next = NULL;
         new->prev = temp;
     }
@@ -126,6 +131,23 @@ sfnode get(QStack* l)
         free(curr);
     }
     return v;
+}
+
+
+slink get_snode(QStack* l)
+{
+    slink curr = l->head;
+    if(curr == NULL)
+        return;
+
+    else
+    {
+        l->head = curr->next;
+        if(curr->next)
+            curr->next->prev = l->head;
+        l->size--;
+    }
+    return curr;
 }
 
 
