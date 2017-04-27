@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 
     char* s, output;
 
-    int i;
+    int i, threadId, end = 0;
     for (i = 3; i < argc; i++)
     {                               /* traverse arguments */
         s = argv[i];                /* get option argument */
@@ -113,53 +113,70 @@ int main(int argc, char* argv[])
 
     gettimeofday(&t1, NULL);
 
-    while(fscanf(sf, "%d", &sz) != EOF)
+    omp_set_num_threads(2);
+    #pragma omp parallel
     {
-        data d = NULL;
-        while(sz--)
+        threadId = omp_get_thread_num();
+        if(threadId == 0)
         {
-            data_type item;
-            fscanf(sf, "%d", &item);
-
-            data new_d = malloc(sizeof(struct data_node));
-            if(new_d == NULL)
+            while(fscanf(sf, "%d", &sz) != EOF)
             {
-                printf("new_d malloc failed\n");
+                data d = NULL;
+                while(sz--)
+                {
+                    data_type item;
+                    fscanf(sf, "%d", &item);
+
+                    data new_d = malloc(sizeof(struct data_node));
+                    if(new_d == NULL)
+                    {
+                        printf("new_d malloc failed\n");
+                    }
+                    new_d->data_item = item;
+                    new_d->next = d;
+                    d = new_d;
+                }
+                /* removes duplicates items also*/
+                // printf("inserting: ");
+                sf_sort_data(d, NULL);
+                // sf_print_data_node(d);
+
+                gettimeofday(&t3, NULL);
+                sf_insert_itemset(forest, d, tid);
+                gettimeofday(&t4, NULL);
+
+                // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
+
+                elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
+                elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
+                totaltime += elapsedTime;
+
+                // sf_create_header_table_helper(forest->root, forest->head_table);
+                // sf_update_header_table(forest->head_table, d, tid);
+                // sf_print_tree(forest->root);
+                sf_delete_data_node(d);
+                // sf_prune(forest, tid);
+                // break;
+                
+
+                if(tid%BATCH == 0)
+                {
+                    sf_prune(forest, tid);
+                }
+                tid++;
             }
-            new_d->data_item = item;
-            new_d->next = d;
-            d = new_d;
+            end = 1;
         }
-        /* removes duplicates items also*/
-        // printf("inserting: ");
-        sf_sort_data(d, NULL);
-        // sf_print_data_node(d);
 
-        gettimeofday(&t3, NULL);
-        sf_insert_itemset(forest, d, tid);
-        gettimeofday(&t4, NULL);
-
-        // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
-
-        elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
-        elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-        totaltime += elapsedTime;
-
-        // sf_create_header_table_helper(forest->root, forest->head_table);
-        // sf_update_header_table(forest->head_table, d, tid);
-        // sf_print_tree(forest->root);
-        sf_delete_data_node(d);
-        // sf_prune(forest, tid);
-        // break;
-        
-        if(mem_bin->size > 1000)
-            sf_clear_garbage();
-
-        if(tid%BATCH == 0)
+        if(threadId == 1)
         {
-            sf_prune(forest, tid);
+            // if(mem_bin->size > 100)
+            while(end == 0)
+            {
+                if(mem_bin->size > 100)
+                    sf_clear_garbage();
+            }
         }
-        tid++;
     }
     fclose(sf);
 

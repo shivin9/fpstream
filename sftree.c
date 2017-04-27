@@ -160,6 +160,7 @@ void sf_delete_tree_structure(sfnode current_node)
             }
         }
         free(current_node->children);
+        // current_node->children = NULL;
     }
 
     else
@@ -186,6 +187,7 @@ void sf_delete_tree_structure(sfnode current_node)
             this_child = temp;
         }
         free(current_node->children);
+        // current_node->children = NULL;
     }
 }
 
@@ -221,6 +223,11 @@ void sf_delete_header_table(header_table* h)
 {
     if(h == NULL)
         return;
+    // if(h[0] == NULL)
+    // {
+    // 	free(h);
+    // 	return;
+    // }
     int idx, root_data = h[0]->data_item;
     header_table temp;
     for(idx = 0; idx < last_index(root_data); idx++)
@@ -240,36 +247,22 @@ void sf_clear_garbage()
 	QStack* qstack = mem_bin;
 	int threadId;
 	slink temp1, temp2;
-	omp_set_num_threads(2);
-	#pragma omp parallel
+	// printf("freeing stuff\n");
+	while(qstack->size > 0)
 	{
-		threadId = omp_get_thread_num();
-		if(threadId == 1)
-		{
-			while(qstack->size > 0)
-			{
-				temp1 = get_snode(qstack);
-				sf_delete_tree_structure(temp1->node);
-				if(temp1->htable)
-					sf_delete_header_table(temp1->htable);
-				if(temp1)
-					free(temp1);
-			}
-		}
-
-		// if(threadId == 2)
-		// {
-		// 	while(qstack->size > 0)
-		// 	{
-		// 		temp2 = get_snode(qstack);
-		// 		sf_delete_tree_structure(temp2->node);
-		// 		if(temp2->htable)
-		// 			sf_delete_header_table(temp2->htable);
-		// 		if(temp2)
-		// 			free(temp2);
-		// 	}
-		// }
+		temp1 = get_snode(qstack);
+		if(temp1 == NULL)
+			break;
+		sf_delete_tree_structure(temp1->node);
+		// if(temp1->htable)
+		// 	sf_delete_header_table(temp1->htable);
+		if(temp1)
+			free(temp1);
 	}
+	// while(1)
+	// {
+	// 	int x = 1;
+	// }
 }
 
 void sf_delete_sftree(sftree tree)

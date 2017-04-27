@@ -16,3 +16,4 @@ tests/
 exe
 *.swp
 massif*
+*.sh
