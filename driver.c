@@ -57,7 +57,8 @@ int main(int argc, char* argv[])
 
     char* s, output;
 
-    int i, threadId, end = 0;
+    int i, batch_no, threadId;
+
     for (i = 3; i < argc; i++)
     {                               /* traverse arguments */
         s = argv[i];                /* get option argument */
@@ -95,9 +96,20 @@ int main(int argc, char* argv[])
         exit(0);
     }
 
+    printf("\
+            The parameters are:-\n\
+            <DICT_SIZE>:        %d\n\
+            <BATCH_SIZE>:       %d\n\
+            <DECAY>:            %lf\n\
+            <EPS>:              %lf\n\
+            <THETA>:            %lf\n\
+            (S/s)<SUP>:         %lf\n\
+            <LEAVE_LVL>:        %d\n",\
+            DICT_SIZE, BATCH, DECAY, EPS, THETA, SUP, LEAVE_LVL);
+
 
     struct timeval t1, t2, t3, t4, ts, tf;
-    double elapsedTime, sum = 0, totaltime = 0;
+    double elapsedTime, sum = 0, totaltime = 0, prune_time = 0;
 
     gettimeofday(&ts, NULL);
     
@@ -107,98 +119,122 @@ int main(int argc, char* argv[])
     data sorted = sf_create_sorted_dummy(0);
     forest = sf_create_sforest();
     mem_bin = createQStack();
-    
+    omp_set_num_threads(2);
+
     sftree tree = sf_create_sftree(0);
     sf_create_header_table(tree, tid);
 
     gettimeofday(&t1, NULL);
 
-    omp_set_num_threads(2);
-    #pragma omp parallel
+
+    buffer stream = NULL, end = NULL;
+    stream = (buffer) calloc(1, sizeof(struct buffer_node));
+    stream->itemset = (data) calloc(1, sizeof(struct data_node));
+    stream->itemset->next = NULL;
+    stream->next = NULL;
+    end = stream;
+
+    while(fscanf(sf, "%d", &sz) != EOF)
     {
-        threadId = omp_get_thread_num();
-        if(threadId == 0)
+        data d = NULL;
+        while(sz--)
         {
-            while(fscanf(sf, "%d", &sz) != EOF)
+            data_type item;
+            fscanf(sf, "%d", &item);
+            // if(rand() < 0.667)
             {
-                data d = NULL;
-                while(sz--)
+                data new_d = calloc(1, sizeof(struct data_node));
+                if(new_d == NULL)
                 {
-                    data_type item;
-                    fscanf(sf, "%d", &item);
-
-                    data new_d = malloc(sizeof(struct data_node));
-                    if(new_d == NULL)
-                    {
-                        printf("new_d malloc failed\n");
-                    }
-                    new_d->data_item = item;
-                    new_d->next = d;
-                    d = new_d;
+                    printf("new_d malloc failed\n");
                 }
-                /* removes duplicates items also*/
-                // printf("inserting: ");
-                sf_sort_data(d, NULL);
-                // sf_print_data_node(d);
-
-                gettimeofday(&t3, NULL);
-                sf_insert_itemset(forest, d, tid);
-                gettimeofday(&t4, NULL);
-
-                // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
-
-                elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
-                elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-                totaltime += elapsedTime;
-
-                // sf_create_header_table_helper(forest->root, forest->head_table);
-                // sf_update_header_table(forest->head_table, d, tid);
-                // sf_print_tree(forest->root);
-                sf_delete_data_node(d);
-                // sf_prune(forest, tid);
-                // break;
-                
-
-                if(tid%BATCH == 0)
-                {
-                    sf_prune(forest, tid);
-                }
-                tid++;
+                new_d->data_item = item % DICT_SIZE;
+                new_d->next = d;
+                d = new_d;
             }
-            end = 1;
         }
 
-        if(threadId == 1)
+        batch_no++;
+        sf_sort_data(d, NULL);
+
+        end->next = (buffer) calloc(1, sizeof(struct buffer_node));
+        end = end->next;
+        end->itemset = d;
+        end->next = NULL;
+    }
+    fclose(sf);
+    stream = stream->next;
+
+    #pragma omp parallel
+    while(stream)
+    {
+        threadId = omp_get_thread_num();
+
+        if(threadId == 0)
         {
-            // if(mem_bin->size > 100)
-            while(end == 0)
+            gettimeofday(&t3, NULL);
+            sf_insert_itemset(forest, stream->itemset, tid);
+            gettimeofday(&t4, NULL);
+
+            // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
+
+            elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
+            elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
+            totaltime += elapsedTime;
+
+            // sf_create_header_table_helper(forest->root, forest->head_table);
+            // sf_update_header_table(forest->head_table, d, tid);
+            // sf_print_tree(forest->root);
+            end = stream->next;
+            sf_delete_data_node(stream->itemset);
+            free(stream);
+            stream = end;
+
+            // sf_prune(forest, tid);
+            // break;
+            if(tid%BATCH == 0)
+            {
+                printf("pruning at tid = %d\n", tid);
+                gettimeofday(&t3, NULL);
+                sf_prune(forest, tid);
+                gettimeofday(&t4, NULL);
+                elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
+                elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
+                prune_time += elapsedTime;
+            }
+            tid++;
+        }
+
+        else if(threadId == 1)
+        {
+            while(stream)
             {
                 if(mem_bin->size > 100)
                     sf_clear_garbage();
             }
         }
     }
-    fclose(sf);
 
     /* Create the perfect, final tree after emptying the buffers*/
     // sf_empty_buffers(forest, forest, tid);
     // sf_prune(forest, tid);
-    gettimeofday(&t2, NULL);
     N = tid;
     /* this is to accomodate hard support counts instead of %*/
     if(SUP > 1.0)
-        SUP = SUP/N;
+        SUP = SUP/N - EPS;
+    else
+        SUP = SUP - EPS;
 
+    gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
-    // sf_print_sforest(forest);
-    // sf_print_sforest_lvl(forest);
-    // printf("sizeof sf tree = %lf\n", sf_size_of_sforest(forest));
-
     printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
+
+    printf("total intermittent prune time = %lf ms\n", prune_time);
+    printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
     gettimeofday(&t1, NULL);
     sf_mine_frequent_itemsets(forest, tid, pattern);
@@ -245,5 +281,6 @@ int main(int argc, char* argv[])
     elapsedTime = (tf.tv_sec - ts.tv_sec) * 1000.0;
     elapsedTime += (tf.tv_usec - ts.tv_usec) / 1000.0;
     printf("TOTAL time taken = %lf ms\n", elapsedTime);
+
     return 1;
 }

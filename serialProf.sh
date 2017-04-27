@@ -25,6 +25,13 @@ echo "=========================================="
 echo "Following code was profiled on : `date`"
 echo "Script for Profiling serial Code"
 echo "\nFiles given->\n\t$1"
+echo "\nDECAY->$2"
+echo "EPS->$3"
+echo "DECAY->$4"
+echo "LVL->$7"
+echo "SUP->$8"
+echo "BATCH->$9"
+
 echo "=========================================="
 echo
 # echo "\tCompiling Code..."

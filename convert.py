@@ -23,7 +23,7 @@ def convert_file(file):
 
         for i in range(len(vals)):
             temp = ""
-            temp = ", ".join(list(set(vals[i]))) + "\n"
+            temp = " ".join(list(set(vals[i]))) + "\n"
             new += temp
 
         out = open("./tests/" + file[:-5]+".tab", "w")
@@ -58,26 +58,26 @@ def main():
     vals = vals[:-1]
     while i < len(vals):
         frst = vals[i][0]
-        cnt = 0
         temp = []
         while i < len(vals) and vals[i][0] == frst:
-            cnt += 1
             temp.append(vals[i][1])
             # temp = temp + vals[i][1] + ","
             i += 1
             # print temp
         temp = list(set(temp))
+        cnt = len(temp)
         temp = " ".join(temp)
         temp = str(cnt) + " " + temp + "\n"
         # temp = temp + "\n"
         # print temp
         new += temp
 
+    fname = fname.split(".")[0]
     out = open(fname + ".data", "w")
     # out = open(fname + ".tab", "w")
     print >> out, new
 
 
 if __name__ == '__main__':
-    data_to_tab()
-    # main()
+    # data_to_tab()
+    main()

@@ -86,8 +86,25 @@ void push(QStack* l, sfnode v, header_table* head_table)
         l = createQStack();
 
     slink temp = l->head;
-    (l->size)++;
 
+    sfnode delete_ancestor = v, temp_node = v;
+    while(temp_node->parent)
+    {
+        if(temp_node->parent->touched == -1)
+            delete_ancestor = temp_node->parent;
+        temp_node = temp_node->parent;
+    }
+
+    /* search v in the qstack*/
+    while(temp)
+    {
+        if(delete_ancestor == temp->node) /* v's some ancestor is in the qstack so don't add it*/
+            return;
+        temp = temp->next;
+    }
+
+    (l->size)++;
+    temp = l->head;
     if(temp == NULL) /* empty stack*/
     {
         slink new = (slink) malloc(sizeof(snode));
