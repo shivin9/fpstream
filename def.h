@@ -61,7 +61,8 @@ struct buffer_node
 {
     data itemset;
     double freq;
-    double tid;
+    int ftid;
+    int ltid;
     struct buffer_node* next;
 };
 
@@ -85,7 +86,7 @@ struct sf_node
     buffer buffertail;
     // buffer* buffer_table[HSIZE];
     int bufferSize;
-    int ltid; // latest time stamp
+    int ltid; // latest updated/seen time stamp
     int ftid; // first seen tid
     double freq;
     data_type data_item;

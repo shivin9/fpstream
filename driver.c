@@ -156,7 +156,10 @@ int main(int argc, char* argv[])
         end->next = NULL;
     }
     fclose(sf);
+    end = stream;
     stream = stream->next;
+    sf_delete_data_node(end->itemset);
+    free(end);
 
     while(stream)
     {
