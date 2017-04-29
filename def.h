@@ -19,6 +19,7 @@ extern double DECAY;
 extern long int N;
 extern double EPS;
 extern double THETA;
+extern double CARRY;
 extern int HSIZE;
 extern double SUP;
 extern int BATCH;
@@ -59,6 +60,7 @@ typedef struct data_node* data;
 struct buffer_node
 {
     data itemset;
+    double freq;
     double tid;
     struct buffer_node* next;
 };
@@ -81,6 +83,7 @@ struct sf_node
     data* item_list;
     buffer bufferhead;
     buffer buffertail;
+    // buffer* buffer_table[HSIZE];
     int bufferSize;
     int ltid; // latest time stamp
     int ftid; // first seen tid
@@ -149,47 +152,6 @@ struct dictionary
     hlink table[10000];
     int size;
 };
-
-//////////////////////////////////////////////////////////////////////////////
-
-struct tilted_tw_table
-{
-    int starting_batch;
-    int ending_batch;
-    double freq;
-
-    int buffer_empty;
-    int buffer_starting_batch;
-    int buffer_ending_batch;
-    int buffer_freq;
-
-    struct tilted_tw_table* next;
-};
-typedef struct tilted_tw_table* tilted_tw_table;
-typedef struct pattern_node_list_node* pattern_node_list;
-
-struct pattern_node_
-{
-    pattern_node_list children;
-    data item_list;
-    data_type data_item;
-    tilted_tw_table table;
-};
-typedef struct pattern_node_* pattern_node;
-
-
-struct pattern_node_list_node
-{
-    pattern_node tree_node;
-    pattern_node_list next;
-};
-
-
-struct pattern_tree
-{
-    pattern_node root;
-};
-typedef struct pattern_tree* patterntree;
 
 
 #endif //STRUCT_DEF

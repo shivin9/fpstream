@@ -69,7 +69,8 @@ int find(dict htable, char* key)
     row = hash(key);
     hlink toput = htable->table[row]->next;
     hlink prev;
-    while(toput){
+    while(toput)
+    {
         if(!strcmp(toput->sig, key))
             return 1;
         prev = toput;
@@ -82,6 +83,9 @@ int find(dict htable, char* key)
 /* to push a node onto the QStack.*/
 void push(QStack* l, sfnode v)
 {
+    if(v == NULL)
+        return;
+    
     slink temp = l->head;
     (l->size)++;
 

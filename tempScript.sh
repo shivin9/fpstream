@@ -2,18 +2,50 @@
 #cd grid/RTree/
 
 # KNN for R Tree
-sh serialProf.sh 2kD100T10.data 1.0 0.01 100 0.05 0.1 3 0.01 100
-sh serialProf.sh 10kD100T10.data 1.0 0.01 100 0.05 0.1 3 0.01 1000
-sh serialProf.sh 100kD100T10.data 1.0 0.01 100 0.05 0.1 3 0.01 1000
-sh serialProf.sh 100kD500T10.data 1.0 0.01 100 0.05 0.1 3 0.01 1000
-sh serialProf.sh 100kD1000T10.data 1.0 0.01 100 0.05 0.1 3 0.01 1000
+# <dataset> <decay> <eps> <Dict_Size> <m> <M> <TreeLvl> <Sup_cnt> <Batch_Size>
 
-# <<COMMENT2
-# cd ../RTree/
-# sh serialProf.sh 3D_spatial_network_transformed_dense_cells_more_than_3000pts_increased_to_10000pts_withNBH_increased output makefile_profiler 10 20 0.05 4 3D_spatial_network_transformed_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000 NBHQUERY
-# sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize2 output makefile_profiler 12 24 2 4 deluciaD32lac_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000_CELLSIZE2 NBHQUERY
-# sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize3 output makefile_profiler 12 24 2 4 deluciaD32lac_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000_CELLSIZE3 NBHQUERY
-# sh serialProf.sh 3D_spatial_network_transformed_dense_cells_more_than_3000pts_increased_to_10000pts_withNBH_increased output makefile_profiler 10 20 0.05 4 3D_spatial_network_transformed_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000 KNNQUERY
-# sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize2 output makefile_profiler 12 24 2 4 deluciaD32lac_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000_CELLSIZE2 KNNQUERY
-# sh serialProf.sh deluciaD32lac_dense_cells_more_than_3000pts_extto10000_along_withNBH_CellSize3 output makefile_profiler 12 24 2 4 deluciaD32lac_sparse_cells_less_than_3000pts_after_increasing_densecells_and_nbhs_to_10000_CELLSIZE3 KNNQUERY
-# COMMENT2
+sh serialProf.sh 1MD100T5.data  1.0 0.01 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD500T5.data  1.0 0.01 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T5.data  1.0 0.01 1000 0.05 0.1 4 0.05 10000 0.10
+
+sh serialProf.sh 1MD100T10.data 1.0 0.01 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 1000 0.05 0.1 4 0.05 10000 0.10
+
+sh serialProf.sh 1MD100T15.data 1.0 0.01 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD500T15.data 1.0 0.01 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T15.data 1.0 0.01 1000 0.05 0.1 4 0.05 10000 0.10
+
+## studying effect of EPS
+sh serialProf.sh 1MD1000T10.data 1.0 0.005 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.02 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.04 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.06 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.08 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.10 500 0.05 0.1 4 0.05 10000 0.10
+
+sh serialProf.sh 1MD1000T10.data 1.0 0.005 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.02 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.04 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.06 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.08 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.10 100 0.05 0.1 4 0.05 10000 0.10
+
+## studying the effect of LEVEL
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 500 0.05 0.1 2 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 500 0.05 0.1 3 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 500 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 500 0.05 0.1 5 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 500 0.05 0.1 6 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 500 0.05 0.1 7 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 500 0.05 0.1 8 0.05 10000 0.10
+
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 100 0.05 0.1 2 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 100 0.05 0.1 3 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 100 0.05 0.1 4 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 100 0.05 0.1 5 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 100 0.05 0.1 6 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 100 0.05 0.1 7 0.05 10000 0.10
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 100 0.05 0.1 8 0.05 10000 0.10

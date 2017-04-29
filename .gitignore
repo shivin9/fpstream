@@ -15,3 +15,5 @@ tests/
 exe
 *.swp
 massif*
+bltree
+*.sh

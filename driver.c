@@ -15,14 +15,13 @@ long int N;
 char OUT_FILE[100];
 
 double DECAY = 1.0, EPS = 0.0, THETA = 0.1,\
-       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01;
+       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01, CARRY = 1.0;
 
 /*DESCENDING order here*/
 int cmpfunc (const void * a, const void * b)
 {
    return -( *(double*)a - *(double*)b );
 }
-
 
 
 int main(int argc, char* argv[])
@@ -34,6 +33,7 @@ int main(int argc, char* argv[])
                 -B<BATCH_SIZE>\n\
                 -d<DECAY>\n\
                 -e<EPS>\n\
+                -c<CARRY>\n\
                 -t<THETA>\n\
                 -(S/s)<SUP>\n\
                 -m<min_sup_semifreq>\n\
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 
     char* s, output;
 
-    int i;
+    int i, batch_no;
     for (i = 3; i < argc; i++)
     {                               /* traverse arguments */
         s = argv[i];                /* get option argument */
@@ -67,6 +67,7 @@ int main(int argc, char* argv[])
                 {                   /* evaluate switches */
                     case 'd': DECAY  = strtof(s, &s);          break;
                     case 'e': EPS    = strtof(s, &s);          break;
+                    case 'c': CARRY  = strtof(s, &s);          break;
                     case 't': THETA  = strtof(s, &s);          break;
                     case 's': SUP    = strtof(s, &s);          break;
                     case 'm': MINSUP_SEMIFREQ = strtof(s, &s); break;
@@ -74,9 +75,9 @@ int main(int argc, char* argv[])
                     case 'B': BATCH  =       strtod(s, &s);    break;
                     case 'p': pattern  =   strtod(s, &s);      break;
                     case 'D': DICT_SIZE =  strtod(s, &s);      break;
-                    case 'S': SUP =  strtod(s, &s);            break;
+                    case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
-                    default : printf("UNKNOWN ARGUMENT! %c", *(s-1)); 
+                    default : printf("UNKNOWN ARGUMENT! %c", *(s-1));
                               exit(-1);                        break;
                 }
             }
@@ -92,7 +93,21 @@ int main(int argc, char* argv[])
         printf("invalid file\n");
         exit(0);
     }
-    
+
+    printf("\
+            The parameters are:-\n\
+            <DICT_SIZE>:        %d\n\
+            <BATCH_SIZE>:       %d\n\
+            <DECAY>:            %lf\n\
+            <EPS>:              %lf\n\
+            <CARRY>             %lf\n\
+            <THETA>:            %lf\n\
+            (S/s)<SUP>:         %lf\n\
+            <LEAVE_LVL>:        %d\n\
+            <BATCH>:            %d\n",\
+            DICT_SIZE, BATCH, DECAY, EPS, CARRY, THETA, SUP, LEAVE_LVL, BATCH);
+
+    srand(time(NULL));
     long unsigned size;
     sforest forest = NULL;
 
@@ -103,9 +118,17 @@ int main(int argc, char* argv[])
     sf_create_header_table(tree, tid);
 
     struct timeval t1, t2, t3, t4;
-    double elapsedTime, sum = 0, totaltime = 0;
+    double elapsedTime, sum = 0, totaltime = 0, prune_time = 0;
 
     gettimeofday(&t1, NULL);
+
+
+    buffer stream = NULL, end = NULL;
+    stream = (buffer) calloc(1, sizeof(struct buffer_node));
+    stream->itemset = (data) calloc(1, sizeof(struct data_node));
+    stream->itemset->next = NULL;
+    stream->next = NULL;
+    end = stream;
 
     while(fscanf(sf, "%d", &sz) != EOF)
     {
@@ -114,8 +137,7 @@ int main(int argc, char* argv[])
         {
             data_type item;
             fscanf(sf, "%d", &item);
-
-            data new_d = malloc(sizeof(struct data_node));
+            data new_d = calloc(1, sizeof(struct data_node));
             if(new_d == NULL)
             {
                 printf("new_d malloc failed\n");
@@ -124,13 +146,23 @@ int main(int argc, char* argv[])
             new_d->next = d;
             d = new_d;
         }
-        /* removes duplicates items also*/
-        // printf("inserting: ");
+
+        batch_no++;
         sf_sort_data(d, NULL);
-        // sf_print_data_node(d);
+
+        end->next = (buffer) calloc(1, sizeof(struct buffer_node));
+        end = end->next;
+        end->itemset = d;
+        end->next = NULL;
+    }
+    fclose(sf);
+    stream = stream->next;
+
+    while(stream)
+    {
 
         gettimeofday(&t3, NULL);
-        sf_insert_itemset(forest, d, tid);
+        sf_insert_itemset(forest, stream->itemset, tid);
         gettimeofday(&t4, NULL);
 
         // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
@@ -142,33 +174,26 @@ int main(int argc, char* argv[])
         // sf_create_header_table_helper(forest->root, forest->head_table);
         // sf_update_header_table(forest->head_table, d, tid);
         // sf_print_tree(forest->root);
-        sf_delete_data_node(d);
+        end = stream->next;
+        sf_delete_data_node(stream->itemset);
+        free(stream);
+        stream = end;
+
         // sf_prune(forest, tid);
         // break;
         if(tid%BATCH == 0)
         {
-            // sf_create_header_table_helper(forest->root, forest->head_table);
-            // sf_update_header_table(forest->head_table, sorted, tid);
-            // sf_print_header_table(forest->head_table);
-            size = 0;
-            int i;
-            // for(i = 0; i < DICT_SIZE; i++)
-            //     size += sf_no_of_nodes(forest[i]->root);
-
-            // printf("pruning at tid = %d\n", tid);
+            printf("pruning at tid = %d\n", tid);
+            gettimeofday(&t3, NULL);
+            // sf_empty_buffers(forest, tid);
             sf_prune(forest, tid);
-
-            size = 0;
-            // for(i = 0; i < DICT_SIZE; i++)
-            //     size += sf_no_of_nodes(forest[i]->root);
-            
-            // // size = sf_size_of_sforest(forest);
-            // printf("new_size = %ld\n", size);
-            // break;
+            gettimeofday(&t4, NULL);
+            elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
+            elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
+            prune_time += elapsedTime;
         }
         tid++;
     }
-    fclose(sf);
 
     /* Create the perfect, final tree after emptying the buffers*/
     // sf_empty_buffers(forest, forest, tid);
@@ -176,7 +201,17 @@ int main(int argc, char* argv[])
     N = tid;
     /* this is to accomodate hard support counts instead of %*/
     if(SUP > 1.0)
-        SUP = SUP/N;
+    {
+        if(SUP/N - EPS < 0) /* mine with very less support*/
+            SUP = SUP/N;
+        else
+            SUP = SUP/N - EPS;
+    }
+    else
+    {
+        if(SUP - EPS > 0)
+            SUP = SUP - EPS;
+    }
 
     gettimeofday(&t2, NULL);
 
@@ -184,11 +219,19 @@ int main(int argc, char* argv[])
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
-    // sf_print_sforest(forest);
-    // sf_print_sforest_lvl(forest);
-    // printf("sizeof sf tree = %lf\n", sf_size_of_sforest(forest));
-
     printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
+
+    printf("total intermittent prune time = %lf ms\n", prune_time);
+    printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
+
+    gettimeofday(&t3, NULL);
+    sf_empty_buffers(forest, tid);
+    gettimeofday(&t4, NULL);
+
+    elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
+    elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
+    printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
+
 
     gettimeofday(&t1, NULL);
     sf_mine_frequent_itemsets(forest, tid, pattern);

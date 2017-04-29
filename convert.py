@@ -45,7 +45,7 @@ def data_to_tab():
 
 def main():
     fname = raw_input("enter name of file\n")
-    # fname = "./data/" + fname
+    fname = "data/" + fname
     with open(fname, 'r') as f:
         vals = f.read()
     vals = vals.split("\r\n")
@@ -61,23 +61,24 @@ def main():
         cnt = 0
         temp = []
         while i < len(vals) and vals[i][0] == frst:
-            cnt += 1
             temp.append(vals[i][1])
             # temp = temp + vals[i][1] + ","
             i += 1
             # print temp
         temp = list(set(temp))
+        cnt = len(temp)
         temp = " ".join(temp)
         temp = str(cnt) + " " + temp + "\n"
         # temp = temp + "\n"
         # print temp
         new += temp
 
+    fname = fname.split(".")[0]
     out = open(fname + ".data", "w")
     # out = open(fname + ".tab", "w")
     print >> out, new
 
 
 if __name__ == '__main__':
-    data_to_tab()
-    # main()
+    # data_to_tab()
+    main()

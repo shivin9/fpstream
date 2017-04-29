@@ -14,9 +14,18 @@
 */
 #include "sftree.h"
 
-int is_equal(data d1, data d2)
+int sf_is_equal(data d1, data d2)
 {
-    return (d1->data_item == d2->data_item);
+    while(d1 != NULL && d2 != NULL)
+    {
+        if(d1->data_item != d2->data_item)
+            return 0;
+        d1 = d1->next;
+        d2 = d2->next;
+    }
+    if(d1 == NULL && d2 == NULL)
+        return 1;
+    return 0;
 }
 
 
@@ -502,8 +511,21 @@ void sf_append_buffer(sfnode curr, data d, int tid)
     /* this tid is the timestamp when the dataitem was buffered*/
     if(d == NULL)
         return;
-    curr->bufferSize++;
-    buffer last = curr->buffertail;
+    buffer last = curr->buffertail, temp_buff = curr->bufferhead;
+
+    while(temp_buff)
+    {
+        if(sf_is_equal(temp_buff->itemset, d))
+        {
+            // printf("appending at node!\n");
+            // sf_print_node(curr);
+            temp_buff->freq *= pow(DECAY, tid - temp_buff->tid);
+            temp_buff->freq++;
+            return;
+        }
+        temp_buff = temp_buff->next;
+    }
+
     buffer new = (buffer) calloc(1, sizeof(struct buffer_node));
 
     if(last == NULL)
@@ -518,6 +540,7 @@ void sf_append_buffer(sfnode curr, data d, int tid)
     new->tid = tid;
     new->itemset = (data) calloc(1, sizeof(struct data_node));
     new->itemset->data_item = d->data_item;
+    new->freq = 1;
     temp = new->itemset;
     d = d->next;
     while(d)
@@ -528,10 +551,13 @@ void sf_append_buffer(sfnode curr, data d, int tid)
         d = d->next;
     }
     temp->next = NULL;
+
     if(last)
         last->next = new;
+
     curr->buffertail = new;
     curr->buffertail->next = NULL;
+    curr->bufferSize++;
 }
 
 
@@ -668,10 +694,6 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
     data temp, d;
 
     int idx, root_data, no_trans = 0;
-    node->ftid = min(node->ftid, tid);
-    node->freq *= pow(DECAY, tid - node->ltid);
-    node->freq++;
-    node->ltid = tid;
 
     while(qstack->size > 0) /* we go on till the time we have nodes in the stack*/
     {
@@ -705,11 +727,15 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                                                         which will be propagated down*/
         if(popped)
             assert(popped->next == NULL); /* 'popped' is the buffer node*/
+        else
+            continue;
 
         if(current_node->bufferSize > 0) /* push the node back in the qstsack if it's buffer is still not empty*/
             push(qstack, current_node);
 
-        d = popped->itemset; /* get the itemset which is in the popped buffer*/
+        /* updating the inner fields of the buffer*/
+        popped->freq *= pow(DECAY, tid - popped->tid);
+        popped->tid = tid;
 
         /* this controls pre-emption*/
         if(LEAVE_AS_BUFFER)
@@ -718,6 +744,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
             // printf("leaving in buffer at node %d: ", current_node->data_item);
             // sf_print_data_node(d);
             current_node->bufferSize++;
+            // sf_append_buffer(current_node, popped->itemset, tid); /* push back the popped buffer as we have to leave now*/
             LEAVE_AS_BUFFER = 0;
             delete_qstack(qstack);
             return;
@@ -737,14 +764,13 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
         if(current_node->fptree != NULL)
         {
-            sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table, d, tid);
+            sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table, popped->itemset, tid);
         }
 
         else
         {
             current_child_ptr = current_node->children; /* we will insert the itemsets in the
-                                                                   buffers of the children of current_node*/
-            // data* current_data_ptr = current_node->item_list;
+                                                           buffers of the children of current_node*/
             temp = popped->itemset;
 
             /* this code readies the buffer for children of current_node*/
@@ -763,27 +789,28 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 }
 
                 assert(current_node->children[idx] != NULL); /* we just updated that child!*/
-                current_child_ptr[idx]->ltid = tid;
 
                 this_child = current_child_ptr[idx];
                 // data this_data_item = current_data_ptr[idx];
                 // assert(is_equal(this_data_item, temp));
 
-                if(temp->next)
+                if(temp->next) /* here we are filling up the buffers of the children*/
                     sf_append_buffer(current_child_ptr[idx], temp->next, tid);
 
-                /*updating the frequency of the node according to the formula*/
+                /* updating the frequency of the node according to the formula*/
                 current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->ltid);
-                current_child_ptr[idx]->freq++;
+                assert(popped->tid == tid); /* updated just after it was retrieved*/
+                current_child_ptr[idx]->freq += popped->freq;
+                current_child_ptr[idx]->ltid = tid;
 
                 /*  this code is to update the header tables properly
                     note that now we dont need the update function
                 */
                 sf_create_update_header_node(htable, temp->data_item, root_data, tid);
-                idx = index(temp->data_item, root_data); /* idx in the header table*/
-                // assert(temp->data_item == htable[idx]->data_item);
+                idx = index(temp->data_item, root_data); /* idx in the header table,\
+                                                            root is the value of the root of sf-tree*/
 
-                // create the links right here only
+                /* create the links right here only*/
                 if(htable && this_child->hnode == NULL)
                 {
                     //append to the head of the linked list for this data item
@@ -803,7 +830,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 temp = temp->next; /* move the buffer node forward*/
             }
 
-            /* now apply the same procedure on all the children so as to further propagate the items*/
+            /* pushing the children in the qstack so that the above procedure can be applied on them*/
             temp = popped->itemset;
 
             while(temp->next) /* we wont go all the way upto the last node as it has already been updated*/
@@ -814,7 +841,15 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 {
                     // printf("not pruning freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
                     current_child_ptr[idx]->ltid = tid;
-                    push(qstack, current_child_ptr[idx]);
+                    double toss = ((double) rand())/RAND_MAX;
+                    if((toss < CARRY && current_child_ptr[idx]->fptree == NULL) || CARRY == 2.0) 
+                    /* this is to ensure that the itemset is inserted when we are emptying the buffer.
+                    Propagate the node downwards with a certain probability
+                    this reduces the length of qstack and makes insertion faster
+                    but we'll need to empty the nodes later on*/
+                    {
+                        push(qstack, current_child_ptr[idx]);
+                    }
                 }
                 else
                 {
@@ -836,7 +871,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
 void sf_insert_itemset(sforest forest, data d, int tid)
 {
-    while(d)
+    while(d) /* this is taking time as with higher avg. len we have to insert in many trees*/
     {
         sftree tree = forest[d->data_item];
         if(d->next == NULL) /* d is a single item*/
@@ -849,6 +884,12 @@ void sf_insert_itemset(sforest forest, data d, int tid)
             return;
         }
         sf_append_buffer(tree->root, d->next, tid); /* transaction: acdef, node a will have 'cdef'*/
+    
+        tree->root->ftid = min(tree->root->ftid, tid);
+        tree->root->freq *= pow(DECAY, tid - tree->root->ltid);
+        tree->root->freq++;
+        tree->root->ltid = tid;
+
         sf_insert_itemset_helper(tree->root, tree->head_table, tid);
         d = d->next;
     }
@@ -918,8 +959,8 @@ void sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end,
         temp = buff->itemset;
         if(temp->data_item == collected[end])
         {
-			// temp = temp->next;
-        	new_end--;
+            // temp = temp->next;
+            new_end--;
         }
         fprintf(sf, "%d", new_end + len + 1);
 
@@ -980,18 +1021,18 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
                 data sorted = sf_create_sorted_dummy(node->fptree->root->data_item + 1);
     //             printf("\n****mining this FP-tree****\n");
     //             sf_print_tree(node->fptree->root);
-				// printf("****HEADER TABLE:****\n");
+                // printf("****HEADER TABLE:****\n");
     //             sf_print_header_table(node->fptree->head_table);
                 /* change the root data to -1 for mining correctly*/
                 node->fptree->root->data_item = -1;
                 sf_fp_mine_frequent_itemsets(node->fptree, sorted, NULL, collect_node,\
-                							 tid, pattern?MINSUP_FREQ:MINSUP_SEMIFREQ);
+                                             tid, pattern?MINSUP_FREQ:MINSUP_SEMIFREQ);
                 /* reset the old (correct) value of root node data*/
                 node->fptree->root->data_item = node->fptree->head_table[0]->data_item;
                 int i;
                 // printf("collected: ");
                 // for(i = 0; i < end + 1; i++)
-                // 	printf("%d, ", collected[i]);
+                //  printf("%d, ", collected[i]);
                 // printf("\n****node->freq = %lf, collected from tree****\n", node->freq);
                 // sf_print_buffer(collect_node);
             }
@@ -1578,10 +1619,49 @@ void sf_update_ancestor(sfnode temp)
 }
 
 
-void sf_empty_buffers(sfnode curr, header_table htable, int tid)
+void sf_empty_buffers(sforest forest, int tid)
 {
+    int root_data, idx, i, last;
+    double oricarry = CARRY;
+    sfnode current_node = NULL, root = NULL;
+    QStack* qstack = createQStack();
+    header_table* htable;
+    CARRY = 2.0; /* now we will push all the nodes down otherwise\
+                    we will lose itemsets in buffer only*/
+
+    for(i = 0; i < DICT_SIZE; i++)
+    {
+        root = forest[i]->root;
+        htable = forest[i]->head_table;
+        push(qstack, root);
+        if(root->bufferhead != NULL) /* push the buffered itemsets down*/
+        {
+            sf_insert_itemset_helper(root, htable, tid);
+        }
+
+        else
+        {
+            while(qstack->size > 0)
+            {
+                current_node = pop(qstack);
+                last = last_index(current_node->data_item);
+                for(idx = 0; idx < last; idx++)
+                {
+                    if(current_node->children[idx] && current_node->children[idx]->bufferhead != NULL) /* if buffer is not empty then simply\
+                                                                           call the insert function*/
+                    {
+                        sf_insert_itemset_helper(current_node->children[idx], htable, tid);
+                    }
+                    else
+                        push(qstack, current_node->children[idx]);
+                }
+            }
+        }
+    }
+    CARRY = oricarry;
     return;
 }
+
 
 void sf_fp_merge1(sfnode parent, sfnode child, int tid)
 {
@@ -1818,6 +1898,7 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
     return 0;
 }
 
+
 /* Decay the count of node in the header table and decrease some value from nodes in the bltree*/
 void sf_prune_helper(sfnode node, header_table* htable, int tid)
 {
@@ -1872,7 +1953,8 @@ void sf_prune_helper(sfnode node, header_table* htable, int tid)
         {
             if(node->children[child])
             {
-
+                node->children[child]->freq *=\
+                        pow(DECAY, tid - node->children[child]->ltid);
                 if(node->children[child]->freq <= EPS*(tid - node->children[child]->ftid))
                 {
                     sf_delete_tree_structure(node->children[child]);
@@ -1905,6 +1987,7 @@ void sf_prune_helper(sfnode node, header_table* htable, int tid)
             }
         }
     }
+    delete_qstack(qstack);
 }
 
 

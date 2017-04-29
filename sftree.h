@@ -43,7 +43,7 @@ void sf_convert_helper(sfnode, sftree, double*, int*, int tid, int end);
 sftree sf_convert_to_CP(sftree, int);
 void sf_sort_data(data head, double*);
 void sf_sort_header_table(header_table*, double*);
-void sf_empty_buffers(sfnode, header_table, int);
+void sf_empty_buffers(sforest, int);
 
 /* MISCELLANEOUS FUNCTIONS*/
 data sf_array_to_datalist(int*, int);
