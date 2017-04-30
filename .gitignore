@@ -16,4 +16,5 @@ exe
 *.swp
 massif*
 bltree
+bltree_gc
 *.sh

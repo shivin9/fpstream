@@ -64,6 +64,7 @@ struct buffer_node
     int ftid;
     int ltid;
     struct buffer_node* next;
+    struct buffer_node* prev;
 };
 
 typedef struct buffer_node* buffer;

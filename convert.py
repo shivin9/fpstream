@@ -23,7 +23,7 @@ def convert_file(file):
 
         for i in range(len(vals)):
             temp = ""
-            temp = ", ".join(list(set(vals[i]))) + "\n"
+            temp = " ".join(list(set(vals[i]))) + "\n"
             new += temp
 
         out = open("./tests/" + file[:-5]+".tab", "w")
@@ -80,5 +80,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # data_to_tab()
-    main()
+    data_to_tab()
+    #main()
