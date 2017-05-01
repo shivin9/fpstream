@@ -35,6 +35,7 @@ extern double DECAY;
 extern long int N;
 extern double EPS;
 extern double THETA;
+extern double CARRY;
 extern int HSIZE;
 extern double SUP;
 extern int BATCH;
@@ -74,8 +75,11 @@ struct data_node
 struct buffer_node
 {
     data itemset;
-    double tid;
+    double freq;
+    int ftid;
+    int ltid;
     struct buffer_node* next;
+    struct buffer_node* prev;
 };
 
 
@@ -89,8 +93,9 @@ struct sf_node
     data* item_list;
     buffer bufferhead;
     buffer buffertail;
+    // buffer* buffer_table[HSIZE];
     int bufferSize;
-    int ltid; // latest time stamp
+    int ltid; // latest updated/seen time stamp
     int ftid; // first seen tid
     double freq;
     data_type data_item;

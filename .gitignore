@@ -1,5 +1,6 @@
 intermediate
 bltree
+bltree_gc
 [0-9]*
 temp*
 *.ignore

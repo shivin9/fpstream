@@ -15,7 +15,7 @@ long int N;
 char OUT_FILE[100];
 
 double DECAY = 1.0, EPS = 0.0, THETA = 0.1,\
-       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01;
+       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01, CARRY = 1.0;
 
 QStack* mem_bin;
 
@@ -24,7 +24,6 @@ int cmpfunc (const void * a, const void * b)
 {
    return -( *(double*)a - *(double*)b );
 }
-
 
 
 int main(int argc, char* argv[])
@@ -36,6 +35,7 @@ int main(int argc, char* argv[])
                 -B<BATCH_SIZE>\n\
                 -d<DECAY>\n\
                 -e<EPS>\n\
+                -c<CARRY>\n\
                 -t<THETA>\n\
                 -(S/s)<SUP>\n\
                 -m<min_sup_semifreq>\n\
@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
                 {                   /* evaluate switches */
                     case 'd': DECAY  = strtof(s, &s);          break;
                     case 'e': EPS    = strtof(s, &s);          break;
+                    case 'c': CARRY  = strtof(s, &s);          break;
                     case 't': THETA  = strtof(s, &s);          break;
                     case 's': SUP    = strtof(s, &s);          break;
                     case 'm': MINSUP_SEMIFREQ = strtof(s, &s); break;
@@ -77,9 +78,9 @@ int main(int argc, char* argv[])
                     case 'B': BATCH  =       strtod(s, &s);    break;
                     case 'p': pattern  =   strtod(s, &s);      break;
                     case 'D': DICT_SIZE =  strtod(s, &s);      break;
-                    case 'S': SUP =  strtod(s, &s);            break;
+                    case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
-                    default : printf("UNKNOWN ARGUMENT! %c", *(s-1)); 
+                    default : printf("UNKNOWN ARGUMENT! %c", *(s-1));
                               exit(-1);                        break;
                 }
             }
@@ -102,10 +103,12 @@ int main(int argc, char* argv[])
             <BATCH_SIZE>:       %d\n\
             <DECAY>:            %lf\n\
             <EPS>:              %lf\n\
+            <CARRY>             %lf\n\
             <THETA>:            %lf\n\
             (S/s)<SUP>:         %lf\n\
-            <LEAVE_LVL>:        %d\n",\
-            DICT_SIZE, BATCH, DECAY, EPS, THETA, SUP, LEAVE_LVL);
+            <LEAVE_LVL>:        %d\n\
+            <BATCH>:            %d\n",\
+            DICT_SIZE, BATCH, DECAY, EPS, CARRY, THETA, SUP, LEAVE_LVL, BATCH);
 
 
     struct timeval t1, t2, t3, t4, ts, tf;
@@ -113,6 +116,7 @@ int main(int argc, char* argv[])
 
     gettimeofday(&ts, NULL);
     
+    srand(time(NULL));
     long unsigned size;
     sforest forest = NULL;
 
@@ -125,7 +129,6 @@ int main(int argc, char* argv[])
     sf_create_header_table(tree, tid);
 
     gettimeofday(&t1, NULL);
-
 
     buffer stream = NULL, end = NULL;
     stream = (buffer) calloc(1, sizeof(struct buffer_node));
@@ -141,17 +144,14 @@ int main(int argc, char* argv[])
         {
             data_type item;
             fscanf(sf, "%d", &item);
-            // if(rand() < 0.667)
+            data new_d = calloc(1, sizeof(struct data_node));
+            if(new_d == NULL)
             {
-                data new_d = calloc(1, sizeof(struct data_node));
-                if(new_d == NULL)
-                {
-                    printf("new_d malloc failed\n");
-                }
-                new_d->data_item = item % DICT_SIZE;
-                new_d->next = d;
-                d = new_d;
+                printf("new_d malloc failed\n");
             }
+            new_d->data_item = item;
+            new_d->next = d;
+            d = new_d;
         }
 
         batch_no++;
@@ -163,8 +163,8 @@ int main(int argc, char* argv[])
         end->next = NULL;
     }
     fclose(sf);
-    stream = stream->next;
 
+    
     #pragma omp parallel
     while(stream)
     {
@@ -221,9 +221,17 @@ int main(int argc, char* argv[])
     N = tid;
     /* this is to accomodate hard support counts instead of %*/
     if(SUP > 1.0)
-        SUP = SUP/N - EPS;
+    {
+        if(SUP/N - EPS < 0) /* mine with very less support*/
+            SUP = SUP/N;
+        else
+            SUP = SUP/N - EPS;
+    }
     else
-        SUP = SUP - EPS;
+    {
+        if(SUP - EPS > 0)
+            SUP = SUP - EPS;
+    }
 
     gettimeofday(&t2, NULL);
 
@@ -235,6 +243,15 @@ int main(int argc, char* argv[])
 
     printf("total intermittent prune time = %lf ms\n", prune_time);
     printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
+
+    gettimeofday(&t3, NULL);
+    sf_empty_buffers(forest, tid);
+    gettimeofday(&t4, NULL);
+
+    elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
+    elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
+    printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
+
 
     gettimeofday(&t1, NULL);
     sf_mine_frequent_itemsets(forest, tid, pattern);

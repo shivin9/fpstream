@@ -43,7 +43,7 @@ void sf_convert_helper(sfnode, sftree, double*, int*, int tid, int end);
 sftree sf_convert_to_CP(sftree, int);
 void sf_sort_data(data head, double*);
 void sf_sort_header_table(header_table*, double*);
-void sf_empty_buffers(sfnode, header_table, int);
+void sf_empty_buffers(sforest, int);
 
 /* MISCELLANEOUS FUNCTIONS*/
 data sf_array_to_datalist(int*, int);
@@ -64,12 +64,13 @@ void sf_print_sforest(sforest forest);
 void sf_print_sforest_lvl(sforest forest);
 void sf_print_header_table(header_table*);
 void sf_print_data_node(data d);
-void sf_print_buffer(sfnode);
+void sf_print_buffer(buffer);
 
 /* PRUNING FUNCTIONS*/
 data sf_reverse_data(data head);
 int sf_fp_prune(header_table*, int idx, int tid);
 void sf_fp_merge1(sfnode parent, sfnode child, int tid);
+void sf_prune_buffer(sfnode, int);
 void sf_prune_helper(sfnode, header_table*, int);
 void sf_prune(sforest, int);
 void sf_update_ancestor(sfnode);

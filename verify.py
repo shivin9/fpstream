@@ -6,10 +6,8 @@ import os
 def main():
     args = sys.argv
     fname = args[1]
-    print fname
     with open(fname, 'r') as f:
         vals = f.read()
-
 
     gnd_trth = args[2]
     missing = open(gnd_trth[:-4] + "_missing.ignore", 'w')

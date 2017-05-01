@@ -1,8 +1,8 @@
 CC=gcc
-FLAG= -pg -g -fopenmp -c 
+FLAG= -g -pg -fopenmp -c 
 
-bltree: driver.o sftree.o qstack.o
-	$(CC) -o bltree -pg -fopenmp sftree.o qstack.o driver.o def.h -lm
+bltree_gc: driver.o sftree.o qstack.o
+	$(CC) -o bltree_gc -pg -fopenmp sftree.o qstack.o driver.o def.h -lm
 
 driver.o: driver.c
 	$(CC) $(FLAG) driver.c -lm
@@ -26,4 +26,4 @@ qstack.o: qstack.c
 #	$(CC) $(FLAG) pattern_tree.c -lm
 
 clean:
-	rm -f bltree *.o *~ *.h.gch output intermediate
+	rm -f bltree_gc *.o *~ *.h.gch output intermediate
