@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     }
 
     FILE *sf;
-    int sz, cnt, max = 0, tid = 1, pattern = 0;
+    int sz, cnt, max = 0, tid = 1, pattern = 0, no_patterns = 0;
     sf = fopen("intermediate", "w");
     fclose(sf);
     sf = fopen("output", "w");
@@ -235,9 +235,8 @@ int main(int argc, char* argv[])
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
     printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
 
-
     gettimeofday(&t1, NULL);
-    sf_mine_frequent_itemsets(forest, tid, pattern);
+    no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
     gettimeofday(&t2, NULL);
 
     // sfnode collector = calloc(1, sizeof(struct sf_node));
@@ -256,19 +255,8 @@ int main(int argc, char* argv[])
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-    printf("total time taken to mine the sf tree = %lf ms\n", elapsedTime);
-
-    // int idx = 0, bnode=50;
-    // cnt = 0;
-    // // for(bnode = 0; bnode < DICT_SIZE; bnode++)
-    // {
-    //     cnt = 0;
-    //     for(idx = 0; idx < last_index(50); idx++)
-    //     {
-    //         cnt += forest[bnode]->root->children[idx] ? 1 : 0;
-    //         printf("child = %d\n", forest[bnode]->root->children[idx]->data_item);
-    //     }
-    // }
+    printf("(%d items) total time taken to mine the sf tree = %lf ms\n",\
+            no_patterns, elapsedTime);
 
     sf_delete_sftree(tree);
     sf_delete_sforest(forest);

@@ -898,7 +898,7 @@ void sf_insert_itemset(sforest forest, data d, int tid)
 /* Various mining functions*/
 
 /* do end = -1 and collected = NULL to print buff onto the file*/
-void sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern)
+int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern)
 {
     FILE *sf;
     if(pattern == 0)
@@ -910,6 +910,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end,
 
     double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     minsup *= N;
+    int pttrn_cnt = 0;
 
     if(sf == NULL)
         exit(0);
@@ -924,6 +925,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end,
             fprintf(sf, " %d", collected[t]);
             t++;
         }
+        pttrn_cnt++;
 
         if(pattern%2 == 0)
         {
@@ -961,6 +963,7 @@ void sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end,
             new_end--;
         }
         fprintf(sf, "%d", new_end + len + 1);
+        pttrn_cnt++;
 
         if(collected)
         {
@@ -993,19 +996,19 @@ void sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end,
 
     // fprintf(sf, "\n");
     fclose(sf);
+    return pttrn_cnt;
 }
 
 
-void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int tid, int pattern)
+int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int tid, int pattern)
 {
     if(node == NULL)
         return;
     // sf_print_node(node);
     node->freq *= pow(DECAY, tid - node->ltid);
-
-    if((pattern == 0 && node->freq >= N*MINSUP_SEMIFREQ) ||
-       (pattern == 1 && node->freq >= N*MINSUP_FREQ) ||
-       (pattern == 2 && node->freq >= N*SUP))
+    int cnt = 0;
+    double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
+    if(node->freq >= N*minsup)
     {
         collected[++end] = node->data_item;
         if(end >= 0)
@@ -1024,7 +1027,7 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
                 /* change the root data to -1 for mining correctly*/
                 node->fptree->root->data_item = -1;
                 sf_fp_mine_frequent_itemsets(node->fptree, sorted, NULL, collect_node,\
-                                             tid, pattern?MINSUP_FREQ:MINSUP_SEMIFREQ);
+                                             tid, N*minsup);
                 /* reset the old (correct) value of root node data*/
                 node->fptree->root->data_item = node->fptree->head_table[0]->data_item;
                 // int i;
@@ -1035,7 +1038,7 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
                 // sf_print_buffer(collect_node);
                 sf_delete_data_node(sorted);
             }
-            sf_print_patterns_to_file(collected, collect_node->bufferhead, node->freq, end, pattern);
+            cnt += sf_print_patterns_to_file(collected, collect_node->bufferhead, node->freq, end, pattern);
             // sf_delete_buffer(collect_node->bufferhead);
             sf_delete_tree_structure(collect_node);
             free(collect_node);
@@ -1046,15 +1049,16 @@ void sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int 
         {
             this_child = node->children[idx];
             if(this_child)
-                sf_mine_frequent_itemsets_helper(this_child, collected, end, tid, pattern);
+                cnt += sf_mine_frequent_itemsets_helper(this_child, collected, end, tid, pattern);
         }
     }
+    return cnt;
 }
 
 
-void sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
+int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
 {
-    int idx;
+    int idx, cnt = 0;
     int* collected = calloc(DICT_SIZE, sizeof(int));
     double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     printf("mining the tree with support: %lf\n", N*minsup);
@@ -1063,9 +1067,10 @@ void sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
     {
         sfnode root = forest[idx]->root;
         // printf("root = %d, freq = %lf\n", root->data_item, root->freq);
-        sf_mine_frequent_itemsets_helper(root, collected, -1, tid, pattern);
+        cnt += sf_mine_frequent_itemsets_helper(root, collected, -1, tid, pattern);
     }
     free(collected);
+    return cnt;
 }
 
 
