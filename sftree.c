@@ -586,7 +586,7 @@ buffer sf_pop_buffer(sfnode curr)
 }
 
 
-void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
+void sf_fp_insert(sfnode current_node, header_table* htable, data d, double cnt, int tid)
 {
     // put_in_buffer tells whether we want to ignore the buffer signal or not
     // d is a single item here and not an itemset
@@ -629,14 +629,14 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
     }
     curr_header_node->ftid = min(curr_header_node->ftid, tid);
     curr_header_node->cnt *= pow(DECAY, tid - curr_header_node->ltid);
-    curr_header_node->cnt++;
+    curr_header_node->cnt += cnt;
     curr_header_node->ltid = tid;
     if(current_node->data_item != root_data)
     	assert(current_node->parent != NULL);
 
     /* updating the frequency of the node according to the formula*/
     current_node->freq *= pow(DECAY, tid - current_node->ltid);
-    current_node->freq++;
+    current_node->freq += cnt;
     current_node->ltid = tid;
     current_node->ftid = min(tid, current_node->ftid);
 
@@ -673,7 +673,7 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, int tid)
 
     // printf("could not find appropriate child for %d:(\n", current_node->data_item);
     // data this_data_item = current_data_ptr;
-    sf_fp_insert(current_child_ptr, htable, d->next, tid);
+    sf_fp_insert(current_child_ptr, htable, d->next, cnt, tid);
     return;
 }
 
@@ -761,7 +761,8 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
         if(current_node->fptree != NULL)
         {
-            sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table, popped->itemset, tid);
+            sf_fp_insert(current_node->fptree->root, current_node->fptree->head_table, popped->itemset,\
+                         popped->freq, tid);
         }
 
         else
