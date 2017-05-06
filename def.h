@@ -69,6 +69,17 @@ struct buffer_node
 
 typedef struct buffer_node* buffer;
 
+typedef struct buffer_table
+{
+    buffer head;
+    buffer tail;
+    double freq;
+    int ftid;
+    int ltid;
+    char collision;
+}buffer_table;
+
+typedef buffer_table* buffTable;
 //////////////////////////////////////////////////////////////////////////////
 
 
@@ -83,9 +94,7 @@ struct sf_node
     sfnode child;
     sfnode next;
     data* item_list;
-    buffer bufferhead;
-    buffer buffertail;
-    // buffer* buffer_table[HSIZE];
+    buffTable hbuffer[HSIZE]; // the hashed buffers
     int bufferSize;
     int ltid; // latest updated/seen time stamp
     int ftid; // first seen tid

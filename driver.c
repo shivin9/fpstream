@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
             //printf("pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
-            sf_prune(forest, tid);
+            // sf_prune(forest, tid);
             gettimeofday(&t4, NULL);
             elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
             elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;

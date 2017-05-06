@@ -108,7 +108,6 @@ void sf_create_update_header_node(header_table* htable, data_type d, int root_da
         curr_header_node->ftid = min(curr_header_node->ftid, tid);
         curr_header_node->ltid = tid;
     }
-    return;
 }
 
 
@@ -187,85 +186,6 @@ void sf_delete_tree_structure(sfnode current_node)
         }
         free(current_node->children);
     }
-    return;
-}
-
-void sf_delete_tree_structure1(sfnode current_node)
-{
-    if(current_node == NULL)
-        return;
-    sfnode* current_child_ptr = current_node->children;
-    assert(current_node != current_node->child);
-    // data* current_data_ptr = current_node->item_list;
-    sfnode this_child, temp;
-    buffer buff = current_node->bufferhead;
-    int idx;
-
-    sf_delete_sftree(current_node->fptree);
-    sf_delete_buffer(buff); /* clear up the buffer*/
-    // free(current_node->bufferhead);
-    // free(current_data_ptr);
-
-    if(current_node->child == NULL && current_child_ptr != NULL)
-    {
-        for(idx = 0; idx < last_index(current_node->data_item); idx++)
-        {
-            if(current_child_ptr[idx] != NULL)
-            {
-                this_child = current_child_ptr[idx];
-
-                if(this_child->prev_similar!=NULL)
-                    (this_child->prev_similar)->next_similar = this_child->next_similar;
-
-                if(this_child->next_similar!=NULL)
-                    (this_child->next_similar)->prev_similar=(this_child)->prev_similar;
-
-                if(this_child->hnode && this_child->hnode->first == this_child)
-                    this_child->hnode->first = NULL;
-
-                sf_delete_tree_structure1(this_child);
-                sf_delete_tree_structure1(this_child->child);
-                sf_delete_tree_structure1(this_child->next);
-                free(this_child); /* let the child go*/
-                this_child = NULL;
-
-                // data temp_data = current_data_ptr[idx];
-                // free(temp_data); /* clear the data items*/
-                // temp_data = NULL;
-                current_child_ptr[idx] = NULL;
-                // free(current_child_ptr);
-                // current_data_ptr[idx] = NULL;
-            }
-        }
-        free(current_node->children);
-    }
-
-    else
-    {
-        this_child = current_node->child;
-        while(this_child)
-        {
-            temp = this_child->next;
-
-            if(this_child->prev_similar != NULL)
-                (this_child->prev_similar)->next_similar = this_child->next_similar;
-
-            if(this_child->next_similar != NULL)
-                (this_child->next_similar)->prev_similar=(this_child)->prev_similar;
-
-            if(this_child->hnode && this_child->hnode->first == this_child)
-                this_child->hnode->first = NULL;
-
-            free(this_child->children);
-            sf_delete_tree_structure1(this_child);
-            // free(this_child->child);
-            free(this_child);
-            // free(this_child->next);
-            this_child = temp;
-        }
-        free(current_node->children);
-    }
-    return;
 }
 
 
@@ -279,7 +199,6 @@ void sf_delete_data_node(data d)
         free(temp);
         temp = NULL;
     }
-    return;
 }
 
 
@@ -296,7 +215,6 @@ void sf_delete_buffer(buffer head)
         head = NULL;
         head = next;
     }
-    return;
 }
 
 
@@ -315,7 +233,6 @@ void sf_delete_header_table(header_table* h)
     }
     free(h);
     h = NULL;
-    return;
 }
 
 
@@ -328,7 +245,6 @@ void sf_delete_sftree(sftree tree)
     tree->root = NULL;
     free(tree);
     tree = NULL;
-    return;
 }
 
 
@@ -339,7 +255,6 @@ void sf_delete_sforest(sforest forest)
     {
         sf_delete_sftree(forest[idx]);
     }
-    return;
 }
 
 
@@ -442,7 +357,6 @@ void sf_create_and_insert_new_child(sfnode current_node, data d, int tid)
     current_node->children[idx] = new_node;
     // current_node->item_list[idx] = new_data;
     //assert(sf_verify_node(current_node));
-    return;
 }
 
 
@@ -453,7 +367,6 @@ void sf_insert_new_child(sfnode current_node, sfnode new_child, int d)
     sfnode temp = current_node->child;
     new_child->next = temp;
     current_node->child = new_child;
-    return;
 }
 
 
@@ -645,7 +558,6 @@ void sf_append_buffer(sfnode curr, data d, int tid)
     curr->buffertail = new;
     curr->buffertail->next = NULL;
     curr->bufferSize++;
-    return;
 }
 
 
@@ -720,7 +632,7 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, double cnt,
     curr_header_node->cnt += cnt;
     curr_header_node->ltid = tid;
     if(current_node->data_item != root_data)
-    	assert(current_node->parent != NULL);
+        assert(current_node->parent != NULL);
 
     /* updating the frequency of the node according to the formula*/
     current_node->freq *= pow(DECAY, tid - current_node->ltid);
@@ -782,7 +694,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
     while(qstack->size > 0) /* we go on till the time we have nodes in the stack*/
     {
-        current_node = pop(qstack); /* get the node in LIFO manner ie. queue.
+        current_node = get(qstack); /* get the node in LIFO manner ie. queue.
                                        This is to get the nodes level by level*/
         assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
 
@@ -922,7 +834,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
             while(temp->next) /* we wont go all the way upto the last node as it has already been updated*/
             {
                 idx = index(temp->data_item, current_node->data_item);
-                sf_prune_buffer1(current_child_ptr[idx], tid);
+                sf_prune_buffer(current_child_ptr[idx], tid);
                 temp = temp->next;
                 if(current_child_ptr[idx]->freq > EPS*(tid - current_child_ptr[idx]->ftid))
                 {
@@ -933,8 +845,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                     /* this is to ensure that the itemset is inserted when we are emptying the buffer.
                     Propagate the node downwards with a certain probability
                     this reduces the length of qstack and makes insertion faster
-                    but we'll need to empty the nodes later on
-                    */
+                    but we'll need to empty the nodes later on*/
                     {
                         push(qstack, current_child_ptr[idx]);
                     }
@@ -942,7 +853,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 else
                 {
                     // printf("freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
-                    sf_delete_tree_structure1(current_child_ptr[idx]);
+                    sf_delete_tree_structure(current_child_ptr[idx]);
                     current_child_ptr[idx] = NULL;
                 }
             }
@@ -981,7 +892,6 @@ void sf_insert_itemset(sforest forest, data d, int tid)
         sf_insert_itemset_helper(tree->root, tree->head_table, tid);
         d = d->next;
     }
-    return;
 }
 
 
@@ -1129,7 +1039,7 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
                 // sf_print_buffer(collect_node);
                 sf_delete_data_node(sorted);
             }
-            //cnt += sf_print_patterns_to_file(collected, collect_node->bufferhead, node->freq, end, pattern);
+            cnt += sf_print_patterns_to_file(collected, collect_node->bufferhead, node->freq, end, pattern);
             // sf_delete_buffer(collect_node->bufferhead);
             sf_delete_tree_structure(collect_node);
             free(collect_node);
@@ -1152,7 +1062,7 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
     int idx, cnt = 0;
     int* collected = calloc(DICT_SIZE, sizeof(int));
     double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
-    // printf("mining the tree with support: %lf\n", N*minsup);
+    printf("mining the tree with support: %lf\n", N*minsup);
 
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
@@ -1261,12 +1171,12 @@ sftree sf_create_conditional_sf_tree(sftree tree, data_type data_item, double mi
     sfnode node = curr_head_table_node->first;
     // printf("prospects for %d\n", data_item);
     // printf("cnt = %lf, minsup = %lf\n", (curr_head_table_node->cnt)*\
-    		pow(DECAY, tid - curr_head_table_node->ltid), minsup);
+            pow(DECAY, tid - curr_head_table_node->ltid), minsup);
 
     if(curr_head_table_node == NULL || (curr_head_table_node->cnt)*\
        pow(DECAY, tid - curr_head_table_node->ltid) < minsup)
     {
-	    // printf("rejecting %d\n", data_item);
+        // printf("rejecting %d\n", data_item);
         return NULL;
     }
 
@@ -1468,7 +1378,6 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
         }
         curr_data = curr_data->next;
     }
-    return;
 }
 
 
@@ -1507,7 +1416,6 @@ void sf_create_header_table_helper(sfnode root, header_table* h)
         sf_create_header_table_helper(current_child_ptr, h);
         current_child_ptr = current_child_ptr->next;
     }
-    return;
 }
 
 
@@ -1523,7 +1431,6 @@ void sf_update_header_table(sftree tree, int tid)
             htable[idx] = NULL;
         }
     }
-    return;
 }
 
 
@@ -1552,7 +1459,6 @@ void sf_create_header_table(sftree tree, int tid)
     // sf_update_header_table(tree->head_table, sorted, tid);
     // sf_delete_data_node(sorted);
     // free(sorted);
-    return;
 }
 /****************************************************************************/
 
@@ -1607,7 +1513,6 @@ void sf_sort_header_table(header_table* htable, double* table)
         temp = htable[idx1];
         table[temp->data_item + 1] = temp->cnt;
     }
-    return;
 }
 
 
@@ -1673,7 +1578,6 @@ void sf_sort_data(data head, double* arr)
         else
             break;
     }
-    return;
 }
 
 
@@ -1709,7 +1613,6 @@ void sf_fix_touched(sfnode node)
         if(child[idx])
             sf_fix_touched(child[idx]);
     }
-    return;
 }
 
 
@@ -1721,7 +1624,6 @@ void sf_update_ancestor(sfnode temp)
         temp1->freq -= (temp->freq * pow(DECAY, temp1->ltid - temp->ltid));
         temp1=temp1->parent;
     }
-    return;
 }
 
 
@@ -1819,7 +1721,7 @@ void sf_fp_merge1(sfnode parent, sfnode child, int tid)
     // assert(childptr->data_item == curr_item->data_item);
 
     childptr->freq = childptr->freq * pow(DECAY, tid - childptr->ltid)\
-    					   + child->freq * pow(DECAY, tid - childptr->ltid);
+                           + child->freq * pow(DECAY, tid - childptr->ltid);
     childptr->ltid = max(childptr->ltid, child->ltid);
     childptr->ftid = max(childptr->ftid, child->ftid);
 
@@ -1867,20 +1769,20 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
     //         temp = temp->next;
     //     }
     // }
-    // 	fir->parent ? sf_print_tree(fir->parent) : sf_print_tree(fir);
+    //  fir->parent ? sf_print_tree(fir->parent) : sf_print_tree(fir);
     int root_data = htable[0]->data_item;
 
     while(fir != NULL)
     {
         parent = fir->parent;
-	    if(fir->data_item == root_data)
-	    {
-	    	return 1;
-	    }
+        if(fir->data_item == root_data)
+        {
+            return 1;
+        }
         parent->children = NULL;
         // printf("\nin pruing parent %d, children = %d: ", parent->data_item, sf_no_children(parent));
         if(parent->child == NULL)
-        	parent->child = fir;
+            parent->child = fir;
         assert(parent->child != NULL);
         // fir->parent = NULL;
         // fp_print_data_node(parent->item_list);
@@ -1945,7 +1847,7 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
 
             // printf("\nmerging %d, %d\n", fir->parent->data_item, temp1->data_item);
             // printf("before:- parent %d, children = %d, items = %d: \n\n", parent->data_item,\
-            // 		sf_no_children(parent), sf_no_dataitem(parent));
+            //      sf_no_children(parent), sf_no_dataitem(parent));
 
             // if(parent->child)
             // {
@@ -1967,7 +1869,7 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
             //assert(fp_verify_node(parent));
 
             // printf("\nafter:- parent %d, children = %d, items = %d: \n\n", parent->data_item,\
-            // 		sf_no_children(parent), sf_no_dataitem(parent));
+            //      sf_no_children(parent), sf_no_dataitem(parent));
 
             // // fp_print_data_node(parent->item_list);
             // sf_print_tree(parent);
@@ -2003,58 +1905,6 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
     }
     htemp->first = NULL;
     return 0;
-}
-
-
-void sf_prune_buffer1(sfnode curr, int tid)
-{
-    buffer curr_buff = curr->bufferhead, head = curr->bufferhead, temp;
-    int root_data = curr->data_item, idx;
-    if(head == NULL)
-        return;
-
-    /* delete the head if it needs to be deleted*/
-    while(curr_buff == head && head != NULL)
-    {
-        idx = index(curr_buff->itemset->data_item, root_data);
-        curr_buff->freq *= pow(DECAY, tid - curr_buff->ltid);
-        if(curr->children[idx] == NULL && curr_buff->freq < EPS*(tid - curr_buff->ftid))
-        {
-            temp = curr_buff;
-            head = head->next;
-            if(head)
-                head->prev = NULL;
-            temp->next = NULL;
-            curr->bufferSize--;
-            sf_delete_buffer(temp);
-        }
-        curr_buff = curr_buff->next;
-    }
-    curr->bufferhead = head;
-    if(head == NULL)
-        curr->buffertail = NULL;
-
-    /* B1<==>B2<==>[to_del]<==>B4<==>B5*/
-    /* now we are beyond the point where heads need to be deleted*/
-    while(curr_buff)
-    {
-        idx = index(curr_buff->itemset->data_item, root_data);
-        curr_buff->freq *= pow(DECAY, tid - curr_buff->ltid);
-        if(curr->children[idx] == NULL && curr_buff->freq < EPS*(tid - curr_buff->ftid))
-        {
-            if(curr_buff->next)
-                curr_buff->next->prev = curr_buff->prev;
-            curr_buff->prev->next = curr_buff->next;
-            temp = curr_buff;
-            if(curr->buffertail == temp)
-                curr->buffertail = temp->prev;
-            temp->next = NULL;
-            curr->bufferSize--;
-            sf_delete_buffer(temp);
-        }
-        curr_buff = curr_buff->next;
-    }
-    return;
 }
 
 
@@ -2106,7 +1956,6 @@ void sf_prune_buffer(sfnode curr, int tid)
         }
         curr_buff = curr_buff->next;
     }
-    return;
 }
 
 /* Decay the count of node in the header table and decrease some value from nodes in the bltree*/
@@ -2175,31 +2024,30 @@ void sf_prune_helper(sfnode node, header_table* htable, int tid)
                 else
                 {
                     push(qstack, node->children[child]);
-	                if(node->children[child]->fptree)
-	                {
-	 					child_htable = node->children[child]->fptree->head_table;
-	 					root_data = child_htable[0]->data_item;
-	 					for(i = 0; i < last_index(root_data) && child_htable[i]; i++)
-	 					{
-	 						if(child_htable[i]->cnt < EPS*(tid - child_htable[i]->ftid))
-	 						{
-                    			// printf("child: %d, i: %d\n", child, i);
-	 							if(sf_fp_prune(child_htable, i, tid))
-	 							{
-                    				sf_delete_sftree(node->children[child]->fptree);
-                    				node->children[child]->fptree = NULL;
-	                    			child_htable = NULL;
-	                    			break;
-	 							}
-	                    	}
-	 					}
-	                }
-	            }
+                    if(node->children[child]->fptree)
+                    {
+                        child_htable = node->children[child]->fptree->head_table;
+                        root_data = child_htable[0]->data_item;
+                        for(i = 0; i < last_index(root_data) && child_htable[i]; i++)
+                        {
+                            if(child_htable[i]->cnt < EPS*(tid - child_htable[i]->ftid))
+                            {
+                                // printf("child: %d, i: %d\n", child, i);
+                                if(sf_fp_prune(child_htable, i, tid))
+                                {
+                                    sf_delete_sftree(node->children[child]->fptree);
+                                    node->children[child]->fptree = NULL;
+                                    child_htable = NULL;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
     delete_qstack(qstack);
-    return;
 }
 
 
@@ -2210,7 +2058,6 @@ void sf_prune(sforest forest, int tid)
     {
         sf_prune_helper(forest[i]->root, forest[i]->head_table, tid);
     }
-    return;
 }
 
 /****************************************************************************/
@@ -2244,7 +2091,6 @@ void sf_print_node(sfnode node)
         // sf_print_data_node(buff->itemset);
         buff = buff->next;
     }
-    return;
 }
 
 
@@ -2260,7 +2106,6 @@ void sf_print_sforest(sforest forest)
         sf_print_tree(forest[i]->root);
         printf("---------------------------------------\n\n");
     }
-    return;
 }
 
 
@@ -2291,7 +2136,6 @@ void sf_print_sforest_lvl(sforest forest)
         }
         printf("\n");
     }
-    return;
 }
 
 
@@ -2304,7 +2148,6 @@ void sf_print_buffer(buffer head)
         sf_print_data_node(buff->itemset);
         buff = buff->next;
     }
-    return;
 }
 
 
@@ -2332,7 +2175,6 @@ void sf_print_tree(sfnode node)
             temp = temp->next;
         }
     }
-    return;
 }
 
 
@@ -2352,7 +2194,6 @@ void sf_print_header_table(header_table* h)
         // }
         // printf("\n");
     }
-    return;
 }
 
 
@@ -2364,7 +2205,6 @@ void sf_print_data_node(data d)
         d = d->next;
     }
     printf("\n");
-    return;
 }
 
 /****************************************************************************/
