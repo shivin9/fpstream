@@ -122,7 +122,6 @@ int main(int argc, char* argv[])
 
     gettimeofday(&t1, NULL);
 
-
     buffer stream = NULL, end = NULL;
     stream = (buffer) calloc(1, sizeof(struct buffer_node));
     stream->itemset = (data) calloc(1, sizeof(struct data_node));
@@ -244,7 +243,7 @@ int main(int argc, char* argv[])
     // sf_print_tree(tree->root);
     // printf("****printing Htable****\n");
     // sf_print_header_table(tree->head_table);
-
+    // sf_print_sforest(forest);
     /* testing the sf_dfs() function*/
     // sftree condtree = sf_create_conditional_sf_tree(tree, 3, MINSUP_SEMIFREQ, 0);
     // sf_print_tree(condtree->root);
@@ -258,9 +257,9 @@ int main(int argc, char* argv[])
     printf("(%d items) total time taken to mine the sf tree = %lf ms\n",\
             no_patterns, elapsedTime);
 
-    sf_delete_sftree(tree);
-    sf_delete_sforest(forest);
-    free(forest);
-    sf_delete_data_node(sorted);
-    return 1;
+    // sf_delete_sftree(tree);
+    // sf_delete_sforest(forest);
+    // free(forest);
+    // sf_delete_data_node(sorted);
+    return 0;
 }

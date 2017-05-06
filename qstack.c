@@ -13,6 +13,7 @@ void delete_qstack(QStack* qstack)
         }
     }
     free(qstack);
+    return;
 }
 
 /* inserting the string in the corresponding linked list of the hash table*/
@@ -59,6 +60,7 @@ void save(dict htable, char* key)
     hlink toput = htable->table[row];
     htable->size += 1;
     insert(toput, key);
+    return;
 }
 
 
@@ -108,6 +110,7 @@ void push(QStack* l, sfnode v)
         new->next = NULL;
         new->prev = temp;
     }
+    return;
 }
 
 
