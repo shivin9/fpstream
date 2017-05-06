@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 {
     if(argc == 1)
     {
-        printf("format is ./exe <INPUT_filename><OUTPUT_filename>\n\
+        //printf("format is ./exe <INPUT_filename><OUTPUT_filename>\n\
                 -D<DICT_SIZE>\n\
                 -B<BATCH_SIZE>\n\
                 -d<DECAY>\n\
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
                     case 'D': DICT_SIZE =  strtod(s, &s);      break;
                     case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
-                    default : printf("UNKNOWN ARGUMENT! %c", *(s-1));
+                    default : //printf("UNKNOWN ARGUMENT! %c", *(s-1));
                               exit(-1);                        break;
                 }
             }
@@ -90,11 +90,11 @@ int main(int argc, char* argv[])
     sf = fopen(argv[1], "r");
     if(sf == NULL)
     {
-        printf("invalid file\n");
+        //printf("invalid file\n");
         exit(0);
     }
 
-    printf("\
+    //printf("\
             The parameters are:-\n\
             <DICT_SIZE>:        %d\n\
             <BATCH_SIZE>:       %d\n\
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
     struct timeval t1, t2, t3, t4;
     double elapsedTime, sum = 0, totaltime = 0, prune_time = 0;
 
-    gettimeofday(&t1, NULL);
+    // gettimeofday(&t1, NULL);
 
 
     buffer stream = NULL, end = NULL;
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
             data new_d = calloc(1, sizeof(struct data_node));
             if(new_d == NULL)
             {
-                printf("new_d malloc failed\n");
+                //printf("new_d malloc failed\n");
             }
             new_d->data_item = item;
             new_d->next = d;
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
         // break;
         if(tid%BATCH == 0)
         {
-            printf("pruning at tid = %d\n", tid);
+            //printf("pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
             sf_prune(forest, tid);
@@ -221,11 +221,11 @@ int main(int argc, char* argv[])
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
-    printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
+    //printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
+    //printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
 
-    printf("total intermittent prune time = %lf ms\n", prune_time);
-    printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
+    //printf("total intermittent prune time = %lf ms\n", prune_time);
+    //printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
     gettimeofday(&t3, NULL);
     sf_empty_buffers(forest, tid);
@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-    printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
+    //printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
 
     gettimeofday(&t1, NULL);
     no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     // sfnode collector = calloc(1, sizeof(struct sf_node));
 
     // sf_print_tree(tree->root);
-    // printf("****printing Htable****\n");
+    // //printf("****printing Htable****\n");
     // sf_print_header_table(tree->head_table);
 
     /* testing the sf_dfs() function*/
@@ -255,12 +255,12 @@ int main(int argc, char* argv[])
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-    printf("(%d items) total time taken to mine the sf tree = %lf ms\n",\
+    //printf("(%d items) total time taken to mine the sf tree = %lf ms\n",\
             no_patterns, elapsedTime);
 
-    sf_delete_sftree(tree);
-    sf_delete_sforest(forest);
-    free(forest);
-    sf_delete_data_node(sorted);
-    return 1;
+    // sf_delete_sftree(tree);
+    // sf_delete_sforest(forest);
+    // free(forest);
+    // sf_delete_data_node(sorted);
+    return 0;
 }

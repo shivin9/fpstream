@@ -20,6 +20,7 @@ void sf_insert_itemset(sforest, data, int tid);
 /* DELETION FUNCTIONS*/
 void sf_delete_header_table(header_table*);
 void sf_delete_tree_structure(sfnode);
+void sf_delete_tree_structure1(sfnode);
 void sf_delete_data_node(data);
 void sf_delete_buffer(buffer); /* clear up the buffer*/
 void sf_delete_sftree(sftree tree);
@@ -71,6 +72,7 @@ data sf_reverse_data(data head);
 int sf_fp_prune(header_table*, int idx, int tid);
 void sf_fp_merge1(sfnode parent, sfnode child, int tid);
 void sf_prune_buffer(sfnode, int);
+void sf_prune_buffer1(sfnode, int);
 void sf_prune_helper(sfnode, header_table*, int);
 void sf_prune(sforest, int);
 void sf_update_ancestor(sfnode);
