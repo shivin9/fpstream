@@ -66,6 +66,7 @@ void sf_print_sforest_lvl(sforest forest);
 void sf_print_header_table(header_table*);
 void sf_print_data_node(data d);
 void sf_print_buffer(buffer);
+void sf_print_buffer_table(bufferTable*);
 
 /* PRUNING FUNCTIONS*/
 data sf_reverse_data(data head);

@@ -231,9 +231,13 @@ int main(int argc, char* argv[])
     printf("total intermittent prune time = %lf ms\n", prune_time);
     printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
+    sf_print_sforest(forest);
+
     gettimeofday(&t3, NULL);
     sf_empty_buffers(forest, tid);
     gettimeofday(&t4, NULL);
+
+    sf_print_sforest(forest);
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -248,7 +252,6 @@ int main(int argc, char* argv[])
     // sf_print_tree(tree->root);
     // printf("****printing Htable****\n");
     // sf_print_header_table(tree->head_table);
-    // sf_print_sforest(forest);
     /* testing the sf_dfs() function*/
     // sftree condtree = sf_create_conditional_sf_tree(tree, 3, MINSUP_SEMIFREQ, 0);
     // sf_print_tree(condtree->root);

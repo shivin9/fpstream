@@ -483,6 +483,7 @@ void sf_append_buffer(sfnode curr, data d, int tid)
     curr_buffer->freq++;
     curr_buffer->ltid = tid;
 
+
     while(temp_buff)
     {
         temp_buff->freq *= pow(DECAY, tid - temp_buff->ltid);
@@ -505,6 +506,10 @@ void sf_append_buffer(sfnode curr, data d, int tid)
         curr_buffer->bufferhead = new;
         curr_buffer->buffertail = new;
     }
+
+    /* bufferSize fields increase only when we add a new node*/
+    curr_buffer->bufferSize++;
+    curr->bufferSize++;
 
     /* we create a new copy of the datanode*/
     data temp;
@@ -532,8 +537,6 @@ void sf_append_buffer(sfnode curr, data d, int tid)
 
     curr_buffer->buffertail = new;
     curr_buffer->buffertail->next = NULL;
-    curr_buffer->bufferSize++;
-    curr->bufferSize++;
 }
 
 
@@ -547,14 +550,17 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
 
     bufferTable hbuffer = curr->hbuffer[bucket];
     buffer temp = hbuffer->bufferhead, prev = NULL;
+
     if(temp == NULL)
     {
         assert(hbuffer->buffertail == NULL);
         assert(hbuffer->bufferSize == 0);
         return sf_pop_buffer(curr, (bucket+1)%HSIZE, tid);
     }
+
     curr->bufferSize--;
     hbuffer->bufferSize--;
+
     prev = hbuffer->buffertail->prev;
     temp = hbuffer->buffertail;
 
@@ -792,6 +798,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->ltid);
                 assert(popped->ltid == tid); /* updated in the pop function itself*/
                 current_child_ptr[idx]->freq += popped->freq;
+                current_child_ptr[idx]->ftid = min(current_child_ptr[idx]->ftid, popped->ftid); 
                 current_child_ptr[idx]->ltid = tid;
 
                 /*  this code is to update the header tables properly
@@ -817,7 +824,6 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                     this_child->prev_similar = NULL;
                     // htable[idx]->cnt += node->freq;
                 }
-
                 temp = temp->next; /* move the buffer node forward*/
             }
 
@@ -904,13 +910,14 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
 
     double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     minsup *= N;
-    int pttrn_cnt = 0, t = 0;
+    int pttrn_cnt = 0;
 
     if(sf == NULL)
         exit(0);
 
     /* this part is to print the transaction when the end node has no fptree*/
     {
+        int t = 0;
         fprintf(sf, "%d", end + 1);
 
         while(t <= end)
@@ -930,7 +937,7 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
     data temp;
     while(buff)
     {
-        int len = 0, new_end = end;
+        int len = 0, new_end = end, t = 0;
 
         while(buff && buff->freq < minsup)
             buff = buff->next;
@@ -960,7 +967,7 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
 
         if(collected)
         {
-            // fprintf(sf, " collected:");
+            fprintf(sf, " collected:");
             while(t <= new_end)
             {
                 fprintf(sf, " %d", collected[t]);
@@ -969,8 +976,7 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
             }
         }
 
-        // fprintf(sf, " -- fpmined trans:");
-
+        fprintf(sf, " -- fpmined trans:");
         while(temp)
         {
             fprintf(sf, " %d", temp->data_item);
@@ -1026,9 +1032,8 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
                 // int i;
                 // printf("collected: ");
                 // for(i = 0; i < end + 1; i++)
-                //  printf("%d, ", collected[i]);
+                //     printf("%d, ", collected[i]);
                 // printf("\n****node->freq = %lf, collected from tree****\n", node->freq);
-                sf_print_buffer(collector->bufferhead);
                 sf_delete_data_node(sorted);
             }
             cnt += sf_print_patterns_to_file(collected, collector->bufferhead, node->freq, end, pattern);
@@ -1305,8 +1310,6 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, buffe
             collected->bufferhead = new;
             new->next = temp_head;
             new->freq = curr_header_node->cnt;
-            printf("buffer of collected node in fp_mine: ");
-            sf_print_buffer(collected->bufferhead);
         }
     }
 
@@ -1977,20 +1980,31 @@ void sf_print_node(sfnode node)
     int c = sf_no_children(node), b = node->bufferSize;
 
     if(node->parent)
-        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %d, parent = %d, touched = %lf, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->ftid, node->ltid, node->parent->data_item, node->touched, c, b);
+        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %d, parent = %d, touched = %lf, children = %d, buffer_size = %d \n",\
+                node->data_item, node->freq, node->ftid, node->ltid,\
+                node->parent->data_item, node->touched, c, b);
     else
-        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %d, parent = NULL, touched = %lf, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->ftid, node->ltid, node->touched, c, b);
+        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %d, parent = NULL, touched = %lf, children = %d, buffer_size = %d \n",\
+                node->data_item, node->freq, node->ftid, node->ltid,\
+                node->touched, c, b);
+
+    if(node->hbuffer && node->bufferSize)
+    {
+        printf("BUFFER TABLE:\n");
+        sf_print_buffer_table(node->hbuffer);
+    }
 
     if(node->fptree)
     {
         printf("FPTREE:\n");
-        sf_print_tree(node->fptree->root);
         printf("FP-HEADER TABLE:-\n");
         printf("##############################################################################\n");
         sf_print_header_table(node->fptree->head_table);
         printf("##############################################################################\n");
+        sf_print_tree(node->fptree->root);
         printf("******************************************************************************\n");
     }
+    printf("\n");
 }
 
 
@@ -2035,6 +2049,18 @@ void sf_print_sforest_lvl(sforest forest)
             printf("******************************************************************\n");
         }
         printf("\n");
+    }
+}
+
+
+void sf_print_buffer_table(bufferTable* hbuffer)
+{
+    int i;
+    for(i = 0; i < HSIZE && hbuffer[i]->bufferSize; i++)
+    {
+        printf("^^^^^^ freq = %lf, table_size = %d, tid = %d, bucket = %d ^^^^^^\n",\
+                hbuffer[i]->freq, hbuffer[i]->bufferSize, hbuffer[i]->ltid, i);
+        sf_print_buffer(hbuffer[i]->bufferhead);
     }
 }
 
