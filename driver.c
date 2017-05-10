@@ -231,13 +231,13 @@ int main(int argc, char* argv[])
     printf("total intermittent prune time = %lf ms\n", prune_time);
     printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
-    sf_print_sforest(forest);
+    // sf_print_sforest(forest);
 
     gettimeofday(&t3, NULL);
     sf_empty_buffers(forest, tid);
     gettimeofday(&t4, NULL);
 
-    sf_print_sforest(forest);
+    // sf_print_sforest(forest);
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
