@@ -11,6 +11,7 @@
 7. Have -1 as the root node surely
 8. FPTrees have child as linked list but header table is still an array
 9. The header table is updated just before pruning the tree
+10. Implementing lazy buffer allocation
 */
 #include "sftree.h"
 
@@ -70,10 +71,6 @@ sftree sf_create_sftree(data_type dat)
 
     sfnode node = calloc(1, sizeof(struct sf_node));
     node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
-    int i;
-
-    for(i = 0; i < HSIZE; i++)
-        node->hbuffer[i] = calloc(1, sizeof(buffer_table));
 
     if(node == NULL)
     {
@@ -81,6 +78,7 @@ sftree sf_create_sftree(data_type dat)
     }
 
     node->children = calloc(last_index(dat), sizeof(sfnode));
+    node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
     node->data_item = dat;
     node->ftid = INT_MAX;
     node->ltid = -1;
@@ -306,9 +304,6 @@ void sf_create_and_insert_new_child(sfnode current_node, data d, int tid)
     int idx = index(d->data_item, current_node->data_item), i;
 
     new_node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
-    for(i = 0; i < HSIZE; i++)
-        new_node->hbuffer[i] = calloc(1, sizeof(buffer_table));
-
 
     // data new_data = calloc(1, sizeof(struct data_node));
     // new_data->data_item = d->data_item;
@@ -470,6 +465,10 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
     /* this tid is the timestamp when the dataitem was buffered*/
     if(d == NULL)
         return;
+
+    if(curr->hbuffer[d->data_item % HSIZE] == NULL)
+        curr->hbuffer[d->data_item % HSIZE] = calloc(1, sizeof(buffer_table));
+
     bufferTable curr_buffer = curr->hbuffer[d->data_item % HSIZE];
     
     if(d->data_item % HSIZE != d->data_item)
@@ -480,7 +479,8 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
 
     /* updating the count of bufferTable*/
     curr_buffer->freq *= pow(DECAY, tid - curr_buffer->ltid);
-    curr_buffer->freq += freq;
+    curr_buffer->freq += freq; /* this is needed as when while insertion we are bringing the accumulated
+                                  transactions down then we need to maintain their count*/
     curr_buffer->ltid = tid;
 
 
@@ -547,15 +547,13 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
         bucket = curr->last;
 
     bufferTable hbuffer = curr->hbuffer[bucket];
-    buffer temp = hbuffer->bufferhead, prev = NULL;
-
-    if(temp == NULL)
+    
+    if(hbuffer == NULL)
     {
-        assert(hbuffer->buffertail == NULL);
-        assert(hbuffer->bufferSize == 0);
         return sf_pop_buffer(curr, (bucket+1)%HSIZE, tid);
     }
 
+    buffer temp = hbuffer->bufferhead, prev = NULL;
     curr->bufferSize--;
     hbuffer->bufferSize--;
 
@@ -578,7 +576,11 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
     temp->ltid = tid;
     
     hbuffer->freq -= temp->freq;
-
+    if(hbuffer->bufferSize == 0)
+    {
+        free(curr->hbuffer[bucket]);
+        curr->hbuffer[bucket] = NULL;
+    }
     assert(temp->next == NULL);
     curr->last = -1;
     return temp;
@@ -965,7 +967,7 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
 
         if(collected)
         {
-            fprintf(sf, " collected:");
+            // fprintf(sf, " collected:");
             while(t <= new_end)
             {
                 fprintf(sf, " %d", collected[t]);
@@ -974,7 +976,7 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
             }
         }
 
-        fprintf(sf, " -- fpmined trans:");
+        // fprintf(sf, " -- fpmined trans:");
         while(temp)
         {
             fprintf(sf, " %d", temp->data_item);
@@ -1811,7 +1813,7 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
 void sf_prune_buffer(sfnode curr, int tid)
 {
     int root_data = curr->data_item, idx, i;
-    for(i = 0; i < HSIZE; i++)
+    for(i = 0; i < HSIZE && curr->hbuffer[i]; i++)
     {        
         buffer curr_buff = curr->hbuffer[i]->bufferhead, head = curr->hbuffer[i]->bufferhead, temp;
         if(head == NULL)
