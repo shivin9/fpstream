@@ -588,7 +588,7 @@ int sf_verify_node(sfnode current_node)
 }
 
 
-void sf_append_buffer(sfnode curr, data d, int tid)
+void sf_append_buffer(sfnode curr, data d, double freq, int tid)
 {
     /* takes care of cases when to be buffered item is NULL*/
     /* this tid is the timestamp when the dataitem was buffered*/
@@ -604,7 +604,7 @@ void sf_append_buffer(sfnode curr, data d, int tid)
         {
             // printf("appending at node!\n");
             // sf_print_node(curr);
-            temp_buff->freq++;
+            temp_buff->freq += freq;;
             return;
         }
         temp_buff = temp_buff->next;
@@ -625,7 +625,7 @@ void sf_append_buffer(sfnode curr, data d, int tid)
     new->ltid = tid;
     new->itemset = (data) calloc(1, sizeof(struct data_node));
     new->itemset->data_item = d->data_item;
-    new->freq = 1;
+    new->freq = freq;
     temp = new->itemset;
     d = d->next;
     while(d)
@@ -882,7 +882,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 // assert(is_equal(this_data_item, temp));
 
                 if(temp->next) /* here we are filling up the buffers of the children*/
-                    sf_append_buffer(current_child_ptr[idx], temp->next, tid);
+                    sf_append_buffer(current_child_ptr[idx], temp->next, popped->freq, tid);
 
                 /* updating the frequency of the node according to the formula*/
                 current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->ltid);
@@ -972,7 +972,7 @@ void sf_insert_itemset(sforest forest, data d, int tid)
             tree->head_table[index(d->data_item, tree->head_table[0]->data_item)]->cnt++;
             return;
         }
-        sf_append_buffer(tree->root, d->next, tid); /* transaction: acdef, node a will have 'cdef'*/
+        sf_append_buffer(tree->root, d->next, 1, tid); /* transaction: acdef, node a will have 'cdef'*/
 
         tree->root->ftid = min(tree->root->ftid, tid);
         tree->root->freq *= pow(DECAY, tid - tree->root->ltid);
@@ -1080,7 +1080,7 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
 
         if(pattern%2 == 0)
         {
-            fprintf(sf, " %lf\n", cnt < 0 ? buff->ltid : min(cnt, buff->ltid));
+            fprintf(sf, " %lf\n", cnt < 0 ? buff->freq : min(cnt, buff->freq));
             // printf(" %lf\n", node->freq);
         }
         buff = buff->next;
@@ -1383,7 +1383,7 @@ void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnod
             // append the frequent itemset to the buffer of a collector code
             // printf("mined: ");
             // sf_print_data_node(till_now);
-            sf_append_buffer(collected, till_now, curr_header_node->cnt);
+            sf_append_buffer(collected, till_now, curr_header_node->cnt, tid);
             // printf("buffer of collected node in fp_mine: ");
             // sf_print_buffer(collected);
         }
