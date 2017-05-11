@@ -13,7 +13,7 @@
 9. The header table is updated just before pruning the tree
 10. Implementing lazy buffer allocation
 11. If some node's buffer goes fully empty, don't delete the hbuffer field; we'll use ot later
-12. But
+12. Need to take down buffered transactions in a bunch now
 */
 #include "sftree.h"
 
@@ -55,7 +55,10 @@ sforest sf_create_sforest()
     for(i = 0; i < DICT_SIZE; i++)
     {
         forest[i] = sf_create_sftree(i);
-        sf_create_header_table(forest[i], INT_MAX);
+        forest[i]->root->data_item = DICT_SIZE; /* we dont want to make a huge header table
+                                                   just enough to hold the root value*/
+        sf_create_header_table(forest[i], INT_MAX); /* INT_MAX is the tid*/
+        forest[i]->root->data_item = i; /* reset the root pointer*/
     }
     return forest;
 }
@@ -562,14 +565,6 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
 
     prev = hbuffer->buffertail->prev;
     temp = hbuffer->buffertail;
-
-    if(prev)
-        prev->next = NULL;
-    else
-        hbuffer->bufferhead = NULL; /* we are popping off the only buffer present*/
-
-    // assert(prev->next == curr->buffertail);
-
     hbuffer->buffertail = prev;
     hbuffer->freq *= pow(DECAY, tid - hbuffer->ltid); /* update hbuffer's freq and ltid*/
     hbuffer->ltid = tid;
@@ -581,6 +576,17 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
     hbuffer->freq -= temp->freq;
     assert(temp->next == NULL);
     curr->last = -1;
+
+    if(hbuffer->buffertail)
+        hbuffer->buffertail->next = NULL;
+
+    if(hbuffer->buffertail == NULL)
+    {
+        hbuffer->bufferhead = NULL; /* we are popping off the only buffer present*/
+        // free(curr->hbuffer[bucket]);
+        // curr->hbuffer[bucket] = NULL;
+    }
+
     return temp;
 }
 
@@ -695,31 +701,13 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
 
     while(qstack->size > 0) /* we go on till the time we have nodes in the stack*/
     {
-        current_node = get(qstack); /* get the node in LIFO manner ie. queue.
+        current_node = pop(qstack); /* get the node in LIFO manner ie. queue.
                                        This is to get the nodes level by level*/
         assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
 
         data_type this_data = current_node->data_item;
         root_data = htable[0]->data_item;
         idx = index(this_data, root_data); /* this index will point to the correct header node and the child node*/
-
-        // sf_create_update_header_node(htable, this_data, root_data, tid); /* create the header node if it's not made yet*/
-
-        // /* create the links right here only*/
-        // if(htable && current_node->hnode == NULL)
-        // {
-        //     //append to the head of the linked list for this data item
-        //     current_node->next_similar = htable[idx]->first;
-        //     current_node->hnode = htable[idx];
-        //     if(htable[idx]->first)
-        //         htable[idx]->first->prev_similar = current_node;
-
-        //     htable[idx]->first = current_node;
-        //     /*The first node next to the header table has NO previous node although a
-        //     next node from the header table points to it*/
-        //     current_node->prev_similar = NULL;
-        //     // htable[idx]->cnt += node->freq;
-        // }
 
         buffer popped = sf_pop_buffer(current_node, rand()%HSIZE, tid); /* popped is the last buffer, it has the itemset
                                                         which will be propagated down*/
@@ -740,7 +728,7 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
             // printf("leaving in buffer at node %d: ", current_node->data_item);
             // sf_print_data_node(d);
             current_node->bufferSize++;
-            // sf_append_buffer(current_node, popped->itemset, popped->freq, tid); /* push back the popped buffer as we have to leave now*/
+            sf_append_buffer(current_node, popped->itemset, popped->freq, tid); /* push back the popped buffer as we have to leave now*/
             LEAVE_AS_BUFFER = 0;
             delete_qstack(qstack);
             return;
@@ -806,26 +794,6 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 /*  this code is to update the header tables properly
                     note that now we dont need the update function
                 */
-                // sf_create_update_header_node(htable, temp->data_item, root_data, tid);
-                // idx = index(temp->data_item, root_data); /* idx in the header table,\
-                //                                             root is the value of the root of sf-tree*/
-
-                // /* create the links right here only*/
-                // if(htable && this_child->hnode == NULL)
-                // {
-                //     //append to the head of the linked list for this data item
-                //     assert(htable[idx]->data_item == this_child->data_item);
-                //     this_child->next_similar = htable[idx]->first;
-                //     this_child->hnode = htable[idx];
-                //     if(htable[idx]->first)
-                //         htable[idx]->first->prev_similar = this_child;
-
-                //     htable[idx]->first = this_child;
-                //     /*The first node next to the header table has NO previous node although a
-                //     next node from the header table points to it*/
-                //     this_child->prev_similar = NULL;
-                //     // htable[idx]->cnt += node->freq;
-                // }
                 temp = temp->next; /* move the buffer node forward*/
             }
 
@@ -880,7 +848,6 @@ void sf_insert_itemset(sforest forest, data d, int tid)
             tree->root->ftid = min(tree->root->ftid, tid);
             tree->root->ltid = tid;
             tree->root->freq++;
-            tree->head_table[index(d->data_item, tree->head_table[0]->data_item)]->cnt++;
             return;
         }
         sf_append_buffer(tree->root, d->next, 1, tid); /* transaction: acdef, node a will have 'cdef'*/
@@ -1885,43 +1852,6 @@ void sf_prune_helper(sfnode node, header_table* htable, int tid)
     int child, idx, root_data = htable[0]->data_item, i;
     sfnode first, next, curr;
     QStack* qstack = createQStack();
-
-    // for(idx = 0; idx < last_index(root_data) && htable[idx]; idx++)
-    // {
-    //     if(htable[idx]->cnt < EPS*(tid - htable[idx]->ftid))
-    //     {
-    //         first = htable[idx]->first;
-    //         while(first)
-    //         {
-    //             next = first->next_similar;
-    //             first->prev_similar = NULL;
-    //             first->parent->children[index(first->data_item, root_data)] = NULL;
-    //             sf_delete_tree_structure(first);
-    //             first = next;
-    //         }
-    //     }
-
-    //     else
-    //     {
-    //         first = htable[idx]->first;
-    //         while(first)
-    //         {
-    //             next = first->next_similar;
-    //             if(first->freq < EPS*(tid - first->ftid))
-    //             {
-    //                 next->prev_similar = first->prev_similar;
-    //                 if(first->prev_similar == NULL)
-    //                     htable[idx]->first = next;
-    //                 else
-    //                     first->prev_similar->next_similar = next;
-
-    //                 first->parent->children[index(first->data_item, root_data)] = NULL;
-    //                 sf_delete_tree_structure(first);
-    //             }
-    //             first = next;
-    //         }
-    //     }
-    // }
 
     push(qstack, node);
     header_table* child_htable;
