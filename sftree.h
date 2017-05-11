@@ -23,6 +23,7 @@ void sf_delete_tree_structure(sfnode);
 void sf_delete_tree_structure1(sfnode);
 void sf_delete_data_node(data);
 void sf_delete_buffer(buffer); /* clear up the buffer*/
+void sf_delete_buffer_table(bufferTable*);
 void sf_delete_sftree(sftree tree);
 
 /* AUXILLARY FUNCTIONS*/

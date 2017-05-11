@@ -118,8 +118,8 @@ int main(int argc, char* argv[])
     data sorted = sf_create_sorted_dummy(0);
     forest = sf_create_sforest();
 
-    sftree tree = sf_create_sftree(0);
-    sf_create_header_table(tree, tid);
+    // sftree tree = sf_create_sftree(0);
+    // sf_create_header_table(tree, tid);
 
     struct timeval t1, t2, t3, t4;
     double elapsedTime, sum = 0, totaltime = 0, prune_time = 0;
@@ -171,7 +171,8 @@ int main(int argc, char* argv[])
         gettimeofday(&t3, NULL);
         sf_insert_itemset(forest, stream->itemset, tid);
         gettimeofday(&t4, NULL);
-
+        // printf("inserting: ");
+        // sf_print_data_node(stream->itemset);
         // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
 
         elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
@@ -193,7 +194,7 @@ int main(int argc, char* argv[])
             printf("pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
-            // sf_prune(forest, tid);
+            sf_prune(forest, tid);
             gettimeofday(&t4, NULL);
             elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
             elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -231,13 +232,13 @@ int main(int argc, char* argv[])
     printf("total intermittent prune time = %lf ms\n", prune_time);
     printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
-    sf_print_sforest(forest);
+    // sf_print_sforest(forest);
 
     gettimeofday(&t3, NULL);
     sf_empty_buffers(forest, tid);
     gettimeofday(&t4, NULL);
 
-    sf_print_sforest(forest);
+    // sf_print_sforest(forest);
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -267,6 +268,6 @@ int main(int argc, char* argv[])
     // sf_delete_sftree(tree);
     // sf_delete_sforest(forest);
     // free(forest);
-    // sf_delete_data_node(sorted);
+    sf_delete_data_node(sorted);
     return 0;
 }

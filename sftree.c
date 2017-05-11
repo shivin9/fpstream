@@ -12,6 +12,8 @@
 8. FPTrees have child as linked list but header table is still an array
 9. The header table is updated just before pruning the tree
 10. Implementing lazy buffer allocation
+11. If some node's buffer goes fully empty, don't delete the hbuffer field; we'll use ot later
+12. But
 */
 #include "sftree.h"
 
@@ -70,7 +72,6 @@ sftree sf_create_sftree(data_type dat)
     }
 
     sfnode node = calloc(1, sizeof(struct sf_node));
-    node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
 
     if(node == NULL)
     {
@@ -91,6 +92,8 @@ sftree sf_create_sftree(data_type dat)
 
 void sf_create_update_header_node(header_table* htable, data_type d, int root_data, int tid)
 {
+    if(htable == NULL)
+        return;
     int idx = index(d, root_data); /* idx in the header table*/
     if(htable[idx] == NULL)
     {
@@ -102,6 +105,7 @@ void sf_create_update_header_node(header_table* htable, data_type d, int root_da
         htable[idx]->ltid = -1;
     }
     header_table curr_header_node = htable[idx];
+    assert(d == curr_header_node->data_item);
 
     if(curr_header_node->ltid < tid)
     {
@@ -120,23 +124,16 @@ void sf_delete_tree_structure(sfnode current_node)
     assert(current_node != current_node->child);
     // data* current_data_ptr = current_node->item_list;
     sfnode this_child, temp;
-    bufferTable* bufftable = current_node->hbuffer;
     int idx;
+
+    bufferTable* bufftable = current_node->hbuffer;
+    sf_delete_buffer_table(bufftable);
+    free(bufftable);
+    bufftable = NULL;
+    current_node->hbuffer = NULL;
     
-    if(bufftable)
-    {
-        for(idx = 0; idx < HSIZE; idx++)
-        {
-            sf_delete_buffer(bufftable[idx]->bufferhead); /* clear up the buffer*/
-            free(bufftable[idx]);
-        }
-    }
-
-    free(current_node->hbuffer);
-
     sf_delete_sftree(current_node->fptree);
-    // free(current_node->bufferhead);
-    // free(current_data_ptr);
+    current_node->fptree = NULL;
 
     if(current_node->child == NULL && current_child_ptr != NULL)
     {
@@ -157,10 +154,9 @@ void sf_delete_tree_structure(sfnode current_node)
 
                 sf_delete_tree_structure(this_child);
                 sf_delete_tree_structure(this_child->child);
-                sf_delete_tree_structure(this_child->next);
+                // sf_delete_tree_structure(this_child->next);
                 free(this_child); /* let the child go*/
                 this_child = NULL;
-
                 // data temp_data = current_data_ptr[idx];
                 // free(temp_data); /* clear the data items*/
                 // temp_data = NULL;
@@ -225,6 +221,21 @@ void sf_delete_buffer(buffer head)
         free(head);
         head = NULL;
         head = next;
+    }
+}
+
+
+void sf_delete_buffer_table(bufferTable* bufftable)
+{
+    int idx;
+    if(bufftable)
+    {
+        for(idx = 0; idx < HSIZE && bufftable[idx]; idx++)
+        {
+            sf_delete_buffer(bufftable[idx]->bufferhead); /* clear up the buffer*/
+            free(bufftable[idx]);
+            bufftable[idx] = NULL;
+        }
     }
 }
 
@@ -301,21 +312,10 @@ void sf_create_and_insert_new_child(sfnode current_node, data d, int tid)
     new_node->ftid = tid;
     new_node->ltid = tid;
 
-    int idx = index(d->data_item, current_node->data_item), i;
-
+    int idx = index(d->data_item, current_node->data_item);
     new_node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
-
-    // data new_data = calloc(1, sizeof(struct data_node));
-    // new_data->data_item = d->data_item;
-    // new_data->next = NULL;
-
-    // //assert(sf_verify_node(new_node));
     assert(current_node->children[idx] == NULL);
-    // assert(current_node->item_list[idx] == NULL);
-
     current_node->children[idx] = new_node;
-    // current_node->item_list[idx] = new_data;
-    //assert(sf_verify_node(current_node));
 }
 
 
@@ -474,7 +474,7 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
     if(d->data_item % HSIZE != d->data_item)
         curr_buffer->collision = 1;
 
-    buffer last = curr_buffer->buffertail, temp_buff = curr_buffer->bufferhead;
+    buffer last = curr_buffer->buffertail, head = curr_buffer->bufferhead;
     curr->last = d->data_item % HSIZE;
 
     /* updating the count of bufferTable*/
@@ -484,20 +484,23 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
     curr_buffer->ltid = tid;
 
 
-    while(temp_buff)
+    while(head)
     {
-        temp_buff->freq *= pow(DECAY, tid - temp_buff->ltid);
-        temp_buff->ltid = tid;
-        if(sf_is_equal(temp_buff->itemset, d))
+        head->freq *= pow(DECAY, tid - head->ltid);
+        head->ltid = tid;
+        if(sf_is_equal(head->itemset, d))
         {
-            temp_buff->freq += freq;
+            head->freq += freq;
             return;
         }
-        temp_buff = temp_buff->next;
+        head = head->next;
     }
 
+    /* at this point it is clear that we have to create a new buffer node only*/
     buffer new = (buffer) calloc(1, sizeof(struct buffer_node));
+    assert(head == NULL);
 
+    /* this means that the whole buffertable cell is empty, we're inserting for the first time*/
     if(last == NULL)
     {
         assert(curr_buffer->bufferhead == NULL); /* if tail is NULL then head must also be*/
@@ -506,7 +509,6 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
     }
 
     /* bufferSize fields increase only when we add a new node*/
-    curr_buffer->bufferSize++;
     curr->bufferSize++;
 
     /* we create a new copy of the datanode*/
@@ -532,30 +534,31 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
         last->next = new;
         new->prev = last;
     }
-
     curr_buffer->buffertail = new;
-    curr_buffer->buffertail->next = NULL;
 }
 
 
 buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
 {
-    if(curr->bufferSize == 0)
+    if(curr->bufferSize == 0 || curr->hbuffer == NULL)
+    {
         return NULL;
+    }
     
     if(curr->last != -1)
         bucket = curr->last;
 
     bufferTable hbuffer = curr->hbuffer[bucket];
-    
-    if(hbuffer == NULL)
+
+    /* this should not get stuck forever as buffersize is not 0*/
+    while(hbuffer == NULL || hbuffer->bufferhead == NULL)
     {
-        return sf_pop_buffer(curr, (bucket+1)%HSIZE, tid);
+        bucket = (bucket+1)%HSIZE;
+        hbuffer = curr->hbuffer[bucket];
     }
 
     buffer temp = hbuffer->bufferhead, prev = NULL;
     curr->bufferSize--;
-    hbuffer->bufferSize--;
 
     prev = hbuffer->buffertail->prev;
     temp = hbuffer->buffertail;
@@ -576,11 +579,6 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
     temp->ltid = tid;
     
     hbuffer->freq -= temp->freq;
-    if(hbuffer->bufferSize == 0)
-    {
-        free(curr->hbuffer[bucket]);
-        curr->hbuffer[bucket] = NULL;
-    }
     assert(temp->next == NULL);
     curr->last = -1;
     return temp;
@@ -666,6 +664,8 @@ void sf_fp_insert(sfnode current_node, header_table* htable, data d, double cnt,
         current_node->child = new_node;
         new_node->parent = current_node;
         new_node->data_item = d->data_item;
+        new_node->children = NULL;
+        new_node->hbuffer = NULL;
         new_node->ftid = tid;
         new_node->ltid = tid;
         current_child_ptr = new_node;
@@ -703,23 +703,23 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
         root_data = htable[0]->data_item;
         idx = index(this_data, root_data); /* this index will point to the correct header node and the child node*/
 
-        sf_create_update_header_node(htable, this_data, root_data, tid); /* create the header node if it's not made yet*/
+        // sf_create_update_header_node(htable, this_data, root_data, tid); /* create the header node if it's not made yet*/
 
-        /* create the links right here only*/
-        if(htable && current_node->hnode == NULL)
-        {
-            //append to the head of the linked list for this data item
-            current_node->next_similar = htable[idx]->first;
-            current_node->hnode = htable[idx];
-            if(htable[idx]->first)
-                htable[idx]->first->prev_similar = current_node;
+        // /* create the links right here only*/
+        // if(htable && current_node->hnode == NULL)
+        // {
+        //     //append to the head of the linked list for this data item
+        //     current_node->next_similar = htable[idx]->first;
+        //     current_node->hnode = htable[idx];
+        //     if(htable[idx]->first)
+        //         htable[idx]->first->prev_similar = current_node;
 
-            htable[idx]->first = current_node;
-            /*The first node next to the header table has NO previous node although a
-            next node from the header table points to it*/
-            current_node->prev_similar = NULL;
-            // htable[idx]->cnt += node->freq;
-        }
+        //     htable[idx]->first = current_node;
+        //     /*The first node next to the header table has NO previous node although a
+        //     next node from the header table points to it*/
+        //     current_node->prev_similar = NULL;
+        //     // htable[idx]->cnt += node->freq;
+        // }
 
         buffer popped = sf_pop_buffer(current_node, rand()%HSIZE, tid); /* popped is the last buffer, it has the itemset
                                                         which will be propagated down*/
@@ -781,6 +781,8 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 {
                     /*data item has to be inserted as new child*/
                     assert(current_child_ptr[idx] == NULL);
+                    // if(current_child_ptr[idx] != NULL)
+                    //     current_node->children[idx] = NULL;
                     // assert(current_data_ptr[idx] == NULL);
                     sf_create_and_insert_new_child(current_node, temp, tid);
                 }
@@ -790,9 +792,10 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 this_child = current_child_ptr[idx];
                 // data this_data_item = current_data_ptr[idx];
                 // assert(is_equal(this_data_item, temp));
-
                 if(temp->next) /* here we are filling up the buffers of the children*/
+                {
                     sf_append_buffer(current_child_ptr[idx], temp->next, popped->freq, tid);
+                }
 
                 /* updating the frequency of the node according to the formula*/
                 current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->ltid);
@@ -800,30 +803,29 @@ void sf_insert_itemset_helper(sfnode node, header_table* htable, int tid)
                 current_child_ptr[idx]->freq += popped->freq;
                 current_child_ptr[idx]->ftid = min(current_child_ptr[idx]->ftid, popped->ftid); 
                 current_child_ptr[idx]->ltid = tid;
-
                 /*  this code is to update the header tables properly
                     note that now we dont need the update function
                 */
-                sf_create_update_header_node(htable, temp->data_item, root_data, tid);
-                idx = index(temp->data_item, root_data); /* idx in the header table,\
-                                                            root is the value of the root of sf-tree*/
+                // sf_create_update_header_node(htable, temp->data_item, root_data, tid);
+                // idx = index(temp->data_item, root_data); /* idx in the header table,\
+                //                                             root is the value of the root of sf-tree*/
 
-                /* create the links right here only*/
-                if(htable && this_child->hnode == NULL)
-                {
-                    //append to the head of the linked list for this data item
-                    assert(htable[idx]->data_item == this_child->data_item);
-                    this_child->next_similar = htable[idx]->first;
-                    this_child->hnode = htable[idx];
-                    if(htable[idx]->first)
-                        htable[idx]->first->prev_similar = this_child;
+                // /* create the links right here only*/
+                // if(htable && this_child->hnode == NULL)
+                // {
+                //     //append to the head of the linked list for this data item
+                //     assert(htable[idx]->data_item == this_child->data_item);
+                //     this_child->next_similar = htable[idx]->first;
+                //     this_child->hnode = htable[idx];
+                //     if(htable[idx]->first)
+                //         htable[idx]->first->prev_similar = this_child;
 
-                    htable[idx]->first = this_child;
-                    /*The first node next to the header table has NO previous node although a
-                    next node from the header table points to it*/
-                    this_child->prev_similar = NULL;
-                    // htable[idx]->cnt += node->freq;
-                }
+                //     htable[idx]->first = this_child;
+                //     /*The first node next to the header table has NO previous node although a
+                //     next node from the header table points to it*/
+                //     this_child->prev_similar = NULL;
+                //     // htable[idx]->cnt += node->freq;
+                // }
                 temp = temp->next; /* move the buffer node forward*/
             }
 
@@ -1814,10 +1816,14 @@ void sf_prune_buffer(sfnode curr, int tid)
 {
     int root_data = curr->data_item, idx, i;
     for(i = 0; i < HSIZE && curr->hbuffer[i]; i++)
-    {        
+    {   
+        /* short-cut pruning*/     
+        // if(curr->children[idx] == NULL && curr->hbuffer[i]->freq < EPS*(tid - curr_buff->ftid))
+
         buffer curr_buff = curr->hbuffer[i]->bufferhead, head = curr->hbuffer[i]->bufferhead, temp;
         if(head == NULL)
-            return;
+            continue;
+
 
         /* delete the head if it needs to be deleted*/
         while(curr_buff == head && head != NULL)
@@ -1832,7 +1838,6 @@ void sf_prune_buffer(sfnode curr, int tid)
                     head->prev = NULL;
                 temp->next = NULL;
                 curr->bufferSize--;
-                curr->hbuffer[i]->bufferSize--;
                 curr->hbuffer[i]->freq -= temp->freq;
                 sf_delete_buffer(temp);
             }
@@ -1840,7 +1845,13 @@ void sf_prune_buffer(sfnode curr, int tid)
         }
         curr->hbuffer[i]->bufferhead = head;
         if(head == NULL)
+        {
+            // assert(curr->hbuffer[i]->bufferSize == 0);
+            // sf_delete_buffer(curr->hbuffer[i]->buffertail);
             curr->hbuffer[i]->buffertail = NULL;
+            // free(curr->hbuffer[i]);
+            continue;
+        }
 
         /* B1<==>B2<==>[to_del]<==>B4<==>B5*/
         /* now we are beyond the point where heads need to be deleted*/
@@ -1858,8 +1869,6 @@ void sf_prune_buffer(sfnode curr, int tid)
                     curr->hbuffer[i]->buffertail = temp->prev;
                 temp->next = NULL;
                 curr->bufferSize--;
-
-                curr->hbuffer[i]->bufferSize--; /* fix the frequency of the buffer bucket*/
                 curr->hbuffer[i]->freq -= temp->freq;
 
                 sf_delete_buffer(temp);
@@ -2055,10 +2064,10 @@ void sf_print_sforest_lvl(sforest forest)
 void sf_print_buffer_table(bufferTable* hbuffer)
 {
     int i;
-    for(i = 0; i < HSIZE && hbuffer[i]->bufferSize; i++)
+    for(i = 0; i < HSIZE && hbuffer[i]; i++)
     {
-        printf("^^^^^^ freq = %lf, table_size = %d, tid = %d, bucket = %d ^^^^^^\n",\
-                hbuffer[i]->freq, hbuffer[i]->bufferSize, hbuffer[i]->ltid, i);
+        printf("^^^^^^ freq = %lf, tid = %d, bucket = %d ^^^^^^\n",\
+                hbuffer[i]->freq, hbuffer[i]->ltid, i);
         sf_print_buffer(hbuffer[i]->bufferhead);
     }
 }

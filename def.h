@@ -75,7 +75,6 @@ typedef struct buffer_table
     buffer buffertail;
     double freq;
     int ltid;
-    int bufferSize;
     int collision;
 }buffer_table;
 
