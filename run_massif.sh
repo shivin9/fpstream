@@ -1,3 +1,3 @@
 #!/bin/bash
-read -p "Enter file name: " name
-valgrind --tool=massif ./exe $name
+read -p "Enter command: " cmd
+valgrind --tool=massif $cmd
