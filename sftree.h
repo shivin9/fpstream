@@ -21,7 +21,7 @@ void sf_insert_itemset(sforest, data, int tid);
 void sf_delete_header_table(header_table*);
 void sf_delete_tree_structure(sfnode);
 void sf_delete_tree_structure1(sfnode);
-void sf_delete_data_node(data);
+void sf_delete_data(data);
 void sf_delete_buffer(buffer); /* clear up the buffer*/
 void sf_delete_sftree(sftree tree);
 
@@ -64,7 +64,7 @@ void sf_print_tree(sfnode);
 void sf_print_sforest(sforest forest);
 void sf_print_sforest_lvl(sforest forest);
 void sf_print_header_table(header_table*);
-void sf_print_data_node(data d);
+void sf_print_data(data d);
 void sf_print_buffer(buffer);
 
 /* PRUNING FUNCTIONS*/
