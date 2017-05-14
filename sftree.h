@@ -55,7 +55,7 @@ sfnode sf_dfs(sfnode, header_table*, data_type);
 sftree sf_create_conditional_sf_tree(sftree, data_type, double, int);
 int sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern);
 int sf_mine_frequent_itemsets(sforest, int tid, int pattern);
-void sf_fp_mine_frequent_itemsets(sftree tree, data sorted, data till_now, sfnode collected, int tid, double minsup);
+void sf_fp_mine_frequent_itemsets(sftree tree, data_type sorted, data till_now, sfnode collected, int tid, double minsup);
 int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern);
 
 /* PRINTING FUNCTIONS*/
