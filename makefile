@@ -4,7 +4,7 @@ CFLAGS= -g -pg
 LIBS=-I$(BIT_ARR_PATH) -L$(BIT_ARR_PATH)
 
 bltree: driver.o sftree.o qstack.o
-		$(CC) $(CFLAGS) $(LIBS) -o bltree sftree.c qstack.c driver.c def.h -lm -lbitarr
+	$(CC) $(CFLAGS) $(LIBS) -o bltree sftree.c qstack.c driver.c def.h -lm -lbitarr
 
 # driver.o: driver.c #$(BIT_ARR_PATH)libbitarr.a
 # 		$(CC) $(CFLAGS) $(LIBS) driver.c -lm -lbitarr
@@ -16,4 +16,4 @@ bltree: driver.o sftree.o qstack.o
 # 		$(CC) $(CFLAGS) $(LIBS) qstack.c -lm -lbitarr
 
 clean:
-		rm -f bltree *.o *~ *.h.gch output intermediate
+	rm -f bltree *.o *~ *.h.gch output intermediate

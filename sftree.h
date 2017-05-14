@@ -7,7 +7,7 @@
 sftree sf_create_sftree(data_type dat);
 sforest sf_create_sforest();
 data sf_create_sorted_dummy(int start);
-void sf_create_and_insert_new_child(sfnode, data, int);
+void sf_create_and_insert_new_child(sfnode, data_type, int);
 void sf_create_update_header_node(header_table*, data_type d, int root_data, int tid);
 
 /* INSERTING FUNCTIONS*/

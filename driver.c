@@ -103,9 +103,8 @@ int main(int argc, char* argv[])
             <CARRY>             %lf\n\
             <THETA>:            %lf\n\
             (S/s)<SUP>:         %lf\n\
-            <LEAVE_LVL>:        %d\n\
-            <BATCH>:            %d\n",\
-            DICT_SIZE, BATCH, DECAY, EPS, CARRY, THETA, SUP, LEAVE_LVL, BATCH);
+            <LEAVE_LVL>:        %d\n",\
+            DICT_SIZE, BATCH, DECAY, EPS, CARRY, THETA, SUP, LEAVE_LVL);
 
     srand(time(NULL));
     long unsigned size;
@@ -219,7 +218,7 @@ int main(int argc, char* argv[])
     // sf_print_sforest(forest);
 
     gettimeofday(&t3, NULL);
-    // sf_empty_buffers(forest, tid);
+    sf_empty_buffers(forest, tid);
     gettimeofday(&t4, NULL);
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;

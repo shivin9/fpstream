@@ -56,7 +56,6 @@ typedef struct buffer_node* buffer;
 
 //////////////////////////////////////////////////////////////////////////////
 
-
 typedef struct sf_node* sfnode;
 typedef struct sftree_node* sftree;
 typedef struct sftree_node** sforest;

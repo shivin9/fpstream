@@ -34,7 +34,7 @@ def data_to_tab():
     fname = raw_input("enter [relative] name of file\n")
     if fname != "all":
         convert_file("./data/" + fname)
-    
+
     else:
         os.chdir("./data")
         for file in os.listdir('.'):
@@ -80,5 +80,8 @@ def main():
 
 
 if __name__ == '__main__':
-    data_to_tab()
-    #main()
+    choice = raw_input("0: raw->data\n1: data->tab\n")
+    if int(choice) == 1:
+        data_to_tab()
+    else:
+        main()
