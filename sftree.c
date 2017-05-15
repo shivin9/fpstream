@@ -78,7 +78,8 @@ sftree sf_create_sftree(data_type dat)
     }
 
     node->children = calloc(last_index(dat), sizeof(sfnode));
-    node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
+    if(dat <= DICT_SIZE)
+        node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
     node->data_item = dat;
     node->ftid = INT_MAX;
     node->ltid = -1;
@@ -120,17 +121,15 @@ void sf_delete_tree_structure(sfnode current_node)
     if(current_node == NULL)
         return;
     sfnode* current_child_ptr = current_node->children;
-    assert(current_node != current_node->child);
-    // data* current_data_ptr = current_node->item_list;
     sfnode this_child, temp;
     int idx;
-
-    bufferTable* bufftable = current_node->hbuffer;
-    sf_delete_buffer_table(bufftable);
-    free(bufftable);
-    bufftable = NULL;
+    // bufferTable* bufftable = current_node->hbuffer;
+    // sf_print_buffer_table(current_node->hbuffer);
+    sf_delete_buffer_table(current_node->hbuffer);
+    free(current_node->hbuffer);
+    // bufftable = NULL;
     current_node->hbuffer = NULL;
-    
+
     sf_delete_sftree(current_node->fptree);
     current_node->fptree = NULL;
 
@@ -153,7 +152,7 @@ void sf_delete_tree_structure(sfnode current_node)
 
                 sf_delete_tree_structure(this_child);
                 sf_delete_tree_structure(this_child->child);
-                // sf_delete_tree_structure(this_child->next);
+                sf_delete_tree_structure(this_child->next);
                 free(this_child); /* let the child go*/
                 this_child = NULL;
                 // data temp_data = current_data_ptr[idx];
@@ -229,8 +228,11 @@ void sf_delete_buffer_table(bufferTable* bufftable)
     int idx;
     if(bufftable)
     {
+        // printf("atleast ptr not empty\n");
         for(idx = 0; idx < HSIZE && bufftable[idx]; idx++)
         {
+            // printf("freeing buffer %d\n", idx);
+            sf_print_buffer(bufftable[idx]->bufferhead);
             sf_delete_buffer(bufftable[idx]->bufferhead); /* clear up the buffer*/
             free(bufftable[idx]);
             bufftable[idx] = NULL;
@@ -465,16 +467,25 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
     if(d == NULL)
         return;
 
-    if(curr->hbuffer[d->data_item % HSIZE] == NULL)
-        curr->hbuffer[d->data_item % HSIZE] = calloc(1, sizeof(buffer_table));
+    // printf("appending to buffer of node\n");
+    // sf_print_node(curr);
+    // sf_print_data_node(d);
 
-    bufferTable curr_buffer = curr->hbuffer[d->data_item % HSIZE];
-    
-    if(d->data_item % HSIZE != d->data_item)
+    int bucket = d->data_item % HSIZE;
+
+    if(curr->hbuffer[bucket] == NULL)
+    {
+        // printf("d->data_item = %d, mod HSIZE = %d\n", d->data_item, bucket);
+        curr->hbuffer[bucket] = calloc(1, sizeof(buffer_table));
+    }
+
+    bufferTable curr_buffer = curr->hbuffer[bucket];
+
+    if(bucket != d->data_item)
         curr_buffer->collision = 1;
 
     buffer last = curr_buffer->buffertail, head = curr_buffer->bufferhead;
-    curr->last = d->data_item % HSIZE;
+    curr->last = bucket;
 
     /* updating the count of bufferTable*/
     curr_buffer->freq *= pow(DECAY, tid - curr_buffer->ltid);
@@ -534,6 +545,7 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
         new->prev = last;
     }
     curr_buffer->buffertail = new;
+    assert(curr->hbuffer[bucket] != NULL);
 }
 
 
@@ -543,19 +555,18 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
     {
         return NULL;
     }
-    
+
     if(curr->last != -1)
         bucket = curr->last;
 
-    bufferTable hbuffer = curr->hbuffer[bucket];
 
     /* this should not get stuck forever as buffersize is not 0*/
-    while(hbuffer == NULL || hbuffer->bufferhead == NULL)
+    while(curr->hbuffer[bucket] == NULL || curr->hbuffer[bucket]->bufferhead == NULL)
     {
         bucket = (bucket+1)%HSIZE;
-        hbuffer = curr->hbuffer[bucket];
     }
 
+    bufferTable hbuffer = curr->hbuffer[bucket];
     buffer temp = hbuffer->bufferhead, prev = NULL;
     curr->bufferSize--;
 
@@ -568,7 +579,7 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
     /* updating the outgoing buffer here only*/
     temp->freq *= pow(DECAY, tid - temp->ltid);
     temp->ltid = tid;
-    
+
     hbuffer->freq -= temp->freq;
     assert(temp->next == NULL);
     curr->last = -1;
@@ -784,7 +795,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
                 current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->ltid);
                 assert(popped->ltid == tid); /* updated in the pop function itself*/
                 current_child_ptr[idx]->freq += popped->freq;
-                current_child_ptr[idx]->ftid = min(current_child_ptr[idx]->ftid, popped->ftid); 
+                current_child_ptr[idx]->ftid = min(current_child_ptr[idx]->ftid, popped->ftid);
                 current_child_ptr[idx]->ltid = tid;
                 /*  this code is to update the header tables properly
                     note that now we dont need the update function
@@ -818,6 +829,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
                 {
                     // printf("freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
                     sf_delete_tree_structure(current_child_ptr[idx]);
+                    // free(current_child_ptr[idx]);
                     current_child_ptr[idx] = NULL;
                 }
             }
@@ -825,7 +837,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
         /* free the popped buffer to save space*/
         sf_delete_buffer(popped);
         // free(popped);
-    }   
+    }
 
     delete_qstack(qstack);
     return;
@@ -1169,6 +1181,8 @@ sftree sf_create_conditional_sf_tree(sftree tree, data_type data_item, double mi
     cond_tree->root->data_item = tree->head_table[0]->data_item;
     cond_tree->head_table = NULL;
     sf_create_header_table(cond_tree, tid);
+    free(cond_tree->root->children);
+    free(cond_tree->root->hbuffer);
     free(cond_tree->root); /* as we are assigning a custom root later*/
 
     /* now run a DFS from the root of the given FP_tree, for all touched nodes,*/
@@ -1492,7 +1506,7 @@ void sf_empty_buffers(sforest forest, int tid)
                 last = last_index(current_node->data_item);
                 for(idx = 0; idx < last; idx++)
                 {
-                    if(current_node->children[idx] && current_node->children[idx]->bufferSize > 0) 
+                    if(current_node->children[idx] && current_node->children[idx]->bufferSize > 0)
                     /* if buffer is not empty then simply
                        call the insert function*/
                     {
@@ -1682,14 +1696,13 @@ void sf_prune_buffer(sfnode curr, int tid)
 {
     int root_data = curr->data_item, idx, i;
     for(i = 0; i < HSIZE && curr->hbuffer[i]; i++)
-    {   
-        /* short-cut pruning*/     
+    {
+        /* short-cut pruning*/
         // if(curr->children[idx] == NULL && curr->hbuffer[i]->freq < EPS*(tid - curr_buff->ftid))
 
         buffer curr_buff = curr->hbuffer[i]->bufferhead, head = curr->hbuffer[i]->bufferhead, temp;
         if(head == NULL)
             continue;
-
 
         /* delete the head if it needs to be deleted*/
         while(curr_buff == head && head != NULL)
@@ -1717,6 +1730,7 @@ void sf_prune_buffer(sfnode curr, int tid)
             // sf_delete_buffer(curr->hbuffer[i]->buffertail);
             curr->hbuffer[i]->buffertail = NULL;
             // free(curr->hbuffer[i]);
+            // curr->hbuffer[i] = NULL;
             continue;
         }
 
@@ -1853,9 +1867,9 @@ void sf_print_sforest(sforest forest)
     for(i = 0; i < DICT_SIZE; i++)
     {
         printf("Printing SF-tree %d\n", forest[i]->root->data_item);
-        printf("HEADER TABLE:-\n");
-        sf_print_header_table(forest[i]->head_table);
-        printf("***************************************\n");
+        // printf("HEADER TABLE:-\n");
+        // sf_print_header_table(forest[i]->head_table);
+        // printf("***************************************\n");
         sf_print_tree(forest[i]->root);
         printf("---------------------------------------\n\n");
     }
@@ -1867,7 +1881,7 @@ void sf_print_buffer_table(bufferTable* hbuffer)
     int i;
     for(i = 0; i < HSIZE && hbuffer[i]; i++)
     {
-        printf(">>>>>>> freq = %lf, tid = %d, bucket = %d, collision = %d<<<<<<<n",\
+        printf(">>>>>>> freq = %lf, tid = %d, bucket = %d, collision = %d<<<<<<<\n",\
                 hbuffer[i]->freq, hbuffer[i]->ltid, i, hbuffer[i]->collision);
         sf_print_buffer(hbuffer[i]->bufferhead);
     }

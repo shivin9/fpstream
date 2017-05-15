@@ -179,9 +179,6 @@ int main(int argc, char* argv[])
         elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
         totaltime += elapsedTime;
 
-        // sf_create_header_table_helper(forest->root, forest->head_table);
-        // sf_update_header_table(forest->head_table, d, tid);
-        // sf_print_tree(forest->root);
         end = stream->next;
         sf_delete_data_node(stream->itemset);
         free(stream);
@@ -235,7 +232,7 @@ int main(int argc, char* argv[])
     // sf_print_sforest(forest);
 
     gettimeofday(&t3, NULL);
-    sf_empty_buffers(forest, tid);
+    // sf_empty_buffers(forest, tid);
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);
@@ -245,7 +242,7 @@ int main(int argc, char* argv[])
     printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
 
     gettimeofday(&t1, NULL);
-    no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
+    // no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
     gettimeofday(&t2, NULL);
 
     // sfnode collector = calloc(1, sizeof(struct sf_node));
@@ -265,9 +262,34 @@ int main(int argc, char* argv[])
     printf("(%d items) total time taken to mine the sf tree = %lf ms\n",\
             no_patterns, elapsedTime);
 
-    // sf_delete_sftree(tree);
-    // sf_delete_sforest(forest);
-    // free(forest);
+    {
+        // sftree test = sf_create_sftree(0);
+        // data temp = sorted;
+        // while(temp)
+        // {
+        //     sf_append_buffer(test->root, temp, 1, tid); /* push back the popped buffer as we have to leave now*/
+        //     temp = temp->next;
+        // }
+        // // sf_delete_buffer_table(test->root->hbuffer);
+        // for(i = 0; i < 200; i++)
+        // {
+        //     buffer popped = sf_pop_buffer(test->root, rand()%HSIZE, tid);
+        //     sf_delete_buffer(popped);
+        // }
+        // sf_print_buffer_table(test->root->hbuffer);
+        // if(test->root->hbuffer != NULL)
+        // {
+        //     for(i = 0; i < 10; i++)
+        //     {
+        //         assert(test->root->hbuffer[i] != NULL);
+        //     }
+        // }
+        // sf_print_node(test->root);
+        // sf_delete_sftree(test);
+    }
+
+    sf_delete_sforest(forest);
+    free(forest);
     sf_delete_data_node(sorted);
     return 0;
 }

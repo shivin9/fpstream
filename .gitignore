@@ -18,3 +18,4 @@ massif*
 bltree
 bltree_gc
 *.sh
+BitArray/
