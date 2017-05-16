@@ -52,9 +52,9 @@ else
 fi
 #executable file name
 exename=bltree
-# temp=./temp
-# rm -rf $temp
-# mkdir $temp
+temp=./temp
+rm -rf $temp
+mkdir $temp
 
 #export VT_ON=no
 #export VT_UNIFY=yes
@@ -76,7 +76,7 @@ echo "\t\tRunning Code..."
 
 #valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes ./output $path1$1 output_$1\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt $GMINENTRIES $GMAXENTRIES $GAUXMINENTRIES $GAUXMAXENTRIES $RMINENTRIES $RMAXENTRIES $CELLSIZE $EPSILON $MINPOINTS $UNDEFINED
 
-./$exename $data_folder$1 ./temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry].res -m$m -M$M -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup
+./$exename $data_folder$1 $temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry].res -m$m -M$M -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup
 #gprof -z output > gprof_dataset-$2\_m=$m\_M=$M\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt 
 
 if [ $? -ne 0 ] ;	then

@@ -1,6 +1,6 @@
 CC=gcc
 BIT_ARR_PATH=./BitArray/
-CFLAGS= -g -pg
+CFLAGS=-g -pg
 LIBS=-I$(BIT_ARR_PATH) -L$(BIT_ARR_PATH)
 
 bltree: driver.o sftree.o qstack.o
