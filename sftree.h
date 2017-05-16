@@ -13,7 +13,7 @@ void sf_create_update_header_node(header_table*, data_type d, int root_data, int
 /* INSERTING FUNCTIONS*/
 void sf_append_buffer(sfnode curr, data d, double freq, int tid);
 void sf_insert_new_child(sfnode, sfnode, int);
-void sf_insert_itemset_helper(sfnode, header_table*, int tid);
+void sf_insert_itemset_helper(sfnode, int root_data, int tid);
 void sf_fp_insert(sfnode current_node, header_table* htable, data d, double, int tid);
 void sf_insert_itemset(sforest, data, int tid);
 
@@ -70,10 +70,10 @@ void sf_print_buffer(buffer);
 /* PRUNING FUNCTIONS*/
 data sf_reverse_data(data head);
 int sf_fp_prune(header_table*, int idx, int tid);
-void sf_fp_merge1(sfnode parent, sfnode child, int tid);
+void sf_fp_merge(sfnode parent, sfnode child, int tid);
 void sf_prune_buffer(sfnode, int);
 void sf_prune_buffer1(sfnode, int);
-void sf_prune_helper(sfnode, header_table*, int);
+void sf_prune_helper(sfnode, int, int);
 void sf_prune(sforest, int);
 void sf_update_ancestor(sfnode);
 
