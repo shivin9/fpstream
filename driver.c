@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
             printf("pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
-            sf_prune(forest, tid);
+            // sf_prune(forest, tid);
             gettimeofday(&t4, NULL);
             elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
             elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
     // sf_print_sforest(forest);
 
     gettimeofday(&t3, NULL);
-    // sf_empty_buffers(forest, tid);
+    sf_empty_buffers(forest, tid);
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
 
     gettimeofday(&t1, NULL);
-    // no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
+    no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
     gettimeofday(&t2, NULL);
 
     // sfnode collector = calloc(1, sizeof(struct sf_node));

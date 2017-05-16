@@ -228,14 +228,14 @@ void sf_delete_buffer_table(bufferTable* bufftable)
     int idx;
     if(bufftable)
     {
-        // printf("atleast ptr not empty\n");
-        for(idx = 0; idx < HSIZE && bufftable[idx]; idx++)
+        for(idx = 0; idx < HSIZE; idx++)
         {
-            // printf("freeing buffer %d\n", idx);
-            sf_print_buffer(bufftable[idx]->bufferhead);
-            sf_delete_buffer(bufftable[idx]->bufferhead); /* clear up the buffer*/
-            free(bufftable[idx]);
-            bufftable[idx] = NULL;
+            if(bufftable[idx])
+            {
+                sf_delete_buffer(bufftable[idx]->bufferhead); /* clear up the buffer*/
+                free(bufftable[idx]);
+                bufftable[idx] = NULL;
+            }
         }
     }
 }
@@ -460,6 +460,28 @@ int sf_verify_node(sfnode current_node)
 }
 
 
+void sf_check_node_buffer(sfnode curr)
+{
+    int cnt_buffer = 0, idx, cnt_table = 0;
+    for(idx = 0; idx < HSIZE; idx++)
+    {
+        if(curr->hbuffer[idx])
+        {
+            cnt_table++;
+            if(curr->hbuffer[idx]->bufferhead)
+            {
+                // sf_print_buffer(curr->hbuffer[idx]->bufferhead);
+                cnt_buffer++;
+            }
+        }
+    }
+    if(cnt_buffer == 0)
+        assert(curr->bufferSize == 0);
+    else
+        assert(curr->bufferSize > 0);
+}
+
+
 void sf_append_buffer(sfnode curr, data d, double freq, int tid)
 {
     /* takes care of cases when to be buffered item is NULL*/
@@ -545,7 +567,9 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
         new->prev = last;
     }
     curr_buffer->buffertail = new;
-    assert(curr->hbuffer[bucket] != NULL);
+    curr->hbuffer[bucket] = curr_buffer; /* make sure that the final changes\
+                                            are reflected the buffertable of the node also*/
+    // sf_check_node_buffer(curr);
 }
 
 
@@ -593,7 +617,7 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
         // free(curr->hbuffer[bucket]);
         // curr->hbuffer[bucket] = NULL;
     }
-
+    // sf_check_node_buffer(curr);
     return temp;
 }
 
@@ -703,6 +727,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
     sfnode current_node, this_child;
     sfnode* current_child_ptr;
     data temp, d;
+    sf_check_node_buffer(node);
 
     int idx, no_trans = 0;
 
@@ -715,8 +740,12 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
         data_type this_data = current_node->data_item;
         idx = index(this_data, root_data); /* this index will point to the correct header node and the child node*/
 
+        // sf_check_node_buffer(current_node);
+
         buffer popped = sf_pop_buffer(current_node, rand()%HSIZE, tid); /* popped is the last buffer, it has the itemset
                                                         which will be propagated down*/
+        // sf_check_node_buffer(current_node);
+
         if(popped)
             assert(popped->next == NULL); /* 'popped' is the buffer node*/
         else
@@ -734,7 +763,8 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
             // printf("leaving in buffer at node %d: ", current_node->data_item);
             // sf_print_data_node(d);
             current_node->bufferSize++;
-            sf_append_buffer(current_node, popped->itemset, popped->freq, tid); /* push back the popped buffer as we have to leave now*/
+            /* push back the popped buffer as we have to leave now*/
+            sf_append_buffer(current_node, popped->itemset, popped->freq, tid);
             LEAVE_AS_BUFFER = 0;
             delete_qstack(qstack);
             return;
@@ -1695,67 +1725,68 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
 void sf_prune_buffer(sfnode curr, int tid)
 {
     int root_data = curr->data_item, idx, i;
-    for(i = 0; i < HSIZE && curr->hbuffer[i]; i++)
+    for(i = 0; i < HSIZE; i++)
     {
         /* short-cut pruning*/
         // if(curr->children[idx] == NULL && curr->hbuffer[i]->freq < EPS*(tid - curr_buff->ftid))
-
-        buffer curr_buff = curr->hbuffer[i]->bufferhead, head = curr->hbuffer[i]->bufferhead, temp;
-        if(head == NULL)
-            continue;
-
-        /* delete the head if it needs to be deleted*/
-        while(curr_buff == head && head != NULL)
+        if(curr->hbuffer[i])
         {
-            idx = index(curr_buff->itemset->data_item, root_data);
-            curr_buff->freq *= pow(DECAY, tid - curr_buff->ltid);
-            curr_buff->ltid = tid;
-            if(curr->children[idx] == NULL && curr_buff->freq < EPS*(tid - curr_buff->ftid))
+            buffer curr_buff = curr->hbuffer[i]->bufferhead, head = curr->hbuffer[i]->bufferhead, temp;
+            if(head == NULL)
+                continue;
+
+            /* delete the head if it needs to be deleted*/
+            while(curr_buff == head && head != NULL)
             {
-                temp = curr_buff;
-                head = head->next;
-                if(head)
-                    head->prev = NULL;
-                temp->next = NULL;
-                curr->bufferSize--;
-                curr->hbuffer[i]->freq -= temp->freq;
-                sf_delete_buffer(temp);
+                idx = index(curr_buff->itemset->data_item, root_data);
+                curr_buff->freq *= pow(DECAY, tid - curr_buff->ltid);
+                curr_buff->ltid = tid;
+                if(curr->children[idx] == NULL && curr_buff->freq < EPS*(tid - curr_buff->ftid))
+                {
+                    temp = curr_buff;
+                    curr_buff = curr_buff->next;
+                    head = head->next;
+                    if(head)
+                        head->prev = NULL;
+                    temp->next = NULL;
+                    curr->bufferSize--;
+                    curr->hbuffer[i]->freq -= temp->freq;
+                    sf_delete_buffer(temp);
+                }
+                /* as we have already moved curr_buff to next node*/
+                else
+                    curr_buff = curr_buff->next;
             }
-            curr_buff = curr_buff->next;
-        }
-        curr->hbuffer[i]->bufferhead = head;
-        if(head == NULL)
-        {
-            // assert(curr->hbuffer[i]->bufferSize == 0);
-            // sf_delete_buffer(curr->hbuffer[i]->buffertail);
-            curr->hbuffer[i]->buffertail = NULL;
-            // free(curr->hbuffer[i]);
-            // curr->hbuffer[i] = NULL;
-            continue;
-        }
-
-        /* B1<==>B2<==>[to_del]<==>B4<==>B5*/
-        /* now we are beyond the point where heads need to be deleted*/
-        while(curr_buff)
-        {
-            idx = index(curr_buff->itemset->data_item, root_data);
-            curr_buff->freq *= pow(DECAY, tid - curr_buff->ltid);
-            curr_buff->ltid = tid;
-            if(curr->children[idx] == NULL && curr_buff->freq < EPS*(tid - curr_buff->ftid))
+            curr->hbuffer[i]->bufferhead = head;
+            if(head == NULL)
             {
-                if(curr_buff->next)
-                    curr_buff->next->prev = curr_buff->prev;
-                curr_buff->prev->next = curr_buff->next;
-                temp = curr_buff;
-                if(curr->hbuffer[i]->buffertail == temp)
-                    curr->hbuffer[i]->buffertail = temp->prev;
-                temp->next = NULL;
-                curr->bufferSize--;
-                curr->hbuffer[i]->freq -= temp->freq;
-
-                sf_delete_buffer(temp);
+                curr->hbuffer[i]->buffertail = NULL;
+                continue;
             }
-            curr_buff = curr_buff->next;
+
+            /* B1<==>B2<==>[to_del]<==>B4<==>B5*/
+            /* now we are beyond the point where heads need to be deleted*/
+            while(curr_buff)
+            {
+                idx = index(curr_buff->itemset->data_item, root_data);
+                curr_buff->freq *= pow(DECAY, tid - curr_buff->ltid);
+                curr_buff->ltid = tid;
+                if(curr->children[idx] == NULL && curr_buff->freq < EPS*(tid - curr_buff->ftid))
+                {
+                    if(curr_buff->next)
+                        curr_buff->next->prev = curr_buff->prev;
+                    curr_buff->prev->next = curr_buff->next;
+                    temp = curr_buff;
+                    if(curr->hbuffer[i]->buffertail == temp)
+                        curr->hbuffer[i]->buffertail = temp->prev;
+                    temp->next = NULL;
+                    curr->bufferSize--;
+                    curr->hbuffer[i]->freq -= temp->freq;
+
+                    sf_delete_buffer(temp);
+                }
+                curr_buff = curr_buff->next;
+            }
         }
     }
 }
@@ -1879,11 +1910,14 @@ void sf_print_sforest(sforest forest)
 void sf_print_buffer_table(bufferTable* hbuffer)
 {
     int i;
-    for(i = 0; i < HSIZE && hbuffer[i]; i++)
+    for(i = 0; i < HSIZE; i++)
     {
-        printf(">>>>>>> freq = %lf, tid = %d, bucket = %d, collision = %d<<<<<<<\n",\
-                hbuffer[i]->freq, hbuffer[i]->ltid, i, hbuffer[i]->collision);
-        sf_print_buffer(hbuffer[i]->bufferhead);
+        if(hbuffer[i])
+        {
+            printf(">>>>>>> freq = %lf, tid = %d, bucket = %d, collision = %d<<<<<<<\n",\
+                    hbuffer[i]->freq, hbuffer[i]->ltid, i, hbuffer[i]->collision);
+            sf_print_buffer(hbuffer[i]->bufferhead);
+        }
     }
 }
 
