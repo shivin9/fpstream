@@ -16,18 +16,19 @@
 #define GLOBAL_VARS
 extern int DICT_SIZE;
 extern double DECAY;
-extern long int N;
+extern long int N; // current length of stream
 extern double EPS;
-extern double THETA;
-extern double CARRY;
-extern int HSIZE;
-extern double SUP;
-extern int BATCH;
-extern double MINSUP_SEMIFREQ;
-extern double MINSUP_FREQ;
-extern int LEAVE_AS_BUFFER;
+extern double THETA; // Not used
+extern double CARRY; // carry down parameter
+extern int HSIZE; // size of the hash table for buffer
+extern double SUP; // support count for mining
+extern double PRUNE_TIME; // pruning time in insert function
+extern int BATCH; // batch size for intermittent pruning
+extern double MINSUP_SEMIFREQ; // not used
+extern double MINSUP_FREQ; // not used
+extern int LEAVE_AS_BUFFER; // FLAG to tell when to pre-empt. Will be used in anytime simulation.
+extern int LEAVE_LVL; // level at which FP-tree exists in BL-tree
 extern char OUT_FILE[100];
-extern int LEAVE_LVL;
 #endif
 
 #define max(a,b) ((a) > (b) ? a : b)
@@ -36,19 +37,10 @@ extern int LEAVE_LVL;
 #define index(i,len) ((i) - (len)) /* when the arrays of nodes are of different sizes,
                                       200th item it found at index 100 in the node of item 100*/
 
-
-// -1: something in between
-// 0: ready
-// 1: converted to CP and ready for pruning and reinitialization
-static int T1;
-static int T2;
-//static int item_ready;
-static int batch_ready;
-
 ////////////////////////////////////////////////////////////////////////////////
 typedef int data_type;    //the data type of individual items in the transaction
 
-// linked list of data_items ie. an itemset
+// linked list of data_items ie. an itemset or transaction
 struct data_node
 {
     data_type data_item;
@@ -57,66 +49,76 @@ struct data_node
 
 typedef struct data_node* data;
 
+// buffer implementation using a linked list
 struct buffer_node
 {
-    data itemset;
-    double freq;
-    int ftid;
-    int ltid;
-    struct buffer_node* next;
-    struct buffer_node* prev;
+    data itemset; // transaction in question
+    double freq; // count of transactions in the buffer
+    int ftid; // first encountered timestamp
+    int ltid; // latest updated
+    struct buffer_node* next; // doubly linked list pointer for next node in the buffer
+    struct buffer_node* prev; // doubly linked list pointer for previous node in the buffer
 };
 
 typedef struct buffer_node* buffer;
 
 //////////////////////////////////////////////////////////////////////////////
+// Definitions for the trees in our data structure
 
-
-typedef struct sf_node* sfnode;
-typedef struct sftree_node* sftree;
-typedef struct sftree_node** sforest;
-typedef struct header_table_node* header_table;
+typedef struct sf_node* sfnode; // BL-tree node
+typedef struct fp_node* fpnode; // FP-Tree node
+typedef struct fptree_node* fptree; // tree which has root node and header table
+typedef struct sf_node** sforest; //array of trees for forest
+typedef struct header_table_node* header_table; // header table is implemeted as an array (lazy allocation) using this node of this struct.
 
 struct sf_node
 {
-    sfnode* children;
-    sfnode child;
-    sfnode next;
-    data* item_list;
-    buffer bufferhead;
-    buffer buffertail;
-    // buffer* buffer_table[HSIZE];
-    int bufferSize;
-    int ltid; // latest updated/seen time stamp
-    int ftid; // first seen tid
-    double freq;
-    data_type data_item;
-    header_table hnode;
-    struct sf_node* next_similar;
-    struct sf_node* prev_similar;
-    struct sf_node* parent;
-    sftree fptree;
-    double touched;
+    sfnode* children; // children in case of BL-tree
+    buffer bufferhead; // head of buffer (DLL)
+    buffer buffertail; // tail of buffer (DLL)
+    int bufferSize; // number of nodes in the DLL
+    int ltid; // latest updated/seen time stamp of the node. This is used for intermittent pruning.
+    int ftid; // first seen tid of the node
+    double freq; //count of transaction or item, depending on whether it is used in FP-tree or BL-tree. This is also used to prune along with LTID.
+    data_type data_item; // integer data item.
+    struct sf_node* parent; // parent pointer in both BL.
+    fptree fptree; // contains header table and root node
 };
 
-struct header_table_node
+struct fp_node
 {
-    data_type data_item;
-    sfnode first;
-    double cnt;
-    int ftid;
-    int ltid;
+    fpnode child; // first child in case of FP-tree (LL)
+    fpnode next; // next pointer of child linked list
+    int ltid; // latest updated/seen time stamp of the node. This is used for intermittent pruning.
+    int ftid; // first seen tid of the node
+    double freq; //count of transaction or item, depending on whether it is used in FP-tree or BL-tree. This is also used to prune along with LTID.
+    data_type data_item; // integer data item.
+    header_table hnode; // pointer to the header table in FP-tree
+    struct fp_node* next_similar; //pointer to next similar node in FP-tree (DLL originating from Header table; used to make conditional pattern trees)
+    struct fp_node* prev_similar; //pointer to prev similar node in FP-tree
+    struct fp_node* parent; // parent pointer in both BL as well as FP
+    double touched; // used to generated conditional pattern tree
 };
 
 
-struct sftree_node
+struct header_table_node //  header table node
 {
-    sfnode root;
-    header_table* head_table;
+    data_type data_item;
+    fpnode first; // pointer to first entry in FP-tree
+    double cnt; // cumulative count of all similar nodes
+    int ftid; // first seen transaction id. Used in pruning FP-trees.
+    int ltid; // latest updated transaction id
+};
+
+
+struct fptree_node
+{
+    fpnode root;
+    header_table* head_table; // header table array. Segregate this for FP-tree and not to be used in BL-tree
 };
 
 //////////////////////////////////////////////////////////////////////////////
-typedef struct snode snode;
+typedef struct snode snode; 
 typedef snode* slink;
 typedef struct QStack QStack;
 typedef struct tuple tuple;
@@ -142,14 +144,14 @@ struct QStack
 };
 
 // a node used in the hash table
-struct hnode
+struct hnode // not being used
 {
     char *sig;
     hlink next;
 };
 
 // the hash table data structure called a dictionary
-struct dictionary
+struct dictionary // not being used
 {
     hlink table[10000];
     int size;
