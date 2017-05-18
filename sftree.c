@@ -557,7 +557,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
     sfnode current_node, this_child;
     sfnode* current_child_ptr;
     data temp, d;
-
+    double toss;
     int idx;
 
     while(qstack->size > 0) /* we go on till the time we have nodes in the stack*/
@@ -576,6 +576,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
         else
             continue;
 
+        // toss = ((double) rand())/RAND_MAX;
         if(current_node->bufferSize > 0) /* push the node back in the qstsack if it's buffer is still not empty*/
             push(qstack, current_node);
 
@@ -678,7 +679,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
                 {
                     // printf("not pruning freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
                     current_child_ptr[idx]->ltid = tid;
-                    double toss = ((double) rand())/RAND_MAX;
+                    toss = ((double) rand())/RAND_MAX;
                     if((toss < CARRY && current_child_ptr[idx]->fptree == NULL) || CARRY == 2.0)
                     /* this is to ensure that the itemset is inserted when we are emptying the buffer.
                     Propagate the node downwards with a certain probability
@@ -727,7 +728,10 @@ void sf_insert_itemset(sforest forest, data d, int tid)
         root->freq++;
         root->ltid = tid;
 
-        sf_insert_itemset_helper(root, root->data_item, tid);
+        double toss = ((double) rand())/RAND_MAX;
+        if(toss < CARRY || CARRY == 2.0)
+            sf_insert_itemset_helper(root, root->data_item, tid);
+
         d = d->next;
     }
     return;

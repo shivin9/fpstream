@@ -236,12 +236,12 @@ int main(int argc, char* argv[])
 
 
     gettimeofday(&t1, NULL);
-    sf_prune(forest, tid); // final pruning before emptying the buffers
 
     gettimeofday(&t3, NULL);
     sf_empty_buffers(forest, tid); // empty the buffers before pruning
     gettimeofday(&t4, NULL);
     
+    sf_prune(forest, tid); // final pruning before emptying the buffers
     no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
     gettimeofday(&t2, NULL);
 

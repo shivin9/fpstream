@@ -1,8 +1,8 @@
 CC=gcc
-FLAG= -c -g -pg
+FLAG= -c -O3
 
 bltree: driver.o sftree.o qstack.o
-	$(CC) -pg -o bltree sftree.o qstack.o driver.o def.h -lm
+	$(CC) -O3 -o bltree sftree.o qstack.o driver.o def.h -lm
 
 driver.o: driver.c
 	$(CC) $(FLAG) driver.c -lm
