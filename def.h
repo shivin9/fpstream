@@ -81,46 +81,54 @@ typedef struct buffer_table
 typedef buffer_table* bufferTable;
 //////////////////////////////////////////////////////////////////////////////
 
-
-typedef struct sf_node* sfnode;
-typedef struct sftree_node* sftree;
-typedef struct sftree_node** sforest;
-typedef struct header_table_node* header_table;
+typedef struct sf_node* sfnode; // BL-tree node
+typedef struct fp_node* fpnode; // FP-Tree node
+typedef struct fptree_node* fptree; // tree which has root node and header table
+typedef struct sf_node** sforest; //array of trees for forest
+typedef struct header_table_node* header_table; // header table is implemeted as an array (lazy allocation) using this node of this struct.
 
 struct sf_node
 {
-    sfnode* children;
-    sfnode child;
-    sfnode next;
-    data* item_list;
+    sfnode* children; // children in case of BL-tree
     bufferTable* hbuffer; // the hashed buffers
-    int bufferSize;
-    int ltid; // latest updated/seen time stamp
-    int ftid; // first seen tid
-    int last; // last inserted in buffer
-    double freq;
-    data_type data_item;
-    header_table hnode;
-    struct sf_node* next_similar;
-    struct sf_node* prev_similar;
-    struct sf_node* parent;
-    sftree fptree;
-    double touched;
+    int bufferSize; // number of nodes in the DLL
+    int ltid; // latest updated/seen time stamp of the node. This is used for intermittent pruning.
+    int ftid; // first seen tid of the node
+    int last;
+    double freq; //count of transaction or item, depending on whether it is used in FP-tree or BL-tree. This is also used to prune along with LTID.
+    data_type data_item; // integer data item.
+    struct sf_node* parent; // parent pointer in both BL.
+    fptree fptree; // contains header table and root node
+};
+
+struct fp_node
+{
+    fpnode child; // first child in case of FP-tree (LL)
+    fpnode next; // next pointer of child linked list
+    int ltid; // latest updated/seen time stamp of the node. This is used for intermittent pruning.
+    int ftid; // first seen tid of the node
+    double freq; //count of transaction or item, depending on whether it is used in FP-tree or BL-tree. This is also used to prune along with LTID.
+    data_type data_item; // integer data item.
+    header_table hnode; // pointer to the header table in FP-tree
+    struct fp_node* next_similar; //pointer to next similar node in FP-tree (DLL originating from Header table; used to make conditional pattern trees)
+    struct fp_node* prev_similar; //pointer to prev similar node in FP-tree
+    struct fp_node* parent; // parent pointer in both BL as well as FP
+    double touched; // used to generated conditional pattern tree
 };
 
 struct header_table_node
 {
     data_type data_item;
-    sfnode first;
+    fpnode first;
     double cnt;
     int ftid;
     int ltid;
 };
 
 
-struct sftree_node
+struct fptree_node
 {
-    sfnode root;
+    fpnode root;
     header_table* head_table;
 };
 
