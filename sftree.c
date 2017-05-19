@@ -615,7 +615,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
                 old_ptr = temp_data + 1;
 
                 idx = index(temp_data, current_node->data_item);
-                sf_prune_buffer1(current_child_ptr[idx], tid);
+                sf_prune_buffer(current_child_ptr[idx], tid);
 
                 bit_array_clear_bit(temp, temp_data); /* move the buffer node forward*/
                 itemlen--;
@@ -638,7 +638,7 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
                 else
                 {
                     // printf("freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
-                    sf_delete_tree_structure1(current_child_ptr[idx]);
+                    sf_delete_sftree_structure(current_child_ptr[idx]);
                     current_child_ptr[idx] = NULL;
                 }
             }
@@ -674,8 +674,11 @@ void sf_insert_itemset(sforest forest, data d, int tid)
         {
             return;
         }
-        sf_append_buffer(root, d, 1, tid); /* transaction: acdef, node a will have 'cdef'*/
-        sf_insert_itemset_helper(root, root->data_item, tid);
+        sf_append_buffer(root, d, 1, tid); /* transactio: acdef, node a will have 'cdef'*/
+
+        double toss = ((double) rand())/RAND_MAX;
+        if(toss < CARRY || CARRY == 2.0)
+            sf_insert_itemset_helper(root, root->data_item, tid);
         size--;
     }
     return;
@@ -822,7 +825,7 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
                 // sf_print_buffer(collect_node->bufferhead);
             }
             cnt += sf_print_patterns_to_file(collected, collect_node->bufferhead, node->freq, end, pattern);
-            sf_delete_tree_structure(collect_node);
+            sf_delete_sftree_structure(collect_node);
             free(collect_node);
         }
         int idx;
@@ -847,7 +850,7 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
 
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
-        sfnode root = forest[idx]->root;
+        sfnode root = forest[idx];
         // printf("root = %d, freq = %lf\n", root->data_item, root->freq);
         cnt += sf_mine_frequent_itemsets_helper(root, collected, -1, tid, pattern);
     }
@@ -1244,13 +1247,12 @@ void sf_fp_merge(fpnode parent, fpnode child, int tid)
 
     // child's parent has been detached
     child->parent = parent;
-    child->children = NULL;
-    if(parent->children == NULL)
+    if(parent->child == NULL)
     {
         parent->child = child;
         return;
     }
-
+    
     fpnode childptr = parent->child, prev = NULL;
     header_table htemp;
     data_type dat = child->data_item;
@@ -1318,7 +1320,6 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
 	    {
 	    	return 1;
 	    }
-        parent->children = NULL;
         if(parent->child == NULL)
         	parent->child = fir;
         assert(parent->child != NULL);
@@ -1459,7 +1460,7 @@ void sf_prune_helper(sfnode node, int root_data, int tid)
                         pow(DECAY, tid - node->children[child]->ltid);
                 if(node->children[child]->freq <= EPS*(tid - node->children[child]->ftid))
                 {
-                    sf_delete_tree_structure(node->children[child]);
+                    sf_delete_sftree_structure(node->children[child]);
                     node->children[child] = NULL;
                 }
 
@@ -1522,10 +1523,6 @@ void sf_print_sfnode(sfnode node)
     {
         printf("FPTREE:\n");
         sf_print_fptree(node->fptree->root);
-        printf("FP-HEADER TABLE:-\n");
-        printf("##############################################################################\n");
-        sf_print_header_table(node->fptree->head_table);
-        printf("##############################################################################\n");
         printf("******************************************************************************\n");
     }
 
@@ -1599,7 +1596,6 @@ void sf_print_header_table(header_table* h)
     for(idx = 0; idx < last_index(h[0]->data_item) && h[idx] != NULL; idx++)
     {
         printf("item = %d, ftid = %d, ltid = %d, cnt = %lf\n", h[idx]->data_item, h[idx]->ftid, h[idx]->ltid, h[idx]->cnt);
-        sfnode node = h[idx]->first;
     }
     return;
 }
