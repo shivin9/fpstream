@@ -1,17 +1,19 @@
 CC=gcc
-FLAG=-c -g -pg
+BIT_ARR_PATH=./BitArray/
+CFLAGS=-g -pg
+LIBS=-I$(BIT_ARR_PATH) -L$(BIT_ARR_PATH)
 
 bltree: driver.o sftree.o qstack.o
-	$(CC) -o bltree sftree.o qstack.o driver.o def.h -lm
+	$(CC) $(CFLAGS) $(LIBS) -o bltree def.h sftree.h sftree.c qstack.c driver.c -lm -lbitarr
 
-driver.o: driver.c
-	$(CC) $(FLAG) driver.c -lm
-
-sftree.o: sftree.c
-	$(CC) $(FLAG) sftree.c -lm
-
-qstack.o: qstack.c
-	$(CC) $(FLAG) qstack.c -lm
-
+# driver.o: driver.c #$(BIT_ARR_PATH)libbitarr.a
+# # 		$(CC) $(CFLAGS) $(LIBS) driver.c -lm -lbitarr
+#
+# # sftree.o: sftree.c #$(BIT_ARR_PATH)libbitarr.a
+# # 		$(CC) $(CFLAGS) $(LIBS) sftree.c -lm -lbitarr
+#
+# # qstack.o: qstack.c #def.h $(BIT_ARR_PATH)libbitarr.a
+# # 		$(CC) $(CFLAGS) $(LIBS) qstack.c -lm -lbitarr
+#
 clean:
 	rm -f bltree *.o *~ *.h.gch output intermediate

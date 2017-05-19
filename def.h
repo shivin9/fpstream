@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "./BitArray/bar.h"
 #include <malloc.h>
 #include <limits.h>
 #include <omp.h>
@@ -35,27 +36,13 @@ extern int LEAVE_LVL;
 #define last_index(x) ((DICT_SIZE) - (x) + (1))
 #define index(i,len) ((i) - (len)) /* when the arrays of nodes are of different sizes,
                                       200th item it found at index 100 in the node of item 100*/
-
-
-// -1: something in between
-// 0: ready
-// 1: converted to CP and ready for pruning and reinitialization
-static int T1;
-static int T2;
-//static int item_ready;
-static int batch_ready;
+#define bar BIT_ARRAY
 
 ////////////////////////////////////////////////////////////////////////////////
-typedef int data_type;    //the data type of individual items in the transaction
 
-// linked list of data_items ie. an itemset
-struct data_node
-{
-    data_type data_item;
-    struct data_node* next;
-};
-
-typedef struct data_node* data;
+typedef bar* data;
+typedef int data_type;
+typedef bit_index_t bit;
 
 struct buffer_node
 {

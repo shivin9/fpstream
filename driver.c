@@ -115,7 +115,6 @@ int main(int argc, char* argv[])
     long unsigned size;
     sforest forest = NULL;
 
-    data sorted = sf_create_sorted_dummy(0);
     forest = sf_create_sforest();
 
     // sftree tree = sf_create_sftree(0);
@@ -129,31 +128,21 @@ int main(int argc, char* argv[])
 
     buffer stream = NULL, end = NULL;
     stream = (buffer) calloc(1, sizeof(struct buffer_node));
-    stream->itemset = (data) calloc(1, sizeof(struct data_node));
-    stream->itemset->next = NULL;
+    stream->itemset = barcreate((bit) DICT_SIZE);
     stream->next = NULL;
     end = stream;
 
     while(fscanf(sf, "%d", &sz) != EOF)
     {
-        data d = NULL;
+        data d = barcreate((bit) DICT_SIZE);
         while(sz--)
         {
             data_type item;
             fscanf(sf, "%d", &item);
-            data new_d = calloc(1, sizeof(struct data_node));
-            if(new_d == NULL)
-            {
-                printf("new_d malloc failed\n");
-            }
-            new_d->data_item = item;
-            new_d->next = d;
-            d = new_d;
+            barset(d, (bit)item);
         }
 
         batch_no++;
-        sf_sort_data(d, NULL);
-
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
@@ -290,6 +279,5 @@ int main(int argc, char* argv[])
 
     sf_delete_sforest(forest);
     free(forest);
-    sf_delete_data_node(sorted);
     return 0;
 }
