@@ -766,8 +766,8 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
                     // free(current_child_ptr[idx]);
                     current_child_ptr[idx] = NULL;
                 }
-                bit_array_free(temp);
             }
+            bit_array_free(temp);
         }
         /* free the popped buffer to save space*/
         sf_delete_buffer(popped);
