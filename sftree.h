@@ -10,13 +10,14 @@ sforest sf_create_sforest();
 data sf_create_sorted_dummy(int start);
 void sf_create_and_insert_new_child(sfnode, data, int);
 void sf_create_update_header_node(header_table*, data_type, int root_data, int tid);
+data sf_copy_data(data d);
 
 /* INSERTING FUNCTIONS*/
 void sf_append_buffer(sfnode curr, data d, double freq, int tid);
 void sf_insert_new_child(fpnode, fpnode, int);
-void sf_insert_itemset_helper(sfnode, int root_data, int tid);
+int sf_insert_itemset_helper(sfnode, int root_data, int tid, double, timeval*);
 void sf_fp_insert(fpnode, header_table*, data, double, int);
-void sf_insert_itemset(sforest, data, int tid);
+void sf_insert_itemset(sforest, data, int tid, double, timeval*);
 
 /* DELETION FUNCTIONS*/
 void sf_delete_header_table(header_table*);

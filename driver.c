@@ -15,12 +15,18 @@ long int N;
 char OUT_FILE[100];
 
 double DECAY = 1.0, EPS = 0.0, THETA = 0.1,\
-       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01, CARRY = 1.0, PRUNE_TIME = 0;
+       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01,\
+       CARRY = 1.0, PRUNE_TIME = 0, RATE_PARAMETER = 0.01;
 
 /*DESCENDING order here*/
 int cmpfunc (const void * a, const void * b)
 {
    return -( *(double*)a - *(double*)b );
+}
+
+double nextTime(double rateParameter)
+{
+    return -logf(1.0f - (double) random() / RAND_MAX) / rateParameter;
 }
 
 
@@ -33,6 +39,7 @@ int main(int argc, char* argv[])
                 -B<BATCH_SIZE>\n\
                 -d<DECAY>\n\
                 -e<EPS>\n\
+                -r<RATE_PARAMETER>\n\
                 -c<CARRY>\n\
                 -t<THETA>\n\
                 -(S/s)<SUP>\n\
@@ -43,7 +50,7 @@ int main(int argc, char* argv[])
         exit(-1);
     }
 
-    FILE *sf;
+    FILE *sf, *poisson;
     int sz, cnt, max = 0, tid = 1, pattern = 0, no_patterns = 0;
     sf = fopen("intermediate", "w");
     fclose(sf);
@@ -77,6 +84,7 @@ int main(int argc, char* argv[])
                     case 'D': DICT_SIZE =  strtod(s, &s);      break;
                     case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
+                    case 'r': RATE_PARAMETER =  strtof(s, &s); break;
                     default : printf("UNKNOWN ARGUMENT! %c", *(s-1));
                               exit(-1);                        break;
                 }
@@ -100,13 +108,16 @@ int main(int argc, char* argv[])
             <BATCH_SIZE>:       %d\n\
             <DECAY>:            %lf\n\
             <EPS>:              %lf\n\
+            <RATE_PARAMETER>:   %lf\n\
             <CARRY>             %lf\n\
             <THETA>:            %lf\n\
             (S/s)<SUP>:         %lf\n\
             <LEAVE_LVL>:        %d\n",\
-            DICT_SIZE, BATCH, DECAY, EPS, CARRY, THETA, SUP, LEAVE_LVL);
+            DICT_SIZE, BATCH, DECAY, EPS, RATE_PARAMETER, CARRY, THETA, SUP, LEAVE_LVL);
 
     srand(time(NULL));
+    poisson = fopen("poisson.ignore", "r");
+
     long unsigned size;
     sforest forest = NULL;
 
@@ -116,8 +127,8 @@ int main(int argc, char* argv[])
     // fptree tree = sf_create_fptree(0);
     // sf_create_header_table(tree, tid);
 
-    struct timeval t1, t2, t3, t4;
-    double elapsedTime, sum = 0, insertionTime = 0, prune_time = 0;
+    timeval t1, t2, t3, t4;
+    double elapsedTime, sum = 0, insertionTime = 0, prune_time = 0, delay_time = 0;
 
     gettimeofday(&t1, NULL);
 
@@ -152,6 +163,8 @@ int main(int argc, char* argv[])
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
+        fscanf(poisson, "%lf", &delay_time);
+        end->freq = delay_time / RATE_PARAMETER; /* this time is in milli-seconds*/
         end->next = NULL;
     }
     fclose(sf);
@@ -166,7 +179,7 @@ int main(int argc, char* argv[])
     {
 
         gettimeofday(&t3, NULL);
-        sf_insert_itemset(forest, stream->itemset, tid); // insert the transaction into the BL forest.
+        sf_insert_itemset(forest, stream->itemset, tid, stream->freq, &t3); // insert the transaction into the BL forest.
         gettimeofday(&t4, NULL);
 
         // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
@@ -236,10 +249,14 @@ int main(int argc, char* argv[])
 
 
     gettimeofday(&t1, NULL);
-
+    
+    struct timespec tms3, tms4;
+    
+    clock_gettime(CLOCK_REALTIME,&tms3);
     gettimeofday(&t3, NULL);
     sf_empty_buffers(forest, tid); // empty the buffers before pruning
     gettimeofday(&t4, NULL);
+    clock_gettime(CLOCK_REALTIME,&tms4);
     
     sf_prune(forest, tid); // final pruning before emptying the buffers
     no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
@@ -248,6 +265,10 @@ int main(int argc, char* argv[])
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
     printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
+
+    elapsedTime = (tms4.tv_sec - tms3.tv_sec) * 1000000.0;
+    elapsedTime += (tms4.tv_nsec - tms3.tv_nsec) / 1000000.0;
+    printf("total time taken to empty the buffers (tms) = %lf ms\n", elapsedTime);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;

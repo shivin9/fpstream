@@ -28,6 +28,7 @@ extern double MINSUP_SEMIFREQ; // not used
 extern double MINSUP_FREQ; // not used
 extern int LEAVE_AS_BUFFER; // FLAG to tell when to pre-empt. Will be used in anytime simulation.
 extern int LEAVE_LVL; // level at which FP-tree exists in BL-tree
+extern double RATE_PARAMETER;
 extern char OUT_FILE[100];
 #endif
 
@@ -61,7 +62,7 @@ struct buffer_node
 };
 
 typedef struct buffer_node* buffer;
-
+typedef struct timeval timeval;
 //////////////////////////////////////////////////////////////////////////////
 // Definitions for the trees in our data structure
 

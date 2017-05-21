@@ -366,6 +366,24 @@ int sf_get_height(sfnode node)
 }
 
 
+data sf_copy_data(data d)
+{
+    data temp = (data) calloc(1, sizeof(struct data_node)), head;
+    head = temp;
+    temp->data_item = d->data_item;
+    d = d->next;
+    while(d)
+    {
+        temp->next = (data) calloc(1, sizeof(struct data_node));
+        temp = temp->next;
+        temp->data_item = d->data_item;
+        d = d->next;
+    }
+    temp->next = NULL;
+    return head;
+}
+
+
 void sf_append_buffer(sfnode curr, data d, double freq, int tid)
 {
     /* takes care of cases when to be buffered item is NULL*/
@@ -398,22 +416,10 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
     }
 
     /* we create a new copy of the datanode*/
-    data temp;
     new->ftid = tid;
     new->ltid = tid;
-    new->itemset = (data) calloc(1, sizeof(struct data_node));
-    new->itemset->data_item = d->data_item;
+    new->itemset = sf_copy_data(d);
     new->freq = freq;
-    temp = new->itemset;
-    d = d->next;
-    while(d)
-    {
-        temp->next = (data) calloc(1, sizeof(struct data_node));
-        temp = temp->next;
-        temp->data_item = d->data_item;
-        d = d->next;
-    }
-    temp->next = NULL;
 
     if(last)
     {
@@ -546,7 +552,7 @@ void sf_fp_insert(fpnode current_node, header_table* htable, data d, double cnt,
 }
 
 
-void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
+int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_time, timeval* start)
 {
     /* currently node is the root node*/
     assert(node != NULL);
@@ -557,14 +563,34 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
     sfnode current_node, this_child;
     sfnode* current_child_ptr;
     data temp, d;
-    double toss;
+    double toss, elapsedTime;
+    timeval curr;
     int idx;
 
     while(qstack->size > 0) /* we go on till the time we have nodes in the stack*/
     {
+        if(start)
+        {
+            gettimeofday(&curr, NULL);
+            elapsedTime = (curr.tv_sec - start->tv_sec) * 1000.0;
+            elapsedTime += (curr.tv_usec - start->tv_usec) / 1000.0;
+        }
+
+        /* this controls pre-emption*/
+        if(start != NULL && elapsedTime > total_time)
+        {
+            /* inserted in LIFO order*/
+            // printf("leaving in buffer at node %d: ", current_node->data_item);
+            // sf_print_data_node(popped->itemset);
+            LEAVE_AS_BUFFER = 0;
+            delete_qstack(qstack);
+            return 0;
+        }
+
         current_node = pop(qstack); /* get the node in LIFO manner ie. queue.
                                        This is to get the nodes level by level*/
         assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
+
 
         data_type this_data = current_node->data_item;
         idx = index(this_data, root_data); /* this index will point to the correct header node and the child node*/
@@ -584,18 +610,6 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
         popped->freq *= pow(DECAY, tid - popped->ltid);
         popped->ltid = tid;
 
-        /* this controls pre-emption*/
-        if(LEAVE_AS_BUFFER)
-        {
-            /* inserted in LIFO order*/
-            // printf("leaving in buffer at node %d: ", current_node->data_item);
-            // sf_print_data_node(d);
-            current_node->bufferSize++;
-            sf_append_buffer(current_node, popped->itemset, popped->freq, tid); /* push back the popped buffer as we have to leave now*/
-            LEAVE_AS_BUFFER = 0;
-            delete_qstack(qstack);
-            return;
-        }
 
         /* this is to insert the transaction in the fptree*/
         if(current_node->fptree == NULL && (sf_get_height(current_node) >= LEAVE_LVL) /*some decision*/)
@@ -704,12 +718,13 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
     }
 
     delete_qstack(qstack);
-    return;
+    return 1;
 }
 
 
-void sf_insert_itemset(sforest forest, data d, int tid)
+void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timeval* start)
 {
+    int flag = 1;
     while(d) /* this is taking time as with higher avg. len we have to insert in many trees*/
     {
         sfnode root = forest[d->data_item];
@@ -729,9 +744,11 @@ void sf_insert_itemset(sforest forest, data d, int tid)
         root->ltid = tid;
 
         double toss = ((double) rand())/RAND_MAX;
-        if(toss < CARRY || CARRY == 2.0)
-            sf_insert_itemset_helper(root, root->data_item, tid);
-
+        // if(toss < CARRY || CARRY == 2.0)
+        if(flag)
+        {
+            flag = sf_insert_itemset_helper(root, root->data_item, tid, total_time, start);
+        }
         d = d->next;
     }
     return;
@@ -1372,7 +1389,7 @@ void sf_empty_buffers(sforest forest, int tid)
         push(qstack, root);
         if(root->bufferhead != NULL) /* push the buffered itemsets down*/
         {
-            sf_insert_itemset_helper(root, root_data, tid);
+            sf_insert_itemset_helper(root, root_data, tid, -1, NULL);
         }
 
         else
@@ -1387,7 +1404,7 @@ void sf_empty_buffers(sforest forest, int tid)
                                                                            call the insert function*/
                     {
                         root_data = current_node->children[idx]->data_item;
-                        sf_insert_itemset_helper(current_node->children[idx], root_data, tid);
+                        sf_insert_itemset_helper(current_node->children[idx], root_data, tid, -1, NULL);
                     }
                     else
                         push(qstack, current_node->children[idx]);
