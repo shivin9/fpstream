@@ -637,7 +637,7 @@ void sf_fp_insert(fpnode current_node, header_table* htable, data d, double cnt,
 }
 
 
-void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
+int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_time, timeval* start)
 {
     // /* currently node is the root node*/
     assert(node != NULL);
@@ -648,12 +648,30 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
     sfnode current_node, this_child;
     sfnode* current_child_ptr;
     data temp, d;
-    sf_check_node_buffer(node);
-
-    int idx, no_trans = 0;
+    double toss, elapsedTime;
+    timeval curr;
+    int idx;
 
     while(qstack->size > 0) /* we go on till the time we have nodes in the stack*/
     {
+        if(start)
+        {
+            gettimeofday(&curr, NULL);
+            elapsedTime = (curr.tv_sec - start->tv_sec) * 1000.0;
+            elapsedTime += (curr.tv_usec - start->tv_usec) / 1000.0;
+        }
+
+        /* this controls pre-emption*/
+        if(start != NULL && elapsedTime > total_time)
+        {
+            /* inserted in LIFO order*/
+            // printf("leaving in buffer at node %d: ", current_node->data_item);
+            // sf_print_data_node(popped->itemset);
+            LEAVE_AS_BUFFER = 0;
+            delete_qstack(qstack);
+            return 0;
+        }
+
         current_node = pop(qstack); /* get the node in LIFO manner ie. queue.
                                        This is to get the nodes level by level*/
         assert(current_node != NULL); /* since qstack is not empty, fetched node cant be null*/
@@ -790,12 +808,13 @@ void sf_insert_itemset_helper(sfnode node, int root_data, int tid)
     }
 
     delete_qstack(qstack);
-    return;
+    return 1;
 }
 
 
-void sf_insert_itemset(sforest forest, data d, int tid)
+void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timeval* start)
 {
+    int flag = 1;
     while(d) /* this is taking time as with higher avg. len we have to insert in many trees*/
     {
         sfnode root = forest[d->data_item];
@@ -816,7 +835,10 @@ void sf_insert_itemset(sforest forest, data d, int tid)
 
         double toss = ((double) rand())/RAND_MAX;
         // if(toss < CARRY || CARRY == 2.0)
-            sf_insert_itemset_helper(root, root->data_item, tid);
+        if(flag)
+        {
+            flag = sf_insert_itemset_helper(root, root->data_item, tid, total_time, start);
+        }
 
         d = d->next;
     }
@@ -1447,7 +1469,7 @@ void sf_empty_buffers(sforest forest, int tid)
         push(qstack, root);
         if(root->bufferSize > 0) /* push the buffered itemsets down*/
         {
-            sf_insert_itemset_helper(root, root_data, tid);
+            sf_insert_itemset_helper(root, root_data, tid, -1, NULL);
         }
 
         else
@@ -1462,7 +1484,7 @@ void sf_empty_buffers(sforest forest, int tid)
                     /* if buffer is not empty then simply
                        call the insert function*/
                     {
-                        sf_insert_itemset_helper(current_node->children[idx], root_data, tid);
+                        sf_insert_itemset_helper(current_node->children[idx], root_data, tid, -1, NULL);
                     }
                     else
                         push(qstack, current_node->children[idx]);

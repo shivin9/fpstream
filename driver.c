@@ -15,7 +15,8 @@ long int N;
 char OUT_FILE[100];
 
 double DECAY = 1.0, EPS = 0.0, THETA = 0.1,\
-       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01, CARRY = 1.0, H_FRACTION = 0.1;
+       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01,\
+       CARRY = 1.0, H_FRACTION = 0.1, RATE_PARAMETER = 0.1;
 
 /*DESCENDING order here*/
 int cmpfunc (const void * a, const void * b)
@@ -44,7 +45,7 @@ int main(int argc, char* argv[])
         exit(-1);
     }
 
-    FILE *sf;
+    FILE *sf, *poisson;
     int sz, cnt, max = 0, tid = 1, pattern = 0, no_patterns = 0;
     sf = fopen("intermediate", "w");
     fclose(sf);
@@ -79,6 +80,7 @@ int main(int argc, char* argv[])
                     case 'H': H_FRACTION =  strtof(s, &s);     break;
                     case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
+                    case 'r': RATE_PARAMETER =  strtof(s, &s); break;
                     default : printf("UNKNOWN ARGUMENT! %c", *(s-1));
                               exit(-1);                        break;
                 }
@@ -104,14 +106,18 @@ int main(int argc, char* argv[])
             <BATCH_SIZE>:       %d\n\
             <DECAY>:            %lf\n\
             <EPS>:              %lf\n\
+            <RATE_PARAMETER>:   %lf\n\
             <CARRY>             %lf\n\
             <THETA>:            %lf\n\
             (S/s)<SUP>:         %lf\n\
-            <LEAVE_LVL>:        %d\n\
-            <BATCH>:            %d\n",\
-            DICT_SIZE, HSIZE, BATCH, DECAY, EPS, CARRY, THETA, SUP, LEAVE_LVL, BATCH);
+            <LEAVE_LVL>:        %d\n",\
+            DICT_SIZE, HSIZE, BATCH,\
+            DECAY, EPS, RATE_PARAMETER,\
+            CARRY, THETA, SUP, LEAVE_LVL);
 
     srand(time(NULL));
+    poisson = fopen("poisson.ignore", "r");
+
     long unsigned size;
     sforest forest = NULL;
 
@@ -122,7 +128,7 @@ int main(int argc, char* argv[])
     // sf_create_header_table(tree, tid);
 
     struct timeval t1, t2, t3, t4;
-    double elapsedTime, sum = 0, totaltime = 0, prune_time = 0;
+    double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
 
     gettimeofday(&t1, NULL);
 
@@ -157,8 +163,11 @@ int main(int argc, char* argv[])
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
+        fscanf(poisson, "%lf", &delay_time);
+        end->freq = delay_time / RATE_PARAMETER; /* this time is in milli-seconds*/
         end->next = NULL;
     }
+
     fclose(sf);
     end = stream;
     stream = stream->next;
@@ -169,7 +178,7 @@ int main(int argc, char* argv[])
     {
 
         gettimeofday(&t3, NULL);
-        sf_insert_itemset(forest, stream->itemset, tid);
+        sf_insert_itemset(forest, stream->itemset, tid, stream->freq, &t3);
         gettimeofday(&t4, NULL);
         // printf("inserting: ");
         // sf_print_data_node(stream->itemset);
@@ -177,7 +186,7 @@ int main(int argc, char* argv[])
 
         elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
         elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-        totaltime += elapsedTime;
+        insertionTime += elapsedTime;
 
         end = stream->next;
         sf_delete_data_node(stream->itemset);
@@ -191,7 +200,7 @@ int main(int argc, char* argv[])
             printf("pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
-            // sf_prune(forest, tid);
+            sf_prune(forest, tid);
             gettimeofday(&t4, NULL);
             elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
             elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -224,7 +233,7 @@ int main(int argc, char* argv[])
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
     printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
-    printf("average time to insert in sf tree = %lf ms\n", totaltime/tid);
+    printf("average time to insert in sf tree = %lf ms\n", insertionTime/tid);
 
     printf("total intermittent prune time = %lf ms\n", prune_time);
     printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
@@ -232,6 +241,7 @@ int main(int argc, char* argv[])
     // sf_print_sforest(forest);
 
     gettimeofday(&t3, NULL);
+    sf_prune(forest, tid); // final pruning before emptying the buffers
     sf_empty_buffers(forest, tid);
     gettimeofday(&t4, NULL);
 
@@ -239,7 +249,7 @@ int main(int argc, char* argv[])
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-    printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
+    printf("total time taken to empty/prune the buffers = %lf ms\n", elapsedTime);
 
     gettimeofday(&t1, NULL);
     no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
@@ -262,34 +272,8 @@ int main(int argc, char* argv[])
     printf("(%d items) total time taken to mine the sf tree = %lf ms\n",\
             no_patterns, elapsedTime);
 
-    {
-        // sftree test = sf_create_sftree(0);
-        // data temp = sorted;
-        // while(temp)
-        // {
-        //     sf_append_buffer(test->root, temp, 1, tid); /* push back the popped buffer as we have to leave now*/
-        //     temp = temp->next;
-        // }
-        // // sf_delete_buffer_table(test->root->hbuffer);
-        // for(i = 0; i < 200; i++)
-        // {
-        //     buffer popped = sf_pop_buffer(test->root, rand()%HSIZE, tid);
-        //     sf_delete_buffer(popped);
-        // }
-        // sf_print_buffer_table(test->root->hbuffer);
-        // if(test->root->hbuffer != NULL)
-        // {
-        //     for(i = 0; i < 10; i++)
-        //     {
-        //         assert(test->root->hbuffer[i] != NULL);
-        //     }
-        // }
-        // sf_print_node(test->root);
-        // sf_delete_sftree(test);
-    }
-
-    sf_delete_sforest(forest);
-    free(forest);
-    sf_delete_data_node(sorted);
+    // sf_delete_sforest(forest);
+    // free(forest);
+    // sf_delete_data_node(sorted);
     return 0;
 }

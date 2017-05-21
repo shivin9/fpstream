@@ -28,6 +28,7 @@ extern double MINSUP_FREQ;
 extern int LEAVE_AS_BUFFER;
 extern char OUT_FILE[100];
 extern int LEAVE_LVL;
+extern double RATE_PARAMETER;
 #endif
 
 #define max(a,b) ((a) > (b) ? a : b)
@@ -47,7 +48,7 @@ static int batch_ready;
 
 ////////////////////////////////////////////////////////////////////////////////
 typedef int data_type;    //the data type of individual items in the transaction
-
+typedef struct timeval timeval;
 // linked list of data_items ie. an itemset
 struct data_node
 {
