@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 {
     if(argc == 1)
     {
-        printf("format is ./exe <INPUT_filename><OUTPUT_filename>\n\
+        fprintf(stdout, "format is ./exe <INPUT_filename><OUTPUT_filename>\n\
                 -D<DICT_SIZE>\n\
                 -B<BATCH_SIZE>\n\
                 -d<DECAY>\n\
@@ -45,15 +45,15 @@ int main(int argc, char* argv[])
         exit(-1);
     }
 
-    FILE *sf, *poisson;
-    int sz, cnt, max = 0, tid = 1, pattern = 0, no_patterns = 0;
+    FILE *sf, *poisson; // files to read the data set and poisson values
+    int sz, cnt, tid = 1, pattern = 0, no_patterns = 0;
     sf = fopen("intermediate", "w");
     fclose(sf);
     sf = fopen("output", "w");
     fclose(sf);
 
     // sfstream(argv[1]);
-    strcpy(OUT_FILE, argv[2]);
+    strcpy(OUT_FILE, argv[2]); // the name of the output file is being copied.
 
     char* s, output;
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
                     case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
                     case 'r': RATE_PARAMETER =  strtof(s, &s); break;
-                    default : printf("UNKNOWN ARGUMENT! %c", *(s-1));
+                    default : fprintf(stdout, "UNKNOWN ARGUMENT! %c", *(s-1));
                               exit(-1);                        break;
                 }
             }
@@ -94,12 +94,12 @@ int main(int argc, char* argv[])
     sf = fopen(argv[1], "r");
     if(sf == NULL)
     {
-        printf("invalid file\n");
+        fprintf(stdout, "invalid file\n");
         exit(0);
     }
-    HSIZE = H_FRACTION*DICT_SIZE;
+    HSIZE = H_FRACTION*DICT_SIZE; // size of the hash table computed here
 
-    printf("\
+    fprintf(stdout, "\
             The parameters are:-\n\
             <DICT_SIZE>:        %d\n\
             <HSIZE>:            %d\n\
@@ -118,11 +118,11 @@ int main(int argc, char* argv[])
     srand(time(NULL));
     poisson = fopen("poisson.ignore", "r");
 
-    long unsigned size;
+    // long unsigned size;
     sforest forest = NULL;
 
-    data sorted = sf_create_sorted_dummy(0);
-    forest = sf_create_sforest();
+    // data sorted = sf_create_sorted_dummy(0);
+    forest = sf_create_sforest(); // initializing the forest and creating root nodes of all the trees.
 
     // sftree tree = sf_create_sftree(0);
     // sf_create_header_table(tree, tid);
@@ -132,11 +132,11 @@ int main(int argc, char* argv[])
 
     gettimeofday(&t1, NULL);
 
-
+    // initializing the first LL of stream separately. Buffer structure is being re-used here.
     buffer stream = NULL, end = NULL;
     stream = (buffer) calloc(1, sizeof(struct buffer_node));
-    stream->itemset = (data) calloc(1, sizeof(struct data_node));
-    stream->itemset->next = NULL;
+    // stream->itemset = (data) calloc(1, sizeof(struct data_node));
+    // stream->itemset->next = NULL;
     stream->next = NULL;
     end = stream;
 
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
             data new_d = calloc(1, sizeof(struct data_node));
             if(new_d == NULL)
             {
-                printf("new_d malloc failed\n");
+                fprintf(stdout, "new_d malloc failed\n");
             }
             new_d->data_item = item;
             new_d->next = d;
@@ -158,29 +158,34 @@ int main(int argc, char* argv[])
         }
 
         batch_no++;
-        sf_sort_data(d, NULL);
+        sf_sort_data(d, NULL); // canonical sort of incoming trans
 
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
         fscanf(poisson, "%lf", &delay_time);
-        end->freq = delay_time / RATE_PARAMETER; /* this time is in milli-seconds*/
+        end->freq = delay_time / RATE_PARAMETER; /* this time is in milli-seconds, reusing the freq field to store delay_time*/
         end->next = NULL;
     }
 
     fclose(sf);
     end = stream;
     stream = stream->next;
-    sf_delete_data_node(end->itemset);
-    free(end);
 
+    // sf_delete_data_node(end->itemset); 
+    // deleting the head of itemset LL which was dummy.
+    free(end);
+    
+    int buffered = 0;
     while(stream)
     {
-
         gettimeofday(&t3, NULL);
         sf_insert_itemset(forest, stream->itemset, tid, stream->freq, &t3);
         gettimeofday(&t4, NULL);
-        // printf("inserting: ");
+        
+        buffered += LEAVE_AS_BUFFER;
+        LEAVE_AS_BUFFER = 0;
+        // fprintf(stdout, "inserting: ");
         // sf_print_data_node(stream->itemset);
         // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
 
@@ -189,15 +194,16 @@ int main(int argc, char* argv[])
         insertionTime += elapsedTime;
 
         end = stream->next;
-        sf_delete_data_node(stream->itemset);
+        sf_delete_data_node(stream->itemset); // freeing the transaction after inserting. // change it to array.
         free(stream);
         stream = end;
 
         // sf_prune(forest, tid);
         // break;
+        // intermittent pruning
         if(tid%BATCH == 0)
         {
-            printf("pruning at tid = %d\n", tid);
+            fprintf(stdout, "pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
             sf_prune(forest, tid);
@@ -209,34 +215,32 @@ int main(int argc, char* argv[])
         tid++;
     }
 
-    /* Create the perfect, final tree after emptying the buffers*/
-    // sf_empty_buffers(forest, forest, tid);
-    // sf_prune(forest, tid);
+    
     N = tid;
     /* this is to accomodate hard support counts instead of %*/
     if(SUP > 1.0)
     {
-        if(SUP/N - EPS < 0) /* mine with very less support*/
+        // if(SUP/N - EPS < 0) /* mine with very less support*/
             SUP = SUP/N;
-        else
-            SUP = SUP/N - EPS;
+        // else
+        //     SUP = SUP/N - EPS;
     }
-    else
-    {
-        if(SUP - EPS > 0)
-            SUP = SUP - EPS;
-    }
+    // else
+    // {
+    //     if(SUP - EPS > 0)
+    //         SUP = SUP - EPS;
+    // }
 
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    printf("total time taken to insert in sf tree = %lf ms\n", elapsedTime);
-    printf("average time to insert in sf tree = %lf ms\n", insertionTime/tid);
+    fprintf(stdout, "total time taken to insert in sf tree = %lf ms, buffered = %d\n", elapsedTime, buffered);
+    fprintf(stdout, "average time to insert in sf tree = %lf ms\n", insertionTime/tid);
 
-    printf("total intermittent prune time = %lf ms\n", prune_time);
-    printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
+    fprintf(stdout, "total intermittent prune time = %lf ms\n", prune_time);
+    fprintf(stdout, "avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
     // sf_print_sforest(forest);
 
@@ -246,32 +250,21 @@ int main(int argc, char* argv[])
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);
-
+    LEAVE_AS_BUFFER = INT_MAX - 1;
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-    printf("total time taken to empty/prune the buffers = %lf ms\n", elapsedTime);
+    fprintf(stdout, "total time taken to empty/prune the buffers = %lf ms, least ftid = %d\n", elapsedTime, LEAVE_AS_BUFFER);
 
     gettimeofday(&t1, NULL);
-    no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern);
+    no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern); // mining for frequent patterns
     gettimeofday(&t2, NULL);
-
-    // sfnode collector = calloc(1, sizeof(struct sf_node));
-
-    // sf_print_tree(tree->root);
-    // printf("****printing Htable****\n");
-    // sf_print_header_table(tree->head_table);
-    /* testing the sf_dfs() function*/
-    // sftree condtree = sf_create_conditional_sf_tree(tree, 3, MINSUP_SEMIFREQ, 0);
-    // sf_print_tree(condtree->root);
-
-    // sf_fp_mine_frequent_itemsets(tree, sorted, NULL, collector, tid, MINSUP_SEMIFREQ);
-    // sf_print_patterns_to_file(NULL, collector->bufferhead, /*cnt = */ -1, -1, 0);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-    printf("(%d items) total time taken to mine the sf tree = %lf ms\n",\
+    fprintf(stdout, "(%d freq. patterns) total time taken to mine the sf tree = %lf ms\n",\
             no_patterns, elapsedTime);
 
+    // to do final free
     // sf_delete_sforest(forest);
     // free(forest);
     // sf_delete_data_node(sorted);
