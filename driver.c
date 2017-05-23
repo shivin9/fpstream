@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 {
     if(argc == 1)
     {
-        printf("format is ./exe <INPUT_filename><OUTPUT_filename>\n\
+        //print("format is ./exe <INPUT_filename><OUTPUT_filename>\n\
                 -D<DICT_SIZE>\n\
                 -B<BATCH_SIZE>\n\
                 -d<DECAY>\n\
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
                     case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
                     case 'r': RATE_PARAMETER =  strtof(s, &s); break;
-                    default : printf("UNKNOWN ARGUMENT! %c", *(s-1));
+                    default : //print("UNKNOWN ARGUMENT! %c", *(s-1));
                               exit(-1);                        break;
                 }
             }
@@ -98,11 +98,11 @@ int main(int argc, char* argv[])
     sf = fopen(argv[1], "r");
     if(sf == NULL)
     {
-        printf("invalid file\n");
+        //print("invalid file\n");
         exit(0);
     }
 
-    printf("\
+    //print("\
             The parameters are:-\n\
             <DICT_SIZE>:        %d\n\
             <BATCH_SIZE>:       %d\n\
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
             data new_d = calloc(1, sizeof(struct data_node));
             if(new_d == NULL)
             {
-                printf("new_d malloc failed\n");
+                //print("new_d malloc failed\n");
             }
             new_d->data_item = item;
             new_d->next = d;
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
         // intermittent pruning
         if(tid%BATCH == 0)
         {
-            printf("pruning at tid = %d\n", tid);
+            //print("pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
             sf_prune(forest, tid); // intermittent pruning taking place here.
@@ -239,13 +239,13 @@ int main(int argc, char* argv[])
 
     // sf_print_sforest(forest);
     
-    printf("total time taken to insert in sf tree = %lf ms\n", insertionTime);
-    printf("average time to insert in sf tree = %lf ms\n", insertionTime/tid);
+    //print("total time taken to insert in sf tree = %lf ms\n", insertionTime);
+    //print("average time to insert in sf tree = %lf ms\n", insertionTime/tid);
 
-    printf("total intermittent prune time = %lf ms\n", prune_time);
-    printf("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
+    //print("total intermittent prune time = %lf ms\n", prune_time);
+    //print("avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
-    printf("total INSERTION PRUNE_TIME = %lf ms\n", PRUNE_TIME);
+    //print("total INSERTION PRUNE_TIME = %lf ms\n", PRUNE_TIME);
 
 
     gettimeofday(&t1, NULL);
@@ -264,15 +264,15 @@ int main(int argc, char* argv[])
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-    printf("total time taken to empty the buffers = %lf ms\n", elapsedTime);
+    //print("total time taken to empty the buffers = %lf ms\n", elapsedTime);
 
     elapsedTime = (tms4.tv_sec - tms3.tv_sec) * 1000000.0;
     elapsedTime += (tms4.tv_nsec - tms3.tv_nsec) / 1000000.0;
-    printf("total time taken to empty the buffers (tms) = %lf ms\n", elapsedTime);
+    //print("total time taken to empty the buffers (tms) = %lf ms\n", elapsedTime);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-    printf("(%d items) total time taken to mine the sf tree = %lf ms\n",\
+    //print("(%d items) total time taken to mine the sf tree = %lf ms\n",\
             no_patterns, elapsedTime);
 
     // sf_delete_sftree(tree);

@@ -14,6 +14,7 @@ data sf_copy_data(data d);
 
 /* INSERTING FUNCTIONS*/
 void sf_append_buffer(sfnode curr, data d, double freq, int tid);
+int sf_find_buffer(sfnode, data, float, int);
 void sf_insert_new_child(fpnode, fpnode, int);
 int sf_insert_itemset_helper(sfnode, int root_data, int tid, double, timeval*);
 void sf_fp_insert(fpnode, header_table*, data, double, int);

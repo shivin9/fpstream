@@ -84,6 +84,7 @@ struct sf_node
     data_type data_item; // integer data item.
     struct sf_node* parent; // parent pointer in both BL.
     fptree fptree; // contains header table and root node
+    short* bfilter;
 };
 
 struct fp_node

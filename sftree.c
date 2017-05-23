@@ -67,6 +67,7 @@ sfnode sf_create_sfnode(data_type dat) // seen
     }
 
     node->children = calloc(last_index(dat), sizeof(sfnode)); // smart allocation of children array using a macro
+    node->bfilter = NULL;
     node->data_item = dat;
     node->ftid = INT_MAX;
     node->ltid = -1;
@@ -137,6 +138,7 @@ void sf_delete_sftree_structure(sfnode current_node)
 
     sf_delete_fptree(current_node->fptree);
     sf_delete_buffer(buff); /* clear up the buffer*/
+    free(current_node->bfilter);
     // free(current_node->bufferhead);
     // free(current_data_ptr);
 
@@ -384,27 +386,106 @@ data sf_copy_data(data d)
 }
 
 
+void sf_insert_bfilter(short* bfilter, data d)
+{
+    short hvalue, idx = 1;
+    if(d->next)
+        hvalue = (short)(d->data_item * d->next->data_item)%DICT_SIZE;
+    else
+        hvalue = (short)(d->data_item*(DICT_SIZE - 1))%DICT_SIZE;
+
+    bfilter[hvalue]++;
+    d = d->next;
+    while(d)
+    {
+        hvalue *= (d->data_item*(idx+1));
+        bfilter[abs(hvalue)%DICT_SIZE]++;
+        d = d->next;
+    }
+    return;
+}
+
+
+char sf_find_bfilter(short* bfilter, data d)
+{
+    short hvalue, idx = 1;
+    if(d->next)
+        hvalue = (short)(d->data_item * d->next->data_item)%DICT_SIZE;
+    else
+        hvalue = (short)(d->data_item*(DICT_SIZE - 1))%DICT_SIZE;
+
+    if(bfilter[hvalue] <= 0)
+        return 0;
+
+    d = d->next;
+    while(d)
+    {
+        hvalue *= (d->data_item*(idx+1));
+        if(bfilter[abs(hvalue)%DICT_SIZE] <= 0)
+            return 0;
+        d = d->next;
+    }
+    return 1;
+}
+
+
+void sf_delete_bfilter(short* bfilter, data d)
+{
+    short hvalue, idx = 1;
+    if(d->next)
+        hvalue = (short)(d->data_item * d->next->data_item)%DICT_SIZE;
+    else
+        hvalue = (short)(d->data_item*(DICT_SIZE - 1))%DICT_SIZE;
+
+    bfilter[hvalue]--;
+    d = d->next;
+    while(d)
+    {
+        hvalue *= (d->data_item*(idx+1));
+        bfilter[abs(hvalue)%DICT_SIZE]--;
+        d = d->next;
+    }
+    return;
+}
+
+
+int sf_find_buffer(sfnode curr, data d, float freq, int tid)
+{
+    if(sf_find_bfilter(curr->bfilter, d) == 0)
+        return 0;
+
+    buffer head = curr->bufferhead;
+    while(head)
+    {
+        if(sf_is_equal(head->itemset, d))
+        {
+            head->freq *= pow(DECAY, tid - head->ltid);
+            head->ltid = tid;
+            head->freq += freq;;
+            return 1;
+        }
+        head = head->next;
+    }
+    return 0;
+}
+
+
 void sf_append_buffer(sfnode curr, data d, double freq, int tid)
 {
     /* takes care of cases when to be buffered item is NULL*/
     /* this tid is the timestamp when the dataitem was buffered*/
     if(d == NULL)
         return;
+
+    if(curr->bfilter == NULL)
+    {
+        curr->bfilter = calloc(DICT_SIZE, sizeof(short));
+    }
+
     buffer last = curr->buffertail, temp_buff = curr->bufferhead;
 
-    while(temp_buff)
-    {
-        temp_buff->freq *= pow(DECAY, tid - temp_buff->ltid);
-        temp_buff->ltid = tid;
-        if(sf_is_equal(temp_buff->itemset, d))
-        {
-            // printf("appending at node!\n");
-            // sf_print_node(curr);
-            temp_buff->freq += freq;;
-            return;
-        }
-        temp_buff = temp_buff->next;
-    }
+    if(sf_find_buffer(curr, d, freq, tid))
+        return;
 
     buffer new = (buffer) calloc(1, sizeof(struct buffer_node));
 
@@ -430,6 +511,7 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid)
     curr->buffertail = new;
     curr->buffertail->next = NULL;
     curr->bufferSize++;
+    sf_insert_bfilter(curr->bfilter, d);
     return;
 }
 
@@ -454,6 +536,7 @@ buffer sf_pop_buffer(sfnode curr)
     // assert(prev->next == curr->buffertail);
 
     curr->buffertail = prev;
+    sf_delete_bfilter(curr->bfilter, temp->itemset);
     assert(temp->next == NULL);
     return temp;
 }
@@ -779,20 +862,20 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
     /* this part is to print the transaction when the end node has no fptree*/
     {
         int t = 0;
-        fprintf(sf, "%d", end + 1);
+        //fprintf(sf, "%d", end + 1);
 
         while(t <= end)
         {
-            fprintf(sf, " %d", collected[t]);
+            //fprintf(sf, " %d", collected[t]);
             t++;
         }
         pttrn_cnt++;
 
         if(pattern%2 == 0)
         {
-            fprintf(sf, " %lf", cnt);
+            //fprintf(sf, " %lf", cnt);
         }
-        fprintf(sf, "\n");
+        //fprintf(sf, "\n");
     }
 
     data temp;
@@ -823,39 +906,39 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
             // temp = temp->next;
             new_end--;
         }
-        fprintf(sf, "%d", new_end + len + 1);
+        //fprintf(sf, "%d", new_end + len + 1);
         pttrn_cnt++;
 
         if(collected)
         {
-            // fprintf(sf, " collected:");
+            // //fprintf(sf, " collected:");
             while(t <= new_end)
             {
-                fprintf(sf, " %d", collected[t]);
+                //fprintf(sf, " %d", collected[t]);
                 // printf(" %d", collected[t]);
                 t++;
             }
         }
 
-        // fprintf(sf, " -- fpmined trans:");
+        // //fprintf(sf, " -- fpmined trans:");
 
         while(temp)
         {
-            fprintf(sf, " %d", temp->data_item);
+            //fprintf(sf, " %d", temp->data_item);
             temp = temp->next;
         }
 
-        // fprintf(sf, "  cnt = %d\n", cnt < 0 ? buff->tid : min(cnt, buff->tid));
+        // //fprintf(sf, "  cnt = %d\n", cnt < 0 ? buff->tid : min(cnt, buff->tid));
 
         if(pattern%2 == 0)
         {
-            fprintf(sf, " %lf\n", cnt < 0 ? buff->freq : min(cnt, buff->freq));
+            //fprintf(sf, " %lf\n", cnt < 0 ? buff->freq : min(cnt, buff->freq));
             // printf(" %lf\n", node->freq);
         }
         buff = buff->next;
     }
 
-    // fprintf(sf, "\n");
+    // //fprintf(sf, "\n");
     fclose(sf);
     return pttrn_cnt;
 }
