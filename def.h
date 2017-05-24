@@ -36,7 +36,8 @@ extern double RATE_PARAMETER;
 #define last_index(x) ((DICT_SIZE) - (x) + (1))
 #define index(i,len) ((i) - (len)) /* when the arrays of nodes are of different sizes,
                                       200th item it found at index 100 in the node of item 100*/
-
+#define first(d) (((d)[(0)]) + (2))
+#define last(d) (((d)[(0)]) + ((d)[(1)]) + (1))
 
 // -1: something in between
 // 0: ready
@@ -49,14 +50,7 @@ static int batch_ready;
 ////////////////////////////////////////////////////////////////////////////////
 typedef int data_type;    //the data type of individual items in the transaction
 typedef struct timeval timeval;
-// linked list of data_items ie. an itemset
-struct data_node
-{
-    data_type data_item;
-    struct data_node* next;
-};
-
-typedef struct data_node* data;
+typedef int* data; // data[0] has start; data[1] has length
 
 struct buffer_node
 {

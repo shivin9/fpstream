@@ -18,12 +18,6 @@ double DECAY = 1.0, EPS = 0.0, THETA = 0.1,\
        SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01,\
        CARRY = 1.0, H_FRACTION = 0.1, RATE_PARAMETER = 0.1;
 
-/*DESCENDING order here*/
-int cmpfunc (const void * a, const void * b)
-{
-   return -( *(double*)a - *(double*)b );
-}
-
 
 int main(int argc, char* argv[])
 {
@@ -142,24 +136,20 @@ int main(int argc, char* argv[])
 
     while(fscanf(sf, "%d", &sz) != EOF)
     {
-        data d = NULL;
+        data d = malloc((sz+2)*sizeof(int));
+        d[0] = 0;
+        d[1] = 0;
         while(sz--)
         {
             data_type item;
             fscanf(sf, "%d", &item);
-            data new_d = calloc(1, sizeof(struct data_node));
-            if(new_d == NULL)
-            {
-                fprintf(stdout, "new_d malloc failed\n");
-            }
-            new_d->data_item = item;
-            new_d->next = d;
-            d = new_d;
+            d[d[1] + 2] = item;
+            d[1]++;
+            batch_no++;
         }
 
-        batch_no++;
-        sf_sort_data(d, NULL); // canonical sort of incoming trans
-
+        d = sf_sort_data(d); // canonical sort of incoming trans
+        // sf_print_data_node(d);
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
@@ -171,7 +161,7 @@ int main(int argc, char* argv[])
     fclose(sf);
     end = stream;
     stream = stream->next;
-
+    // sf_print_buffer(stream);
     // sf_delete_data_node(end->itemset); 
     // deleting the head of itemset LL which was dummy.
     free(end);
@@ -179,14 +169,15 @@ int main(int argc, char* argv[])
     int buffered = 0;
     while(stream)
     {
+        // fprintf(stdout, "inserting: ");
+        // sf_print_data_node(stream->itemset);
+
         gettimeofday(&t3, NULL);
-        sf_insert_itemset(forest, stream->itemset, tid, stream->freq, &t3);
+        sf_insert_itemset(forest, stream->itemset, tid, stream->freq, NULL);
         gettimeofday(&t4, NULL);
         
         buffered += LEAVE_AS_BUFFER;
         LEAVE_AS_BUFFER = 0;
-        // fprintf(stdout, "inserting: ");
-        // sf_print_data_node(stream->itemset);
         // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
 
         elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
@@ -242,7 +233,7 @@ int main(int argc, char* argv[])
     fprintf(stdout, "total intermittent prune time = %lf ms\n", prune_time);
     fprintf(stdout, "avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
-    // sf_print_sforest(forest);
+    sf_print_sforest(forest);
 
     gettimeofday(&t3, NULL);
     sf_prune(forest, tid); // final pruning before emptying the buffers
@@ -250,7 +241,12 @@ int main(int argc, char* argv[])
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);
+
     LEAVE_AS_BUFFER = INT_MAX - 1;
+    
+    for(i = 0; i < DICT_SIZE; i++)
+        sf_get_least_ftid(forest[i]);
+
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
     fprintf(stdout, "total time taken to empty/prune the buffers = %lf ms, least ftid = %d\n", elapsedTime, LEAVE_AS_BUFFER);
@@ -265,8 +261,8 @@ int main(int argc, char* argv[])
             no_patterns, elapsedTime);
 
     // to do final free
-    // sf_delete_sforest(forest);
-    // free(forest);
+    sf_delete_sforest(forest);
+    free(forest);
     // sf_delete_data_node(sorted);
     return 0;
 }

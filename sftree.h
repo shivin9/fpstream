@@ -8,7 +8,7 @@ fptree sf_create_fptree(data_type dat);
 sfnode sf_create_sfnode(data_type dat);
 sforest sf_create_sforest();
 data sf_create_sorted_dummy(int start);
-void sf_create_and_insert_new_child(sfnode, data, int);
+void sf_create_and_insert_new_child(sfnode, data_type, int);
 void sf_create_update_header_node(header_table*, data_type, int root_data, int tid);
 
 /* INSERTING FUNCTIONS*/
@@ -43,7 +43,7 @@ void sf_create_header_table_helper(fpnode, header_table*);
 void sf_create_header_table(fptree, int);
 
 /* CP-TREE FUNCTIONS*/
-void sf_sort_data(data head, double*);
+data sf_sort_data(data head);
 void sf_sort_header_table(header_table*, double*);
 void sf_empty_buffers(sforest, int);
 
@@ -56,7 +56,7 @@ fpnode sf_dfs(fpnode, header_table*, data_type);
 fptree sf_create_conditional_fp_tree(fptree, data_type, double, int);
 int sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern);
 int sf_mine_frequent_itemsets(sforest, int tid, int pattern);
-void sf_fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, bufferTable collected, int tid, double minsup);
+void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, bufferTable collected, int tid, double minsup);
 int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern);
 
 /* PRINTING FUNCTIONS*/
