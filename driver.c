@@ -173,7 +173,10 @@ int main(int argc, char* argv[])
         // sf_print_data_node(stream->itemset);
 
         gettimeofday(&t3, NULL);
-        sf_insert_itemset(forest, stream->itemset, tid, stream->freq, NULL);
+        if(RATE_PARAMETER < 0)
+            sf_insert_itemset(forest, stream->itemset, tid, stream->freq, NULL);
+        else
+            sf_insert_itemset(forest, stream->itemset, tid, stream->freq, &t3);
         gettimeofday(&t4, NULL);
         
         buffered += LEAVE_AS_BUFFER;
@@ -197,7 +200,7 @@ int main(int argc, char* argv[])
             fprintf(stdout, "pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
-            sf_prune(forest, tid);
+            // sf_prune(forest, tid);
             gettimeofday(&t4, NULL);
             elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
             elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -233,7 +236,7 @@ int main(int argc, char* argv[])
     fprintf(stdout, "total intermittent prune time = %lf ms\n", prune_time);
     fprintf(stdout, "avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
-    sf_print_sforest(forest);
+    // sf_print_sforest(forest);
 
     gettimeofday(&t3, NULL);
     sf_prune(forest, tid); // final pruning before emptying the buffers
@@ -242,10 +245,10 @@ int main(int argc, char* argv[])
 
     // sf_print_sforest(forest);
 
-    LEAVE_AS_BUFFER = INT_MAX - 1;
+    // LEAVE_AS_BUFFER = INT_MAX - 1;
     
-    for(i = 0; i < DICT_SIZE; i++)
-        sf_get_least_ftid(forest[i]);
+    // for(i = 0; i < DICT_SIZE; i++)
+    //     sf_get_least_ftid(forest[i]);
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -261,8 +264,8 @@ int main(int argc, char* argv[])
             no_patterns, elapsedTime);
 
     // to do final free
-    sf_delete_sforest(forest);
-    free(forest);
-    // sf_delete_data_node(sorted);
+    // sf_delete_sforest(forest);
+    // free(forest);
+    // // sf_delete_data_node(sorted);
     return 0;
 }

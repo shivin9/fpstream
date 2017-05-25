@@ -48,6 +48,12 @@ data sf_sort_data(data d) // seen
     data new = malloc((new_len + 2) * sizeof(int));
     memcpy(new, d, (new_len + 2)*sizeof(int));
     new[1] = new_len;
+
+    if(new[last(new)] == new[last(new)-1])
+    {
+        new[last(new)] = 0;
+        new[1]--;
+    }
     return new;
 }
 
@@ -63,29 +69,29 @@ void sf_print_data_node(data d)
 
 int main()
 {
-    int arr[12] = {0, 10, 4, 2, 8, 9, 4, 5, 8, 0, 0, 7};
+    int arr[20] = {0, 18, 89, 67, 2, 85, 9, 33, 43, 89, 10, 16, 89, 72, 18, 33, 89, 55, 9, 20};
     qsort(arr+2, arr[1], sizeof(arr[0]), sf_cmpfunc);
     int i;
-    for(i = 0; i < 12; i++)
+    for(i = 0; i < arr[1] + 2; i++)
 	   printf("%d ", arr[i]);
-	data new = sf_sort_data(arr);
 
+	data new = sf_sort_data(arr);
     printf("\n");
 
     for(i = 0; i < new[1] + 2; i++)
 	   printf("%d ", new[i]);
 
-    new[0] = 4;
-    new[1] = 3;
-    printf("\nfirst(new) = %d, last(new) = %d\n", first(new), last(new));
+    // new[0] = 4;
+    // new[1] = 3;
+    // printf("\nfirst(new) = %d, last(new) = %d\n", first(new), last(new));
 
-    data copy = sf_copy_data(new);
-    sf_print_data_node(copy);
+    // data copy = sf_copy_data(new);
+    // sf_print_data_node(copy);
 
-    printf("\n");   
+    // printf("\n");   
 
-    data c1 = sf_copy_data(new);
-    sf_print_data_node(c1);
+    // data c1 = sf_copy_data(new);
+    // sf_print_data_node(c1);
 
     printf("\n");	
     return 0;
