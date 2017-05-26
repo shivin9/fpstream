@@ -14,9 +14,9 @@
 #define min(a,b) ((a) < (b) ? a : b)
 
 #define DECAY 1.0
-#define DICT_SIZE 1000 // max. number of items
-#define N 5000 //window size
-#define EPS 0.0001
+#define DICT_SIZE 100 // max. number of items
+#define N 10000 //window size
+#define EPS 0.005
 #define THETA 0.001
 
 #define SUP 18.0

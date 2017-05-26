@@ -766,8 +766,8 @@ void fp_empty_buffers(fpnode curr, header_table htable, int tid)
         buffer buff = curr->itembuffer, temp;
         while(buff)
         {
-            printf("buffer emptied at %d: ", curr->data_item);
-            fp_print_data_node(buff->itemset);
+            // printf("buffer emptied at %d: ", curr->data_item);
+            // fp_print_data_node(buff->itemset);
             curr = fp_insert_itemset_helper(curr, htable, buff->itemset, tid, 0);
             curr->bufferSize--;
             curr->freq = curr->freq-1;
@@ -916,8 +916,8 @@ void fp_merge(fpnode parent, fpnode child, header_table htable)
     fpnode temp = NULL;
     data prntdata = parent->item_list, prevdata = NULL;
 
-    printf("in merge parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
-    fp_print_data_node(parent->item_list);
+    // printf("in merge parent %d, children = %d, items = %d: ", parent->data_item, fp_no_children(parent), fp_no_dataitem(parent));
+    // fp_print_data_node(parent->item_list);
 
     while(this_child != NULL)
     {
@@ -940,7 +940,7 @@ void fp_merge(fpnode parent, fpnode child, header_table htable)
         //assert(fp_verify_node(parent));
 
         int c1 = fp_no_children(parent);
-        printf("%d has children but not %d\n", parent->data_item, nt);
+        // printf("%d has children but not %d\n", parent->data_item, nt);
         prev->next = (fpnode_list) calloc(1, sizeof(struct fpnode_list_node));
         prev->next->tree_node = child;
         prev->next->next = NULL;
@@ -950,8 +950,8 @@ void fp_merge(fpnode parent, fpnode child, header_table htable)
         prevdata->next->data_item = child->data_item;
         prevdata->next->next = NULL;
 
-        printf("%d, added = %d, children = %d, items = %d: ", parent->data_item, nt, fp_no_children(parent), fp_no_dataitem(parent));
-        fp_print_data_node(parent->item_list);
+        // printf("%d, added = %d, children = %d, items = %d: ", parent->data_item, nt, fp_no_children(parent), fp_no_dataitem(parent));
+        // fp_print_data_node(parent->item_list);
 
         int c2 = fp_no_children(parent);
         //assert(fp_verify_node(parent));
@@ -959,7 +959,7 @@ void fp_merge(fpnode parent, fpnode child, header_table htable)
         return;
     }
 
-    printf("\n!!!special merge, child = %d!!!\n", nt);
+    // printf("\n!!!special merge, child = %d!!!\n", nt);
     temp = this_child->tree_node;
     temp->freq += pow(abs(child->tid - temp->tid), DECAY);
     temp->tid = max(temp->tid, child->tid);
@@ -1383,8 +1383,8 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
         node = node->next_similar;
     }
 
-    printf("after touching:\n");
-    fp_print_tree(tree->root);
+    // printf("after touching:\n");
+    // fp_print_tree(tree->root);
 
     //now run a DFS from the root of the given FP_tree, for all touched nodes,
     //create a copy for the conditional FP-tree
