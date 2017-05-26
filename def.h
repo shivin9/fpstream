@@ -29,7 +29,11 @@ extern int LEAVE_AS_BUFFER;
 extern char OUT_FILE[100];
 extern int LEAVE_LVL;
 extern double RATE_PARAMETER;
-extern int MAX_BUFFER_SIZE[10];
+extern unsigned int MAX_BUFFER_SIZE[10];
+extern unsigned int MIN_BUFFER_SIZE[10];
+extern unsigned int AVG_BUFFER_SIZE[10];
+extern unsigned int RED_BUFFER_SIZE[10];
+extern unsigned int CNT_BUFFER_SIZE[10];
 extern int BUFFER_SIZE;
 #endif
 

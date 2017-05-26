@@ -1,9 +1,19 @@
-#R Tree now
-#cd grid/RTree/
+# BLTree
+# <dataset> <decay> <eps> <Dict_Size> <TreeLvl> <Sup_cnt> <Batch_Size> <Carry> <Theta> <Rate> <Buffer>
 
-# KNN for R Tree
-# <dataset> <decay> <eps> <Dict_Size> <m> <M> <TreeLvl> <Sup_cnt> <Batch_Size>
+sh serialProf.sh 1MD100T10.data 1.0 0.01 100 4 0.01 10000 0.10 0.05 10 100
+sh serialProf.sh 1MD500T10.data 1.0 0.01 500 4 0.01 10000 0.10 0.05 10 100
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 1000 4 0.01 10000 0.10 0.05 10 100
 
+sh serialProf.sh 1MD100T10.data 1.0 0.01 100 4 0.01 10000 0.10 0.05 20 100
+sh serialProf.sh 1MD500T10.data 1.0 0.01 500 4 0.01 10000 0.10 0.05 20 100
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 1000 4 0.01 10000 0.10 0.05 20 100
+
+sh serialProf.sh 1MD100T10.data 1.0 0.01 100 4 0.01 10000 0.10 0.05 25 100
+sh serialProf.sh 1MD500T10.data 1.0 0.01 500 4 0.01 10000 0.10 0.05 25 100
+sh serialProf.sh 1MD1000T10.data 1.0 0.01 1000 4 0.01 10000 0.10 0.05 25 100
+
+# Normal tests
 # sh serialProf.sh 1MD100T5.data  1.0 0.01 100 0.05 0.1 4 0.01 10000 0.10
 # sh serialProf.sh 1MD500T5.data  1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
 # sh serialProf.sh 1MD1000T5.data  1.0 0.01 1000 0.05 0.1 4 0.01 10000 0.10
@@ -108,26 +118,26 @@
 # sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
 # sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
 
-git add -A
-git commit --amend --no-edit
-git checkout bltree
-make clean && make
-sh serialProf.sh 1MD100T10.data 1.0 0.01 100 0.05 0.1 4 0.01 10000 0.10
-sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
-mv temp temp_bltree
+# git add -A
+# git commit --amend --no-edit
+# git checkout bltree
+# make clean && make
+# sh serialProf.sh 1MD100T10.data 1.0 0.01 100 0.05 0.1 4 0.01 10000 0.10
+# sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
+# mv temp temp_bltree
 
-git add -A
-git commit --amend --no-edit
-git checkout new_buffer
-make clean && make
-sh serialProf.sh 1MD100T10.data 1.0 0.01 100 0.05 0.1 4 0.01 10000 0.10
-sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
-mv temp temp_new_buffer
+# git add -A
+# git commit --amend --no-edit
+# git checkout new_buffer
+# make clean && make
+# sh serialProf.sh 1MD100T10.data 1.0 0.01 100 0.05 0.1 4 0.01 10000 0.10
+# sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
+# mv temp temp_new_buffer
 
-git add -A
-git commit --amend --no-edit
-git checkout bit_vector
-make clean && make
-sh serialProf.sh 1MD100T10.data 1.0 0.01 100 0.05 0.1 4 0.01 10000 0.10
-sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
-mv temp temp_bit_vector
+# git add -A
+# git commit --amend --no-edit
+# git checkout bit_vector
+# make clean && make
+# sh serialProf.sh 1MD100T10.data 1.0 0.01 100 0.05 0.1 4 0.01 10000 0.10
+# sh serialProf.sh 1MD500T10.data 1.0 0.01 500 0.05 0.1 4 0.01 10000 0.10
+# mv temp temp_bit_vector

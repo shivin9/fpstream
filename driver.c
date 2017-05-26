@@ -10,7 +10,9 @@
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,\
     LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100;
 
-int MAX_BUFFER_SIZE[10];
+unsigned int MAX_BUFFER_SIZE[10], CNT_BUFFER_SIZE[10],\
+             AVG_BUFFER_SIZE[10], MIN_BUFFER_SIZE[10] = {INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX},\
+             RED_BUFFER_SIZE[10];
 
 long int N;
 char OUT_FILE[100];
@@ -96,22 +98,22 @@ int main(int argc, char* argv[])
     }
     HSIZE = H_FRACTION*DICT_SIZE; // size of the hash table computed here
 
-    fprintf(stdout, "\
-            The parameters are:-\n\
-            <DICT_SIZE>:        %d\n\
-            <HSIZE>:            %d\n\
-            <BATCH_SIZE>:       %d\n\
-            <BUFFER_SIZE>:      %d\n\
-            <DECAY>:            %lf\n\
-            <EPS>:              %lf\n\
-            <RATE_PARAMETER>:   %lf\n\
-            <CARRY>             %lf\n\
-            <THETA>:            %lf\n\
-            (S/s)<SUP>:         %lf\n\
-            <LEAVE_LVL>:        %d\n",\
-            DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,\
-            DECAY, EPS, RATE_PARAMETER,\
-            CARRY, THETA, SUP, LEAVE_LVL);
+    // fprintf(stdout, "\
+    //         The parameters are:-\n\
+    //         <DICT_SIZE>:        %d\n\
+    //         <HSIZE>:            %d\n\
+    //         <BATCH_SIZE>:       %d\n\
+    //         <BUFFER_SIZE>:      %d\n\
+    //         <DECAY>:            %lf\n\
+    //         <EPS>:              %lf\n\
+    //         <RATE_PARAMETER>:   %lf\n\
+    //         <CARRY>             %lf\n\
+    //         <THETA>:            %lf\n\
+    //         (S/s)<SUP>:         %lf\n\
+    //         <LEAVE_LVL>:        %d\n",\
+    //         DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,\
+    //         DECAY, EPS, RATE_PARAMETER,\
+    //         CARRY, THETA, SUP, LEAVE_LVL);
 
     srand(time(NULL));
     poisson = fopen("poisson.ignore", "r");
@@ -201,7 +203,7 @@ int main(int argc, char* argv[])
         // intermittent pruning
         if(tid%BATCH == 0)
         {
-            fprintf(stdout, "pruning at tid = %d\n", tid);
+            // fprintf(stdout, "pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
             sf_prune(forest, tid);
@@ -231,6 +233,27 @@ int main(int argc, char* argv[])
 
     gettimeofday(&t2, NULL);
 
+    for(i = 1; i < LEAVE_LVL + 1; i++)
+        fprintf(stdout, "MAX_BUFFER_SIZE[%d] = %u\n", i, MAX_BUFFER_SIZE[i]);
+    
+    printf("***************************************************\n");
+    
+    for(i = 1; i < LEAVE_LVL + 1; i++)
+        fprintf(stdout, "MIN_BUFFER_SIZE[%d] = %u\n", i, MIN_BUFFER_SIZE[i]);
+
+    printf("***************************************************\n");
+
+    for(i = 1; i < LEAVE_LVL + 1; i++)
+        fprintf(stdout, "AVG_BUFFER_SIZE[%d] = %lf\n", i, (float)AVG_BUFFER_SIZE[i]/CNT_BUFFER_SIZE[i]);
+
+    printf("***************************************************\n");
+
+    for(i = 1; i < LEAVE_LVL + 1; i++)
+        fprintf(stdout, "RED_BUFFER_SIZE[%d] = %lf\n", i, (float)RED_BUFFER_SIZE[i]/CNT_BUFFER_SIZE[i]);
+
+    printf("***************************************************\n");
+
+
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
@@ -248,9 +271,6 @@ int main(int argc, char* argv[])
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);
-    for(i = 0; i < LEAVE_LVL + 1; i++)
-        fprintf(stdout, "MAX_BUFFER_SIZE[%d] = %d\n", i, MAX_BUFFER_SIZE[i]);
-
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
     fprintf(stdout, "total time taken to empty/prune the buffers = %lf ms\n", elapsedTime);

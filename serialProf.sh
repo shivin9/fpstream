@@ -29,43 +29,45 @@ data_set=$1
 Decay=$2
 Epsilon=$3
 Dict=$4
-m=$5
-M=$6
-Lvl=$7
-Sup=$8
-Batch=$9
-Carry=$10
+Lvl=$5
+Sup=$6
+Batch=$7
+Carry=$8
+Theta=$9
+Rate=$10
+Buffer=$11
+
 
 echo "=========================================="
 echo "Following code was profiled on : `date`"
-echo "Script for Profiling serial Code using Vampir"
-echo "\nFiles given->\n\t$1\n\t$11"
+echo "Script for Profiling serial Code"
+echo "\nFiles given->\n\t$1"
+echo "\nDECAY->$2"
+echo "EPS->$3"
+echo "DICT->$4"
+echo "LVL->$5"
+echo "SUP->$6"
+echo "BATCH->$7"
+echo "CARRY->$8"
+echo "Theta->$9"
+echo "Rate->$10"
+echo "Buffer->$11"
+
 echo "=========================================="
-echo
-echo "\tCompiling Code..."
-make -f $11 clean && make -f $11
-if [ $? -eq 1 ] ;	then
-	echo "\tError occured during compilation\nTerminating script\n"
-	exit 1
-else
-	echo "\n\tCompilation done successfully.\n"
-fi
+
+# echo "\tCompiling Code..."
+# make -f $11 clean && make -f $11
+# if [ $? -eq 1 ] ;	then
+# 	echo "\tError occured during compilation\nTerminating script\n"
+# 	exit 1
+# else
+# 	echo "\n\tCompilation done successfully.\n"
+# fi
 #executable file name
 exename=bltree
-# temp=./temp
-# rm -rf $temp
-# mkdir $temp
+temp=./temp
+tests=./tests
 
-#export VT_ON=no
-#export VT_UNIFY=yes
-#export VT_MAX_FLUSHES=10
-#export VT_BUFFER_SIZE=256M
-# export VT_MODE=STAT
-# export VT_PFORM_GDIR=$temp
-# export VT_PFORM_LDIR=$temp
-# export VT_FILE_PREFIX=$1
-#nm output>output.nm
-#export VT_GNU_NMFILE=output.nm
 echo "\t\tRunning Code..."
 
 #sonal di, execute your program here
@@ -75,9 +77,11 @@ echo "\t\tRunning Code..."
 #valgrind --tool=memcheck --leak-check=yes ./output $path1$1 output_$1\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt $GMINENTRIES $GMAXENTRIES $GAUXMINENTRIES $GAUXMAXENTRIES $RMINENTRIES $RMAXENTRIES $CELLSIZE $EPSILON $MINPOINTS $UNDEFINED $k $path1$13 $QT
 
 #valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes ./output $path1$1 output_$1\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt $GMINENTRIES $GMAXENTRIES $GAUXMINENTRIES $GAUXMAXENTRIES $RMINENTRIES $RMAXENTRIES $CELLSIZE $EPSILON $MINPOINTS $UNDEFINED
+touch temp1
 
-./$exename $data_folder$1 ./temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry].res -m$m -M$M -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup
+./$exename $data_folder$1 ./temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].res -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup -r$Rate -t$Theta -b$Buffer
 #gprof -z output > gprof_dataset-$2\_m=$m\_M=$M\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt 
+gprof ./$exename gmon.out >> temp1
 
 if [ $? -ne 0 ] ;	then
 	echo "\tError occured. Terminating script...\n"
@@ -85,15 +89,9 @@ if [ $? -ne 0 ] ;	then
 fi
 
 echo "Exeuction Done on : `date`"
+# kill -9 $(pgrep bltree)
 #cd $temp
-# vtunify --stats $temp/$1.prof
 #cd ..
-#cp $temp/$1_$2.prof.txt Profiling_result[dataset-$1\_Gm=$GMINENTRIES\_GM=$GMAXENTRIES\_GAm=$GAUXMINENTRIES\_GAM=$GAUXMAXENTRIES\_Rm=$RMINENTRIES\_RM=$RMAXENTRIES\_EPS=$EPSILON\_MINPOINTS=$MINPOINTS\_CELLSIZE=$CELLSIZE].txt
-# cp $temp/$1_$2.prof.txt Profiling_result[dataset-$1\_$QT\_Gm=$GMINENTRIES\_GM=$GMAXENTRIES\_Rm=$RMINENTRIES\_RM=$RMAXENTRIES\_CELLSIZE=$CELLSIZE\_K=$k].txt
-
-cat $temp/$1.prof > $temp/ProfRes-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry].prof
-# cat temp1 > ./temp/ProfRes-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry].prof
-
-#rm -rf $temp
-
-echo "Unification completed on : `date`"
+# touch $tempProfiling_result_dataset-$1\_m=$m\_M=$M\_EPS=$Epsilon\_Lvl=$Lvl\_Dict=$Dict\_Decay=$Decay\_Sup=$Sup].prof
+cat temp1 > $temp/ProfRes-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].prof
+rm temp1 gmon.out

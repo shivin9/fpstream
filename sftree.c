@@ -721,13 +721,19 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                 idx = index(temp[first(temp)], current_node->data_item); /* idx has the correct indices of
                                                                           the children of current_node*/
 
+                /* If popped is not frequent and it's corresponding is child absent then continue*/
+                if(popped->freq < EPS*(tid - popped->ftid) && current_child_ptr[idx] == NULL)
+                {
+                    temp[0]++; /* move the buffer node forward*/
+                    temp[1]--; /* decrease the length*/
+                    continue;
+                }
+                
+                /*data item has to be inserted as new child*/
                 /* this code just creates the nodes*/
                 if(current_child_ptr[idx] == NULL)
-                {
-                    /*data item has to be inserted as new child*/
                     sf_create_and_insert_new_child(current_node, temp[first(temp)], tid);
-                }
-
+            
                 this_child = current_child_ptr[idx];
                 assert(this_child->parent == current_node);
                 assert(this_child->data_item != current_node->data_item); // child is greater than the parent
@@ -777,98 +783,91 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
             {
                 /* pushing the children in the qstack so that the above procedure can be applied on them*/
                 idx = index(temp[first(temp)], current_node->data_item);
-                int idx_next = index(temp[first(temp) + 1], current_child_ptr[idx]->data_item);
-                int lvl = sf_get_height(current_child_ptr[idx]);
-                
-                /* prune the buffer after certain time*/
-                if(tid - current_child_ptr[idx]->last_pruned > BATCH*2*lvl/10)
+                if(current_child_ptr[idx]) /* as the child might not have been inserted before*/
                 {
-                    current_child_ptr[idx]->last_pruned = tid;
-                    int old = current_child_ptr[idx]->bufferSize;
-                    sf_prune_buffer(current_child_ptr[idx], tid);
-                    int new = current_child_ptr[idx]->bufferSize;
+                    int idx_next = index(temp[first(temp) + 1], current_child_ptr[idx]->data_item);
+                    int lvl = sf_get_height(current_child_ptr[idx]);
                     
-                    if(old > MAX_BUFFER_SIZE[lvl])
+                    /* prune the buffer after certain time*/
+                    if(tid - current_child_ptr[idx]->last_pruned > BATCH*2*lvl/10)
                     {
+                        current_child_ptr[idx]->last_pruned = tid;
+                        int old = current_child_ptr[idx]->bufferSize;
+                        sf_prune_buffer(current_child_ptr[idx], tid);
+                        int new = current_child_ptr[idx]->bufferSize;
+                        
                         MAX_BUFFER_SIZE[lvl] = max(MAX_BUFFER_SIZE[lvl], old);
-                        // fprintf(stdout, "old = %d, new = %d, lvl = %d, root = %d\n", MAX_BUFFER_SIZE[lvl], new, lvl, root_data);
+                        MIN_BUFFER_SIZE[lvl] = min(MIN_BUFFER_SIZE[lvl], old);
+                        AVG_BUFFER_SIZE[lvl] += old;
+                        RED_BUFFER_SIZE[lvl] += old - new;
+                        CNT_BUFFER_SIZE[lvl]++;
                     }
-                    // if(old > new)
-                        // printf("ori = %d, diff = %lf\n", old, ((double)old - new)/((double)old));
-                }
 
-                if(current_child_ptr[idx]->freq > EPS*(tid - current_child_ptr[idx]->ftid))
-                {
-                    // printf("not pruning freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
-                    current_child_ptr[idx]->ltid = tid;
-
-                    if((current_child_ptr[idx]->fptree == NULL))
+                    if(current_child_ptr[idx]->freq > EPS*(tid - current_child_ptr[idx]->ftid))
                     {
-                        if(current_child_ptr[idx]->children[idx_next] || CARRY == 2.0 ||
-                           current_child_ptr[idx]->freq > THETA*(tid - current_child_ptr[idx]->ftid))
-                            push(qstack, current_child_ptr[idx]);
+                        // printf("not pruning freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
+                        current_child_ptr[idx]->ltid = tid;
+
+                        if((current_child_ptr[idx]->fptree == NULL))
+                        {
+                            if(current_child_ptr[idx]->children[idx_next] || CARRY == 2.0 ||
+                               current_child_ptr[idx]->freq > THETA*(tid - current_child_ptr[idx]->ftid))
+                                push(qstack, current_child_ptr[idx]);
+                        }
+
+                        /* this is to ensure that the itemset is inserted when we are emptying the buffer.
+                        Propagate the node downwards with a certain probability
+                        this reduces the length of qstack and makes insertion faster
+                        but we'll need to empty the nodes later on*/
+
+                        // double toss = ((double) rand())/RAND_MAX;
+                        // if((toss < CARRY && current_child_ptr[idx]->fptree == NULL) || CARRY == 2.0)
+                        // {
+                        //     push(qstack, current_child_ptr[idx]);
+                        // }
                     }
-                    
-                    /* this is to ensure that the itemset is inserted when we are emptying the buffer.
-                    Propagate the node downwards with a certain probability
-                    this reduces the length of qstack and makes insertion faster
-                    but we'll need to empty the nodes later on*/
-                    // if(current_child_ptr[idx]->children[idx_next] || CARRY == 2.0)
-
-                    // double toss = ((double) rand())/RAND_MAX;
-                    // if((toss < CARRY && current_child_ptr[idx]->fptree == NULL) || CARRY == 2.0)
-                    // {
-                    //     push(qstack, current_child_ptr[idx]);
-                    // }
                 }
-
-                // else
-                // {
-                //     sf_delete_sftree_structure(current_child_ptr[idx]);
-                //     // free(current_child_ptr[idx]);
-                //     current_child_ptr[idx] = NULL;
-                // }
                 temp[0]++; /* move the buffer node forward*/
                 temp[1]--; /* decrease the length*/
             }
             free(temp);
 
             /* */
-            if(start)
-            {
-                gettimeofday(&curr, NULL);
-                elapsedTime = (curr.tv_sec - start->tv_sec) * 1000.0;
-                elapsedTime += (curr.tv_usec - start->tv_usec) / 1000.0;
-                /* this controls pre-emption*/ // leaving because there is no time.
-                if(elapsedTime > total_time)
-                {
-                    /* inserted in LIFO order*/
-                    // printf("leaving in buffer at node %d: ", current_node->data_item);
-                    // sf_print_data_node(popped->itemset);
-                    LEAVE_AS_BUFFER = 1; // being used for counting premptive nodes.
-                    delete_qstack(qstack); // try re-using memory
-                    return 0;
-                }
-            }
+            // if(start)
+            // {
+            //     gettimeofday(&curr, NULL);
+            //     elapsedTime = (curr.tv_sec - start->tv_sec) * 1000.0;
+            //     elapsedTime += (curr.tv_usec - start->tv_usec) / 1000.0;
+            //     /* this controls pre-emption*/ // leaving because there is no time.
+            //     if(elapsedTime > total_time)
+            //     {
+            //         /* inserted in LIFO order*/
+            //         // printf("leaving in buffer at node %d: ", current_node->data_item);
+            //         // sf_print_data_node(popped->itemset);
+            //         LEAVE_AS_BUFFER = 1; // being used for counting premptive nodes.
+            //         delete_qstack(qstack); // try re-using memory
+            //         return 0;
+            //     }
+            // }
 
             /* deleting the subtree*/
-            temp = sf_copy_data(popped->itemset);
-            while(temp[1] > 1)
-            {
-                idx = index(temp[first(temp)], current_node->data_item);
+            // temp = sf_copy_data(popped->itemset);
+            // while(temp[1] > 1)
+            // {
+            //     idx = index(temp[first(temp)], current_node->data_item);
                 
-                /* pushing the children in the qstack so that the above procedure can be applied on them*/
-                if(current_child_ptr[idx] && current_child_ptr[idx]->freq < EPS*(tid - current_child_ptr[idx]->ftid))
-                {
-                    // printf("freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
-                    sf_delete_sftree_structure(current_child_ptr[idx]);
-                    // free(current_child_ptr[idx]);
-                    current_child_ptr[idx] = NULL;
-                }                    
-                temp[0]++; /* move the buffer node forward*/
-                temp[1]--; /* decrease the length*/
-            }
-            free(temp);
+            //     /* pushing the children in the qstack so that the above procedure can be applied on them*/
+            //     if(current_child_ptr[idx] && current_child_ptr[idx]->freq < EPS*(tid - current_child_ptr[idx]->ftid))
+            //     {
+            //         // printf("freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
+            //         sf_delete_sftree_structure(current_child_ptr[idx]);
+            //         // free(current_child_ptr[idx]);
+            //         current_child_ptr[idx] = NULL;
+            //     }                    
+            //     temp[0]++; /* move the buffer node forward*/
+            //     temp[1]--; /* decrease the length*/
+            // }
+            // free(temp);
         }
         /* free the popped buffer to save space*/
         sf_delete_buffer(popped);
