@@ -7,9 +7,10 @@
     CP and sf trees are working alright
 */
 
-int BATCH = 1000,\
-    DICT_SIZE = 100, HSIZE = 100,\
-    LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3;
+int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,\
+    LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100;
+
+int MAX_BUFFER_SIZE[10];
 
 long int N;
 char OUT_FILE[100];
@@ -34,6 +35,7 @@ int main(int argc, char* argv[])
                 -m<min_sup_semifreq>\n\
                 -M<min_sup_freq>\n\
                 -L<LEAVE_LVL>\n\
+                -B<BUFFER_SIZE>\n\
                 -H<SIZEOF_HASH_TABLE>\n\
                 -p<pattern>\n");
         exit(-1);
@@ -69,6 +71,7 @@ int main(int argc, char* argv[])
                     case 'm': MINSUP_SEMIFREQ = strtof(s, &s); break;
                     case 'M': MINSUP_FREQ = strtof(s, &s);     break;
                     case 'B': BATCH  =       strtod(s, &s);    break;
+                    case 'b': BUFFER_SIZE  = strtod(s, &s);    break;
                     case 'p': pattern  =   strtod(s, &s);      break;
                     case 'D': DICT_SIZE =  strtod(s, &s);      break;
                     case 'H': H_FRACTION =  strtof(s, &s);     break;
@@ -98,6 +101,7 @@ int main(int argc, char* argv[])
             <DICT_SIZE>:        %d\n\
             <HSIZE>:            %d\n\
             <BATCH_SIZE>:       %d\n\
+            <BUFFER_SIZE>:      %d\n\
             <DECAY>:            %lf\n\
             <EPS>:              %lf\n\
             <RATE_PARAMETER>:   %lf\n\
@@ -105,7 +109,7 @@ int main(int argc, char* argv[])
             <THETA>:            %lf\n\
             (S/s)<SUP>:         %lf\n\
             <LEAVE_LVL>:        %d\n",\
-            DICT_SIZE, HSIZE, BATCH,\
+            DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,\
             DECAY, EPS, RATE_PARAMETER,\
             CARRY, THETA, SUP, LEAVE_LVL);
 
@@ -200,7 +204,7 @@ int main(int argc, char* argv[])
             fprintf(stdout, "pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
-            // sf_prune(forest, tid);
+            sf_prune(forest, tid);
             gettimeofday(&t4, NULL);
             elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
             elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
@@ -244,15 +248,12 @@ int main(int argc, char* argv[])
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);
-
-    // LEAVE_AS_BUFFER = INT_MAX - 1;
-    
-    // for(i = 0; i < DICT_SIZE; i++)
-    //     sf_get_least_ftid(forest[i]);
+    for(i = 0; i < LEAVE_LVL + 1; i++)
+        fprintf(stdout, "MAX_BUFFER_SIZE[%d] = %d\n", i, MAX_BUFFER_SIZE[i]);
 
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-    fprintf(stdout, "total time taken to empty/prune the buffers = %lf ms, least ftid = %d\n", elapsedTime, LEAVE_AS_BUFFER);
+    fprintf(stdout, "total time taken to empty/prune the buffers = %lf ms\n", elapsedTime);
 
     gettimeofday(&t1, NULL);
     no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern); // mining for frequent patterns

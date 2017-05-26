@@ -486,6 +486,13 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
     curr_buffer->buffertail = new;
     curr->hbuffer[bucket] = curr_buffer; /* make sure that the final changes\
                                             are reflected the buffertable of the node also*/
+    if(curr->bufferSize > ((float)BUFFER_SIZE)/sf_get_height(curr))
+    {
+        buffer popped = sf_pop_buffer(curr, rand()%HSIZE, tid);
+        sf_delete_data_node(popped->itemset);
+        free(popped);
+    }
+
     assert(curr->hbuffer[bucket]->bufferhead != NULL);
     return;
 }
@@ -771,24 +778,29 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                 /* pushing the children in the qstack so that the above procedure can be applied on them*/
                 idx = index(temp[first(temp)], current_node->data_item);
                 int idx_next = index(temp[first(temp) + 1], current_child_ptr[idx]->data_item);
+                int lvl = sf_get_height(current_child_ptr[idx]);
                 
                 /* prune the buffer after certain time*/
-                if(tid - current_child_ptr[idx]->last_pruned > BATCH/10)
+                if(tid - current_child_ptr[idx]->last_pruned > BATCH*2*lvl/10)
                 {
                     current_child_ptr[idx]->last_pruned = tid;
                     int old = current_child_ptr[idx]->bufferSize;
                     sf_prune_buffer(current_child_ptr[idx], tid);
                     int new = current_child_ptr[idx]->bufferSize;
-                    if(old > new)
-                        printf("diff = %d\n", old - new);
+                    
+                    if(old > MAX_BUFFER_SIZE[lvl])
+                    {
+                        MAX_BUFFER_SIZE[lvl] = max(MAX_BUFFER_SIZE[lvl], old);
+                        // fprintf(stdout, "old = %d, new = %d, lvl = %d, root = %d\n", MAX_BUFFER_SIZE[lvl], new, lvl, root_data);
+                    }
+                    // if(old > new)
+                        // printf("ori = %d, diff = %lf\n", old, ((double)old - new)/((double)old));
                 }
 
                 if(current_child_ptr[idx]->freq > EPS*(tid - current_child_ptr[idx]->ftid))
                 {
                     // printf("not pruning freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
                     current_child_ptr[idx]->ltid = tid;
-                    // double toss = ((double) rand())/RAND_MAX;
-                    // if((toss < CARRY && current_child_ptr[idx]->fptree == NULL) || CARRY == 2.0)
 
                     if((current_child_ptr[idx]->fptree == NULL))
                     {
@@ -802,17 +814,20 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                     this reduces the length of qstack and makes insertion faster
                     but we'll need to empty the nodes later on*/
                     // if(current_child_ptr[idx]->children[idx_next] || CARRY == 2.0)
+
+                    // double toss = ((double) rand())/RAND_MAX;
+                    // if((toss < CARRY && current_child_ptr[idx]->fptree == NULL) || CARRY == 2.0)
                     // {
                     //     push(qstack, current_child_ptr[idx]);
                     // }
                 }
-                else
-                {
-                    // printf("freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
-                    sf_delete_sftree_structure(current_child_ptr[idx]);
-                    // free(current_child_ptr[idx]);
-                    current_child_ptr[idx] = NULL;
-                }                    
+
+                // else
+                // {
+                //     sf_delete_sftree_structure(current_child_ptr[idx]);
+                //     // free(current_child_ptr[idx]);
+                //     current_child_ptr[idx] = NULL;
+                // }
                 temp[0]++; /* move the buffer node forward*/
                 temp[1]--; /* decrease the length*/
             }
@@ -1066,7 +1081,7 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
     int idx, cnt = 0;
     int* collected = calloc(DICT_SIZE, sizeof(int));
     double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
-    printf("mining the tree with support: %lf\n", N*minsup);
+    fprintf(stdout, "mining the tree with support: %lf\n", N*minsup);
 
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
@@ -1663,6 +1678,8 @@ int sf_fp_prune(header_table* htable, int idx, int tid)
 
 void sf_prune_buffer(sfnode curr, int tid)
 {
+    if(curr->bufferSize == 0)
+        return;
     int root_data = curr->data_item, idx, i;
     for(i = 0; i < HSIZE; i++) // iterating through all the buckets
     {
