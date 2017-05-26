@@ -72,6 +72,8 @@ int main(int argc, char* argv[])
     int cnt = 0, sum = 0;
     int batch_size = 10000;
     ftree = fp_create_fptree();
+    patterntree ptree = NULL;
+    ptree = create_pattern_tree();
 
     while(fscanf(fp, "%d", &sz) != EOF){
         data d = NULL;
@@ -117,11 +119,11 @@ int main(int argc, char* argv[])
     int* funcarr = calloc(DICT_SIZE, sizeof(int));
 
     // fp_print_header_table(ftree->head_table);
-    // process_batch(ptree, cnt/batch_size);
-    // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
+    process_batch(ptree, cnt/batch_size);
+    fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
 
     // usleep(1000);
-    fp_empty_buffers(ftree->root);
+    // fp_empty_buffers(ftree->root);
     fp_create_header_table(ftree);
 
     fp_sort_header_table(ftree->head_table, funcarr);
@@ -149,14 +151,14 @@ int main(int argc, char* argv[])
     // printf("\n");
 
     // correct fp tree 437 new500
-    // gettimeofday(&t1, NULL);
-    // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
-    // gettimeofday(&t2, NULL);
+    gettimeofday(&t1, NULL);
+    fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
+    gettimeofday(&t2, NULL);
 
-    // elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
-    // elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    // printf("total time taken to mine FP tree = %lf ms\n", elapsedTime);
+    printf("total time taken to mine FP tree = %lf ms\n", elapsedTime);
 
     // fp_print_tree(ftree->root);
     gettimeofday(&t1, NULL);
