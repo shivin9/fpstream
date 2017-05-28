@@ -9,21 +9,6 @@
 #		 					saiyedul.islam@gmail.com
 #
 #parameters for running code
-# path1=../../../Dataset/
-# #path1=
-# EPSILON=${10}
-# MINPOINTS=2000
-# UNDEFINED=10000000
-# GMINENTRIES=$4	
-# GMAXENTRIES=$5
-# GAUXMINENTRIES=$6
-# GAUXMAXENTRIES=$7
-# RMINENTRIES=$8
-# RMAXENTRIES=$9
-# CELLSIZE=${11}
-# k=${12}
-# QT=${14}
-
 data_folder=./data/
 data_set=$1
 Decay=$2
@@ -34,9 +19,10 @@ Sup=$6
 Batch=$7
 Carry=$8
 Theta=$9
-Rate=$10
-Buffer=$11
-
+GAMMA=$10
+Rate=$11
+Buffer=$12
+Hash=$13
 
 echo "=========================================="
 echo "Following code was profiled on : `date`"
@@ -49,12 +35,12 @@ echo "LVL->$5"
 echo "SUP->$6"
 echo "BATCH->$7"
 echo "CARRY->$8"
-echo "Theta->$9"
-echo "Rate->$10"
-echo "Buffer->$11"
-
+echo "THETA->$9"
+echo "GAMMA->$10"
+echo "RATE->$11"
+echo "Buffer->$12"
+echo "HSize->$13"
 echo "=========================================="
-
 # echo "\tCompiling Code..."
 # make -f $11 clean && make -f $11
 # if [ $? -eq 1 ] ;	then
@@ -70,28 +56,31 @@ tests=./tests
 
 echo "\t\tRunning Code..."
 
-#sonal di, execute your program here
 #$1 and $2 are the command line arguments 
 #$1 is input file and $2 is output file to which the program output is to be written
-
-#valgrind --tool=memcheck --leak-check=yes ./output $path1$1 output_$1\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt $GMINENTRIES $GMAXENTRIES $GAUXMINENTRIES $GAUXMAXENTRIES $RMINENTRIES $RMAXENTRIES $CELLSIZE $EPSILON $MINPOINTS $UNDEFINED $k $path1$13 $QT
-
-#valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes ./output $path1$1 output_$1\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt $GMINENTRIES $GMAXENTRIES $GAUXMINENTRIES $GAUXMAXENTRIES $RMINENTRIES $RMAXENTRIES $CELLSIZE $EPSILON $MINPOINTS $UNDEFINED
 touch temp1
+input_file=$1\.data
+output_file=$temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].res
 
-./$exename $data_folder$1 ./temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].res -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup -r$Rate -t$Theta -b$Buffer
-#gprof -z output > gprof_dataset-$2\_m=$m\_M=$M\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt 
-gprof ./$exename gmon.out >> temp1
+./$exename $data_folder$input_file $output_file -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup -r$Rate -t$Theta -b$Buffer -g$GAMMA -H$Hash > temp1
 
 if [ $? -ne 0 ] ;	then
 	echo "\tError occured. Terminating script...\n"
 	exit 1
 fi
 
+#gprof -z output > gprof_dataset-$2\_m=$m\_M=$M\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt 
+# gprof ./$exename gmon.out >> temp1
+echo "converting input data file to tab file"
+python convert.py $input_file
+rm ./tests/res.gnd
+tail -100000 ./tests/$1\.tab >tmp && ./fpgrowth -s1 tmp ./tests/res.gnd && rm tmp # send tab file for recall check
+python verify.py $output_file res.gnd >> temp1
+
 echo "Exeuction Done on : `date`"
 # kill -9 $(pgrep bltree)
 #cd $temp
 #cd ..
 # touch $tempProfiling_result_dataset-$1\_m=$m\_M=$M\_EPS=$Epsilon\_Lvl=$Lvl\_Dict=$Dict\_Decay=$Decay\_Sup=$Sup].prof
-cat temp1 > $temp/ProfRes-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].prof
-rm temp1 gmon.out
+cat temp1 >> $temp/ProfRes-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].prof
+rm temp1

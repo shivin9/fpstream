@@ -28,13 +28,14 @@ extern double MINSUP_FREQ;
 extern int LEAVE_AS_BUFFER;
 extern char OUT_FILE[100];
 extern int LEAVE_LVL;
+extern int BUFFER_SIZE;
+extern double GAMMA;
 extern double RATE_PARAMETER;
 extern unsigned int MAX_BUFFER_SIZE[10];
 extern unsigned int MIN_BUFFER_SIZE[10];
 extern unsigned int AVG_BUFFER_SIZE[10];
 extern unsigned int RED_BUFFER_SIZE[10];
 extern unsigned int CNT_BUFFER_SIZE[10];
-extern int BUFFER_SIZE;
 #endif
 
 #define max(a,b) ((a) > (b) ? a : b)
@@ -75,6 +76,7 @@ typedef struct buffer_table
     buffer bufferhead;
     buffer buffertail;
     double freq;
+    int ftid;
     int ltid;
     char collision;
 }buffer_table;

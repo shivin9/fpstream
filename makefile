@@ -1,17 +1,19 @@
 CC=gcc
-FLAG=-c -g -pg
+PROF=-g -pg
+OPT=-Ofast
+FLAG=$(OPT) 
 
-bltree: driver.o sftree.o qstack.o
-	$(CC) -g -pg -o bltree sftree.o qstack.o driver.o def.h -lm
+bltree: $(driver).o sftree.o qstack.o
+	$(CC) $(FLAG) -o bltree sftree.o qstack.o $(driver).o def.h -lm
 
-driver.o: driver.c
-	$(CC) $(FLAG) driver.c -lm
+$(driver).o: $(driver).c
+	$(CC) -c $(FLAG) $(driver).c -lm
 
 sftree.o: sftree.c
-	$(CC) $(FLAG) sftree.c -lm
+	$(CC) -c $(FLAG) sftree.c -lm
 
 qstack.o: qstack.c
-	$(CC) $(FLAG) qstack.c -lm
+	$(CC) -c $(FLAG) qstack.c -lm
 
 clean:
 	rm -f bltree *.o *~ *.h.gch output intermediate

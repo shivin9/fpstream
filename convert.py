@@ -1,3 +1,4 @@
+import sys
 import os
 
 def convert_file(file):
@@ -31,7 +32,8 @@ def convert_file(file):
 
 
 def data_to_tab():
-    fname = raw_input("enter [relative] name of file\n")
+    args = sys.argv
+    fname = args[1]
     if fname != "all":
         convert_file("./data/" + fname)
     

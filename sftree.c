@@ -424,6 +424,7 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
     {
         // printf("d->data_item = %d, mod HSIZE = %d\n", d->data_item, bucket);
         curr->hbuffer[bucket] = calloc(1, sizeof(buffer_table));
+        curr->hbuffer[bucket]->ftid = -1; // initialization
     }
     // bufferTable is an element of the hash table. There will DLL below buffer table.
     bufferTable curr_buffer = curr->hbuffer[bucket];
@@ -437,10 +438,10 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
                             which we have to remove an item when its turn comes back.
 
     /* updating the count of bufferTable*/
-    // curr_buffer->freq *= pow(DECAY, tid - curr_buffer->ltid);
-    // curr_buffer->freq += freq; /* this is needed as when while insertion we are bringing the accumulated
+    curr_buffer->freq *= pow(DECAY, tid - curr_buffer->ltid);
+    curr_buffer->freq += freq; /* this is needed as when while insertion we are bringing the accumulated
                                   // transactions down then we need to maintain their count*/
-    // curr_buffer->ltid = tid;
+    curr_buffer->ltid = tid;
 
     while(head)
     {        
@@ -475,6 +476,8 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
     {
         curr_buffer->bufferhead = new;
         curr_buffer->buffertail = new;
+        assert(curr_buffer->ftid == -1);
+        curr_buffer->ftid = tid;
         return;
     }
 
@@ -519,15 +522,15 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid) //seen
     assert(to_pop != NULL);    
     to_pop = curr_buffer->bufferhead;
     curr_buffer->bufferhead = to_pop->next;
-    // curr_buffer->freq *= pow(DECAY, tid - curr_buffer->ltid); /* update hbuffer's freq and ltid*/
-    // curr_buffer->ltid = tid;
+    curr_buffer->freq *= pow(DECAY, tid - curr_buffer->ltid); /* update hbuffer's freq and ltid*/
+    curr_buffer->ltid = tid;
 
     /* updating the outgoing buffer here only*/
     to_pop->freq *= pow(DECAY, tid - to_pop->ltid);
     to_pop->ltid = tid;
     to_pop->next = NULL;
 
-    // curr_buffer->freq -= to_pop->freq;
+    curr_buffer->freq -= to_pop->freq;
 
     curr->last = -1;
 
@@ -535,6 +538,8 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid) //seen
     {
         assert(curr_buffer->buffertail == to_pop);
         curr_buffer->buffertail = NULL;
+        curr_buffer->ftid = -1;
+        curr_buffer->ltid = -1;
         // free(curr->hbuffer[bucket]);
         // curr->hbuffer[bucket] = NULL;
     }
@@ -789,7 +794,7 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                     int lvl = sf_get_height(current_child_ptr[idx]);
                     
                     /* prune the buffer after certain time*/
-                    if(tid - current_child_ptr[idx]->last_pruned > BATCH*2*lvl/10)
+                    if(tid - current_child_ptr[idx]->last_pruned > BATCH*GAMMA*lvl/10)
                     {
                         current_child_ptr[idx]->last_pruned = tid;
                         int old = current_child_ptr[idx]->bufferSize;
@@ -1715,6 +1720,8 @@ void sf_prune_buffer(sfnode curr, int tid)
             {
                 assert(curr_buff == NULL);
                 curr->hbuffer[i]->buffertail = NULL;
+                curr->hbuffer[i]->ftid = -1;
+                curr->hbuffer[i]->ltid = -1;
                 continue;
             }
             prev = head;
@@ -1747,7 +1754,7 @@ void sf_prune_buffer(sfnode curr, int tid)
 void sf_prune_helper(sfnode node, int root_data, int tid)
 {
     node->freq *= pow(DECAY, tid - node->ltid);
-    int child, idx, i;
+    int child, idx, i, buff_cnt;
     sfnode first, next, curr;
     QStack* qstack = createQStack();
 
@@ -1759,11 +1766,18 @@ void sf_prune_helper(sfnode node, int root_data, int tid)
         sf_prune_buffer(node, tid);
         for(child = 0; child < last_index(node->data_item); child++)
         {
+            buff_cnt = 0;
             if(node->children[child])
             {
                 node->children[child]->freq *=\
                         pow(DECAY, tid - node->children[child]->ltid);
-                if(node->children[child]->freq <= EPS*(tid - node->children[child]->ftid))
+                if(node->hbuffer[child%HSIZE])
+                {
+                    node->hbuffer[child%HSIZE]->freq *= pow(DECAY, tid - node->hbuffer[child%HSIZE]->ltid);
+                    buff_cnt = node->hbuffer[child%HSIZE]->freq;
+                }
+
+                if(node->children[child]->freq + buff_cnt <= EPS*(tid - node->children[child]->ftid))
                 {
                     sf_delete_sftree_structure(node->children[child]);
                     node->children[child] = NULL;

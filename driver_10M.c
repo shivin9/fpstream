@@ -17,7 +17,7 @@ unsigned int MAX_BUFFER_SIZE[10], CNT_BUFFER_SIZE[10],\
 long int N;
 char OUT_FILE[100];
 
-double DECAY = 1.0, EPS = 0.0, THETA = 0.1, GAMMA=2.0,\
+double DECAY = 1.0, EPS = 0.0, THETA = 0.1,\
        SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01,\
        CARRY = 1.0, H_FRACTION = 0.1, RATE_PARAMETER = 0.1;
 
@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
                 -e<EPS>\n\
                 -c<CARRY>\n\
                 -t<THETA>\n\
-                -g<GAMMA>\n\
                 -(S/s)<SUP>\n\
                 -m<min_sup_semifreq>\n\
                 -M<min_sup_freq>\n\
@@ -45,7 +44,7 @@ int main(int argc, char* argv[])
     }
 
     FILE *sf, *poisson; // files to read the data set and poisson values
-    int sz, cnt, tid = 1, pattern = 0, no_patterns = 0;
+    int sz, cnt, tid = 1, pattern = 0, no_patterns = 0, file = 0, buffered = 0;
     sf = fopen("intermediate", "w");
     fclose(sf);
     sf = fopen("output", "w");
@@ -78,7 +77,6 @@ int main(int argc, char* argv[])
                     case 'p': pattern  =   strtod(s, &s);      break;
                     case 'D': DICT_SIZE =  strtod(s, &s);      break;
                     case 'H': H_FRACTION =  strtof(s, &s);     break;
-                    case 'g': GAMMA      =  strtof(s, &s);     break;
                     case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
                     case 'r': RATE_PARAMETER =  strtof(s, &s); break;
@@ -92,12 +90,6 @@ int main(int argc, char* argv[])
     sf = fopen(OUT_FILE, "w");
     fclose(sf);
 
-    sf = fopen(argv[1], "r");
-    if(sf == NULL)
-    {
-        fprintf(stdout, "invalid file\n");
-        exit(0);
-    }
     HSIZE = H_FRACTION*DICT_SIZE; // size of the hash table computed here
 
     fprintf(stdout, "\
@@ -110,13 +102,12 @@ int main(int argc, char* argv[])
             <EPS>:              %lf\n\
             <RATE_PARAMETER>:   %lf\n\
             <CARRY>             %lf\n\
-            <GAMMA>             %lf\n\
             <THETA>:            %lf\n\
             (S/s)<SUP>:         %lf\n\
             <LEAVE_LVL>:        %d\n",\
             DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,\
             DECAY, EPS, RATE_PARAMETER,\
-            CARRY, GAMMA, THETA, SUP, LEAVE_LVL);
+            CARRY, THETA, SUP, LEAVE_LVL);
 
     srand(time(NULL));
     poisson = fopen("poisson.ignore", "r");
@@ -132,92 +123,116 @@ int main(int argc, char* argv[])
 
     struct timeval t1, t2, t3, t4;
     double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
+    char* files[10]={
+                        "./data/10MD500T15_1.data",
+                        "./data/10MD500T15_2.data",
+                        "./data/10MD500T15_3.data",
+                        "./data/10MD500T15_4.data",
+                        "./data/10MD500T15_5.data",
+                        "./data/10MD500T15_6.data",
+                        "./data/10MD500T15_7.data",
+                        "./data/10MD500T15_8.data",
+                        "./data/10MD500T15_9.data",
+                        "./data/10MD500T15_10.data"
+                    };
 
     gettimeofday(&t1, NULL);
-
-    // initializing the first LL of stream separately. Buffer structure is being re-used here.
-    buffer stream = NULL, end = NULL;
-    stream = (buffer) calloc(1, sizeof(struct buffer_node));
-    // stream->itemset = (data) calloc(1, sizeof(struct data_node));
-    // stream->itemset->next = NULL;
-    stream->next = NULL;
-    end = stream;
-
-    while(fscanf(sf, "%d", &sz) != EOF)
+    while(file < 10)
     {
-        data d = malloc((sz+2)*sizeof(int));
-        d[0] = 0;
-        d[1] = 0;
-        while(sz--)
+        sf = fopen(files[file++], "r");
+        if(sf == NULL)
         {
-            data_type item;
-            fscanf(sf, "%d", &item);
-            d[d[1] + 2] = item;
-            d[1]++;
-            batch_no++;
+            fprintf(stdout, "invalid file\n");
+            exit(0);
         }
 
-        d = sf_sort_data(d); // canonical sort of incoming trans
-        // sf_print_data_node(d);
-        end->next = (buffer) calloc(1, sizeof(struct buffer_node));
-        end = end->next;
-        end->itemset = d;
-        fscanf(poisson, "%lf", &delay_time);
-        end->freq = delay_time / RATE_PARAMETER; /* this time is in milli-seconds, reusing the freq field to store delay_time*/
-        end->next = NULL;
-    }
+        // initializing the first LL of stream separately. Buffer structure is being re-used here.
+        buffer stream = NULL, end = NULL;
+        stream = (buffer) calloc(1, sizeof(struct buffer_node));
+        // stream->itemset = (data) calloc(1, sizeof(struct data_node));
+        // stream->itemset->next = NULL;
+        stream->next = NULL;
+        end = stream;
 
-    fclose(sf);
-    end = stream;
-    stream = stream->next;
-    // sf_print_buffer(stream);
-    // sf_delete_data_node(end->itemset); 
-    // deleting the head of itemset LL which was dummy.
-    free(end);
-    
-    int buffered = 0;
-    while(stream)
-    {
-        // // fprintf(stdout, "inserting: ");
-        // sf_print_data_node(stream->itemset);
-
-        gettimeofday(&t3, NULL);
-        if(RATE_PARAMETER < 0)
-            sf_insert_itemset(forest, stream->itemset, tid, stream->freq, NULL);
-        else
-            sf_insert_itemset(forest, stream->itemset, tid, stream->freq, &t3);
-        gettimeofday(&t4, NULL);
-        
-        buffered += LEAVE_AS_BUFFER;
-        LEAVE_AS_BUFFER = 0;
-        // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
-
-        elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
-        elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-        insertionTime += elapsedTime;
-
-        end = stream->next;
-        sf_delete_data_node(stream->itemset); // freeing the transaction after inserting. // change it to array.
-        free(stream);
-        stream = end;
-
-        // sf_prune(forest, tid);
-        // break;
-        // intermittent pruning
-        if(tid%BATCH == 0)
+        while(fscanf(sf, "%d", &sz) != EOF)
         {
-            fprintf(stdout, "pruning at tid = %d\n", tid);
+            data d = malloc((sz+2)*sizeof(int));
+            d[0] = 0;
+            d[1] = 0;
+            while(sz--)
+            {
+                data_type item;
+                fscanf(sf, "%d", &item);
+                //if(sz < 3 || rand()%3 == 0) /* to get down the avg. len*/
+                {
+                        d[d[1] + 2] = item;
+                        d[1]++;
+                }
+            }
+            if(d[1] > 0)
+            {
+                d = sf_sort_data(d); // canonical sort of incoming trans
+                // sf_print_data_node(d);
+                end->next = (buffer) calloc(1, sizeof(struct buffer_node));
+                end = end->next;
+                end->itemset = d;
+                fscanf(poisson, "%lf", &delay_time);
+                end->freq = delay_time / RATE_PARAMETER; /* this time is in milli-seconds, reusing the freq field to store delay_time*/
+                end->next = NULL;
+                batch_no++;
+            }
+        }
+
+        fclose(sf);
+        end = stream;
+        stream = stream->next;
+        // sf_print_buffer(stream);
+        // sf_delete_data_node(end->itemset); 
+        // deleting the head of itemset LL which was dummy.
+        free(end);
+        
+        while(stream)
+        {
+            // // fprintf(stdout, "inserting: ");
+            // sf_print_data_node(stream->itemset);
+
             gettimeofday(&t3, NULL);
-            // sf_empty_buffers(forest, tid);
-            sf_prune(forest, tid);
+            if(RATE_PARAMETER < 0)
+                sf_insert_itemset(forest, stream->itemset, tid, stream->freq, NULL);
+            else
+                sf_insert_itemset(forest, stream->itemset, tid, stream->freq, &t3);
             gettimeofday(&t4, NULL);
+            
+            buffered += LEAVE_AS_BUFFER;
+            LEAVE_AS_BUFFER = 0;
+            // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
+
             elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
             elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-            prune_time += elapsedTime;
-        }
-        tid++;
-    }
+            insertionTime += elapsedTime;
 
+            end = stream->next;
+            sf_delete_data_node(stream->itemset); // freeing the transaction after inserting. // change it to array.
+            free(stream);
+            stream = end;
+
+            // sf_prune(forest, tid);
+            // break;
+            // intermittent pruning
+            if(tid%BATCH == 0)
+            {
+                fprintf(stdout, "pruning at tid = %d\n", tid);
+                gettimeofday(&t3, NULL);
+                // sf_empty_buffers(forest, tid);
+                sf_prune(forest, tid);
+                gettimeofday(&t4, NULL);
+                elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
+                elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
+                prune_time += elapsedTime;
+            }
+            tid++;
+        }
+    }
     
     N = tid;
     /* this is to accomodate hard support counts instead of %*/
