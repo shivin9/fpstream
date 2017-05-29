@@ -270,7 +270,7 @@ int main(int argc, char* argv[])
 
     gettimeofday(&t3, NULL);
     sf_prune(forest, tid); // final pruning before emptying the buffers
-    sf_empty_buffers(forest, tid);
+    // sf_empty_buffers(forest, tid);
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);

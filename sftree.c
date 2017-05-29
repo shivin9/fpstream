@@ -1091,7 +1091,10 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
     {
         sfnode root = forest[idx];
         // printf("root = %d, freq = %lf\n", root->data_item, root->freq);
+        sf_empty_tree(root, tid);
         cnt += sf_mine_frequent_itemsets_helper(root, collected, -1, tid, pattern);
+        sf_delete_sftree_structure(root);
+        forest[idx] = NULL;
     }
     free(collected);
     return cnt;
@@ -1472,57 +1475,39 @@ data sf_sort_data(data d) // seen
 }
 
 
-void sf_empty_buffers1(sforest forest, int tid)
+void sf_empty_tree(sfnode root, int tid)
 {
     int root_data, idx, i, last;
-    double oricarry = CARRY, elapsedTime;
-    sfnode current_node = NULL, root = NULL;
+    double oricarry = CARRY;
+    sfnode current_node = NULL;
     QStack* qstack = createQStack();
     header_table* htable;
     CARRY = 2.0; /* now we will push all the nodes down otherwise\
                     we will lose itemsets in buffer only*/
-    struct timeval t1;
 
-    for(i = 0; i < DICT_SIZE; i++)
+    root_data = root->data_item;
+    push(qstack, root);
+    if(root->bufferSize > 0) /* push the buffered itemsets down*/
     {
-        root = forest[i];
-        push(qstack, root);
+        sf_insert_itemset_helper(root, root_data, tid, -1, NULL);
     }
-    while(qstack->size > 0)
+
+    else
     {
-        gettimeofday(&t1, NULL);
-        do
+        while(qstack->size > 0)
         {
-            root = get(qstack);
-        }while(root == NULL);
-        root_data = root->data_item;
-        if(root->bufferSize > 0) /* push the buffered itemsets down*/
-        {
-            sf_insert_itemset_helper(root, root_data, tid, 250, &t1);
-        }
-
-        else if(root->bufferSize == 0 && qstack->size > 0)
-        {
+            current_node = pop(qstack);
+            last = last_index(current_node->data_item);
+            for(idx = 0; idx < last; idx++)
             {
-                // do
-                // {
-                //     if(qstack->size == 0)
-                //         break;
-                    current_node = get(qstack);
-                // }while(current_node == NULL);
-
-                last = last_index(current_node->data_item);
-                for(idx = 0; idx < last; idx++)
+                if(current_node->children[idx] && current_node->children[idx]->bufferSize > 0)
+                /* if buffer is not empty then simply
+                   call the insert function*/
                 {
-                    if(current_node->children[idx] && current_node->children[idx]->bufferSize > 0)
-                    /* if buffer is not empty then simply
-                       call the insert function*/
-                    {
-                        sf_insert_itemset_helper(current_node->children[idx], root_data, tid, 250, &t1);
-                    }
-                    else
-                        push(qstack, current_node->children[idx]);
+                    sf_insert_itemset_helper(current_node->children[idx], root_data, tid, -1, NULL);
                 }
+                else
+                    push(qstack, current_node->children[idx]);
             }
         }
     }
