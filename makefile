@@ -1,7 +1,7 @@
 CC=gcc
 PROF=-g -pg
 OPT=-Ofast
-FLAG=$(OPT) 
+FLAG=$(PROF) 
 
 bltree: $(driver).o sftree.o qstack.o
 	$(CC) $(FLAG) -o bltree sftree.o qstack.o $(driver).o def.h -lm
