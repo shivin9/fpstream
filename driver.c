@@ -21,6 +21,7 @@ double DECAY = 1.0, EPS = 0.0, THETA = 0.1, GAMMA=2.0,\
        SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01,\
        CARRY = 1.0, H_FRACTION = 0.1, RATE_PARAMETER = 0.1;
 
+timeval origin, global_timer;
 
 int main(int argc, char* argv[])
 {
@@ -134,6 +135,8 @@ int main(int argc, char* argv[])
     double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
 
     gettimeofday(&t1, NULL);
+    gettimeofday(&origin, NULL);
+    // gettimeofday(&global_timer, NULL);
 
     // initializing the first LL of stream separately. Buffer structure is being re-used here.
     buffer stream = NULL, end = NULL;

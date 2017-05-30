@@ -18,6 +18,14 @@
 #include "sftree.h"
 
 
+double get_currtime()
+{
+    gettimeofday(&global_timer, NULL);
+    // printf("origin time = %lf\n", origin.tv_sec+origin.tv_usec/1000000.0);
+    // printf("global time = %lf\n", global_timer.tv_sec-origin.tv_sec + global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0);
+    return ((global_timer.tv_sec-origin.tv_sec) + (global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0))/60.0;
+}
+
 /* ASCENDING order here*/
 int sf_cmpfunc (const void * a, const void * b)
 {
@@ -281,7 +289,7 @@ void sf_create_and_insert_new_child(sfnode current_node, data_type d, int tid)
     new_node->data_item = d;
     new_node->parent = current_node;
     new_node->ftid = tid;
-    new_node->ltid = tid;
+    new_node->ltid = get_currtime();
     new_node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
 
     int idx = index(d, current_node->data_item);
@@ -311,7 +319,7 @@ sfnode sf_copy_node(sfnode current_node, data_type d)
     new_node->data_item = current_node->data_item;
     new_node->parent = current_node->parent;
     new_node->ftid = current_node->ftid;
-    new_node->ltid = current_node->ltid;
+    new_node->ltid = get_currtime();
     return new_node;
 }
 
@@ -413,7 +421,7 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
     /* this tid is the timestamp when the dataitem was buffered*/
     if(d[1] == 0)
         return;
-
+    double currtime;
     // printf("appending to buffer of node\n");
     // sf_print_node(curr);
     // sf_print_data_node(d);
@@ -438,17 +446,18 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
                             which we have to remove an item when its turn comes back.
 
     /* updating the count of bufferTable*/
-    curr_buffer->freq *= pow(DECAY, tid - curr_buffer->ltid);
+    curr_buffer->freq *= pow(DECAY, get_currtime() - curr_buffer->ltid);
     curr_buffer->freq += freq; /* this is needed as when while insertion we are bringing the accumulated
                                   // transactions down then we need to maintain their count*/
-    curr_buffer->ltid = tid;
+    curr_buffer->ltid = get_currtime();
 
     while(head)
     {        
         if(sf_is_equal(head->itemset, d))
         {
-            head->freq *= pow(DECAY, tid - head->ltid);
-            head->ltid = tid;
+            currtime = get_currtime();
+            head->freq *= pow(DECAY, currtime - head->ltid);
+            head->ltid = currtime;
             head->freq += freq;
             return;
         }
@@ -458,7 +467,7 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
     /* at this point it is clear that we have to create a new buffer node only*/
     buffer new = (buffer) calloc(1, sizeof(struct buffer_node));
     new->ftid = tid;
-    new->ltid = tid;
+    new->ltid = currtime;
     new->freq = freq;
     assert(head == NULL);
 
@@ -516,18 +525,19 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid) //seen
     {
         bucket = (bucket+1)%HSIZE;
     }
-
+    double currtime;
     bufferTable curr_buffer = curr->hbuffer[bucket];
     buffer to_pop = curr_buffer->bufferhead;
     assert(to_pop != NULL);    
     to_pop = curr_buffer->bufferhead;
     curr_buffer->bufferhead = to_pop->next;
-    curr_buffer->freq *= pow(DECAY, tid - curr_buffer->ltid); /* update hbuffer's freq and ltid*/
-    curr_buffer->ltid = tid;
+    currtime = get_currtime();
+    curr_buffer->freq *= pow(DECAY, currtime - curr_buffer->ltid); /* update hbuffer's freq and ltid*/
+    curr_buffer->ltid = currtime;
 
     /* updating the outgoing buffer here only*/
-    to_pop->freq *= pow(DECAY, tid - to_pop->ltid);
-    to_pop->ltid = tid;
+    to_pop->freq *= pow(DECAY, currtime - to_pop->ltid);
+    to_pop->ltid = get_currtime();
     to_pop->next = NULL;
 
     curr_buffer->freq -= to_pop->freq;
@@ -558,7 +568,7 @@ void sf_fp_insert(fpnode current_node, header_table* htable, data d, double cnt,
     root_data = htable[0]->data_item;
     idx = index(this_data, root_data);
     header_table curr_header_node;
-
+    double currtime;
     // create the links right here only
     if(htable[idx] == NULL)
     {
@@ -589,16 +599,18 @@ void sf_fp_insert(fpnode current_node, header_table* htable, data d, double cnt,
         // curr_header_node->cnt += current_node->freq;
     }
     curr_header_node->ftid = min(curr_header_node->ftid, tid);
-    curr_header_node->cnt *= pow(DECAY, tid - curr_header_node->ltid);
+    currtime = get_currtime();
+    curr_header_node->cnt *= pow(DECAY, currtime - curr_header_node->ltid);
+    curr_header_node->ltid = currtime;
     curr_header_node->cnt += cnt;
-    curr_header_node->ltid = tid;
     if(current_node->data_item != root_data)
         assert(current_node->parent != NULL);
 
     /* updating the frequency of the node according to the formula*/
-    current_node->freq *= pow(DECAY, tid - current_node->ltid);
+    currtime = get_currtime();
+    current_node->freq *= pow(DECAY, currtime - current_node->ltid);
     current_node->freq += cnt;
-    current_node->ltid = tid;
+    current_node->ltid = currtime;
     current_node->ftid = min(tid, current_node->ftid);
 
     if(d[1] == 0)    return;    //terminate when all items have been inserted
@@ -627,7 +639,7 @@ void sf_fp_insert(fpnode current_node, header_table* htable, data d, double cnt,
         new_node->parent = current_node;
         new_node->data_item = d[first(d)];
         new_node->ftid = tid;
-        new_node->ltid = tid;
+        new_node->ltid = get_currtime();
         current_child_ptr = new_node;
     }
     // assert(current_child_ptr[idx] != NULL);
@@ -652,10 +664,10 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
     sfnode current_node, this_child;
     sfnode* current_child_ptr;
     data temp, d;
-    double toss, elapsedTime;
-    timeval curr;
+    double toss, elapsedTime, currtime;
     int idx;
 
+    timeval curr;
     while(qstack->size > 0) /* we go on till the time we have nodes in the stack*/
     {
         if(start)
@@ -753,11 +765,13 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                 }
 
                 /* updating the frequency of the node according to the formula*/
-                current_child_ptr[idx]->freq *= pow(DECAY, tid - current_child_ptr[idx]->ltid);
-                assert(popped->ltid == tid); /* updated in the pop function itself*/
+                currtime = get_currtime();
+                current_child_ptr[idx]->freq *= pow(DECAY, currtime - current_child_ptr[idx]->ltid);
+                assert(currtime - popped->ltid >= 0);
+                // assert(popped->ltid == tid); /* updated in the pop function itself*/
+                current_child_ptr[idx]->ltid = currtime;
                 current_child_ptr[idx]->freq += popped->freq;
                 current_child_ptr[idx]->ftid = min(current_child_ptr[idx]->ftid, popped->ftid);
-                current_child_ptr[idx]->ltid = tid;
     
                 temp[0]++; /* move the buffer node forward*/
                 temp[1]--; /* decrease the length*/
@@ -811,7 +825,7 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                     if(current_child_ptr[idx]->freq > EPS*(tid - current_child_ptr[idx]->ftid))
                     {
                         // printf("not pruning freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
-                        current_child_ptr[idx]->ltid = tid;
+                        current_child_ptr[idx]->ltid = get_currtime();
 
                         if((current_child_ptr[idx]->fptree == NULL))
                         {
@@ -893,9 +907,9 @@ void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timev
         // printf("d[0] = %d, d[1] = %d, first(d) = %d\n", d[0], d[1], first(d));
         if(d[1] == 1) /* d is a single item*/
         {
-            root->freq *= pow(DECAY, tid - root->ltid); // updating frequency according to decay factor.
+            root->freq *= pow(DECAY, get_currtime() - root->ltid); // updating frequency according to decay factor.
             root->ftid = min(root->ftid, tid); // updating first seen tid.
-            root->ltid = tid; // updating latest updated tid. tid is the current tid.
+            root->ltid = get_currtime(); // updating latest updated tid. tid is the current tid.
             root->freq++;
             return;
         }
@@ -905,9 +919,10 @@ void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timev
         // printf("printing buffer of node %d\n", root->data_item);
         // sf_print_buffer_table(root->hbuffer);
         root->ftid = min(root->ftid, tid); // updating first seen time stamp
-        root->freq *= pow(DECAY, tid - root->ltid);
+        assert(get_currtime() - root->ltid >= 0);
+        root->freq *= pow(DECAY, get_currtime() - root->ltid);
         root->freq++;
-        root->ltid = tid;
+        root->ltid = get_currtime();
 
         // double toss = ((double) rand())/RAND_MAX;
         // if(toss < CARRY || CARRY == 2.0)
@@ -1021,7 +1036,7 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
     if(node == NULL)
         return;
     // sf_print_node(node);
-    node->freq *= pow(DECAY, tid - node->ltid);
+    node->freq *= pow(DECAY, get_currtime() - node->ltid);
     int cnt = 0, i;
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     if(node->freq >= N*minsup)
@@ -1181,7 +1196,7 @@ fptree sf_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
         tree->head_table[idx]->first = NULL;
         tree->head_table[idx]->cnt = 0.0;
         tree->head_table[idx]->ftid = tid;
-        tree->head_table[idx]->ltid = tid;
+        tree->head_table[idx]->ltid = get_currtime();
     }
 
     curr_head_table_node = tree->head_table[idx];
@@ -1192,7 +1207,7 @@ fptree sf_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
             pow(DECAY, tid - curr_head_table_node->ltid), minsup);
 
     if(curr_head_table_node == NULL || (curr_head_table_node->cnt)*\
-       pow(DECAY, tid - curr_head_table_node->ltid) < minsup)
+       pow(DECAY, get_currtime() - curr_head_table_node->ltid) < minsup)
     {
         // printf("rejecting %d\n", data_item);
         return NULL;
@@ -1216,7 +1231,7 @@ fptree sf_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
     while(node != NULL)
     {
         temp = node;
-        add = (temp->freq)*pow(DECAY, tid - temp->ltid);
+        add = (temp->freq)*pow(DECAY, get_currtime() - temp->ltid);
         while(temp != NULL)
         {
             temp->touched += add;
@@ -1298,7 +1313,7 @@ void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, 
         // sf_print_header_table(tree->head_table);
 
         assert(curr_header_node != NULL);
-        double new_cnt = (curr_header_node->cnt)*pow(DECAY, tid - curr_header_node->ltid);
+        double new_cnt = (curr_header_node->cnt)*pow(DECAY, get_currtime() - curr_header_node->ltid);
 
         // printf("new_cnt=%lf\n", new_cnt);
 
@@ -1623,8 +1638,8 @@ void sf_fp_merge(fpnode parent, fpnode child, int tid)
     // assert(curr_item != NULL);
     // assert(childptr->data_item == curr_item->data_item);
 
-    childptr->freq = childptr->freq * pow(DECAY, tid - childptr->ltid)\
-                           + child->freq * pow(DECAY, tid - childptr->ltid);
+    childptr->freq = childptr->freq * pow(DECAY, get_currtime() - childptr->ltid)\
+                           + child->freq * pow(DECAY, get_currtime() - childptr->ltid);
     childptr->ltid = max(childptr->ltid, child->ltid);
     childptr->ftid = max(childptr->ftid, child->ftid);
 
@@ -1758,8 +1773,8 @@ void sf_prune_buffer(sfnode curr, int tid)
             while(curr_buff == head && head != NULL)
             {
                 idx = index(curr_buff->itemset[first(curr_buff->itemset)], root_data);
-                curr_buff->freq *= pow(DECAY, tid - curr_buff->ltid);
-                curr_buff->ltid = tid;
+                curr_buff->freq *= pow(DECAY, get_currtime() - curr_buff->ltid);
+                curr_buff->ltid = get_currtime();
                 if(curr->children[idx] == NULL && curr_buff->freq < EPS*(tid - curr_buff->ftid))
                 {
                     temp = curr_buff;
@@ -1789,8 +1804,8 @@ void sf_prune_buffer(sfnode curr, int tid)
             while(curr_buff)
             {
                 idx = index(curr_buff->itemset[first(curr_buff->itemset)], root_data);
-                curr_buff->freq *= pow(DECAY, tid - curr_buff->ltid);
-                curr_buff->ltid = tid;
+                curr_buff->freq *= pow(DECAY, get_currtime() - curr_buff->ltid);
+                curr_buff->ltid = get_currtime();
                 if(curr->children[idx] == NULL && curr_buff->freq < EPS*(tid - curr_buff->ftid))
                 {
                     prev->next = curr_buff->next;
@@ -1812,7 +1827,7 @@ void sf_prune_buffer(sfnode curr, int tid)
 /* Decay the count of node in the header table and decrease some value from nodes in the bltree*/
 void sf_prune_helper(sfnode node, int root_data, int tid)
 {
-    node->freq *= pow(DECAY, tid - node->ltid);
+    node->freq *= pow(DECAY, get_currtime() - node->ltid);
     int child, idx, i, buff_cnt;
     sfnode first, next, curr;
     QStack* qstack = createQStack();
@@ -1829,14 +1844,14 @@ void sf_prune_helper(sfnode node, int root_data, int tid)
             if(node->children[child])
             {
                 node->children[child]->freq *=\
-                        pow(DECAY, tid - node->children[child]->ltid);
+                        pow(DECAY, get_currtime() - node->children[child]->ltid);
                 if(node->hbuffer[child%HSIZE])
                 {
-                    node->hbuffer[child%HSIZE]->freq *= pow(DECAY, tid - node->hbuffer[child%HSIZE]->ltid);
+                    node->hbuffer[child%HSIZE]->freq *= pow(DECAY, get_currtime() - node->hbuffer[child%HSIZE]->ltid);
                     buff_cnt = node->hbuffer[child%HSIZE]->freq;
                 }
 
-                if(node->children[child]->freq + buff_cnt <= EPS*(tid - node->children[child]->ftid))
+                if(node->children[child]->freq + buff_cnt <= EPS*(get_currtime() - node->children[child]->ftid))
                 {
                     sf_delete_sftree_structure(node->children[child]);
                     node->children[child] = NULL;
@@ -1892,9 +1907,9 @@ void sf_print_sfnode(sfnode node)
     int c = sf_no_sfchildren(node), b = node->bufferSize, idx;
 
     if(node->parent)
-        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %d, parent = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->ftid, node->ltid, node->parent->data_item, c, b);
+        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %lf, parent = %d, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->ftid, node->ltid, node->parent->data_item, c, b);
     else
-        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %d, parent = NULL, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->ftid, node->ltid, c, b);
+        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %lf, parent = NULL, children = %d, buffer_size = %d \n", node->data_item, node->freq, node->ftid, node->ltid, c, b);
 
     if(node->hbuffer && node->bufferSize)
     {
@@ -1926,9 +1941,9 @@ void sf_print_fpnode(fpnode node)
     int c = sf_no_fpchildren(node);
 
     if(node->parent)
-        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %d, parent = %d, touched = %lf, children = %d\n", node->data_item, node->freq, node->ftid, node->ltid, node->parent->data_item, node->touched, c);
+        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %lf, parent = %d, touched = %lf, children = %d\n", node->data_item, node->freq, node->ftid, node->ltid, node->parent->data_item, node->touched, c);
     else
-        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %d, parent = NULL, touched = %lf, children = %d\n", node->data_item, node->freq, node->ftid, node->ltid, node->touched, c);
+        printf("data_item = %d, freq = %lf, ftid = %d, ltid = %lf, parent = NULL, touched = %lf, children = %d\n", node->data_item, node->freq, node->ftid, node->ltid, node->touched, c);
 
     return;
 }
@@ -1955,7 +1970,7 @@ void sf_print_buffer_table(bufferTable* hbuffer)
     {
         if(hbuffer[i])
         {
-            printf(">>>>>>> freq = %lf, tid = %d, bucket = %d, collision = %c<<<<<<<\n",\
+            printf(">>>>>>> freq = %lf, tid = %lf, bucket = %d, collision = %c<<<<<<<\n",\
                     hbuffer[i]->freq, hbuffer[i]->ltid, i, hbuffer[i]->collision);
             sf_print_buffer(hbuffer[i]->bufferhead);
         }
@@ -1968,7 +1983,7 @@ void sf_print_buffer(buffer head)
     buffer buff = head;
     while(buff)
     {
-        printf("(ftid: %d, ltid: %d); freq = %lf --> ", buff->ftid, buff->ltid, buff->freq);
+        printf("(ftid: %d, ltid: %lf); freq = %lf --> ", buff->ftid, buff->ltid, buff->freq);
         sf_print_data_node(buff->itemset);
         buff = buff->next;
     }
@@ -1999,7 +2014,7 @@ void sf_print_header_table(header_table* h)
     // z is the size of the table
     for(idx = 0; idx < last_index(h[0]->data_item) && h[idx] != NULL; idx++)
     {
-        printf("item = %d, ftid = %d, ltid = %d, cnt = %lf\n", h[idx]->data_item, h[idx]->ftid, h[idx]->ltid, h[idx]->cnt);
+        printf("item = %d, ftid = %d, ltid = %lf, cnt = %lf\n", h[idx]->data_item, h[idx]->ftid, h[idx]->ltid, h[idx]->cnt);
         // fpnode node = h[idx]->first;
         // while(node != NULL && node->next_similar != node)
         // {

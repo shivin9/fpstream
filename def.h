@@ -11,6 +11,8 @@
 #include <omp.h>
 #include <math.h>
 
+typedef struct timeval timeval;
+
 // GLOBAL VARIABLES
 #ifndef GLOBAL_VARS
 #define GLOBAL_VARS
@@ -36,6 +38,8 @@ extern unsigned int MIN_BUFFER_SIZE[10];
 extern unsigned int AVG_BUFFER_SIZE[10];
 extern unsigned int RED_BUFFER_SIZE[10];
 extern unsigned int CNT_BUFFER_SIZE[10];
+extern timeval origin;
+extern timeval global_timer;
 #endif
 
 #define max(a,b) ((a) > (b) ? a : b)
@@ -56,7 +60,6 @@ static int batch_ready;
 
 ////////////////////////////////////////////////////////////////////////////////
 typedef int data_type;    //the data type of individual items in the transaction
-typedef struct timeval timeval;
 typedef int* data; // data[0] has start; data[1] has length
 
 struct buffer_node
@@ -64,7 +67,7 @@ struct buffer_node
     data itemset;
     double freq;
     int ftid;
-    int ltid;
+    double ltid;
     struct buffer_node* next;
     // struct buffer_node* prev;
 };
@@ -77,7 +80,7 @@ typedef struct buffer_table
     buffer buffertail;
     double freq;
     int ftid;
-    int ltid;
+    double ltid;
     char collision;
 }buffer_table;
 
@@ -95,7 +98,7 @@ struct sf_node
     sfnode* children; // children in case of BL-tree
     bufferTable* hbuffer; // the hashed buffers
     int bufferSize; // number of nodes in the DLL
-    int ltid; // latest updated/seen time stamp of the node. This is used for intermittent pruning.
+    double ltid; // latest updated/seen time stamp of the node. This is used for intermittent pruning.
     int ftid; // first seen tid of the node
     int last; // last timestamp when transaction was appended
     int last_pruned;
@@ -109,7 +112,7 @@ struct fp_node
 {
     fpnode child; // first child in case of FP-tree (LL)
     fpnode next; // next pointer of child linked list
-    int ltid; // latest updated/seen time stamp of the node. This is used for intermittent pruning.
+    double ltid; // latest updated/seen time stamp of the node. This is used for intermittent pruning.
     int ftid; // first seen tid of the node
     double freq; //count of transaction or item, depending on whether it is used in FP-tree or BL-tree. This is also used to prune along with LTID.
     data_type data_item; // integer data item.
@@ -126,7 +129,7 @@ struct header_table_node
     fpnode first;
     double cnt;
     int ftid;
-    int ltid;
+    double ltid;
 };
 
 

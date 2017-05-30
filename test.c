@@ -1,11 +1,13 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include <malloc.h>
+#include<time.h>
 
 #define first(d) (((d)[(0)]) + (2))
 #define last(d) (((d)[(0)]) + ((d)[(1)]) + (1))
 
 typedef int* data;
+typedef struct timeval timeval;
 int sf_cmpfunc (const void * a, const void * b)
 {
    return ( *(int*)a - *(int*)b );
@@ -87,8 +89,17 @@ int main()
 
     // data copy = sf_copy_data(new);
     // sf_print_data_node(copy);
+    timeval origin;
+    gettimeofday(&origin, NULL);
+    printf("time1 = %lf\n", origin.tv_sec+origin.tv_usec/1000000.0);
 
-    // printf("\n");   
+    for(i = 0; i < 100000000; i++)
+	   i++;
+
+    gettimeofday(&origin, NULL);
+    printf("time2 = %lf\n", origin.tv_sec+origin.tv_usec/1000000.0);
+    
+	// printf("\n");   
 
     // data c1 = sf_copy_data(new);
     // sf_print_data_node(c1);
