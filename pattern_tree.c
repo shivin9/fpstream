@@ -315,14 +315,14 @@ void tail_prune(pattern_node current_node)
     {
 
         sum += curr->freq;
-        if(sum < MINSUP_FREQ && curr->freq < MINSUP_FREQ)    break;
+        if(sum < CNT*MINSUP_FREQ && curr->freq < CNT*MINSUP_FREQ)    break;
         curr = curr->next;
     }
 
     delete_tail_freq_table(curr);
     prev->next = NULL;
 
-    if(current_node->table->freq < MINSUP_FREQ)
+    if(current_node->table->freq < CNT*MINSUP_FREQ)
     {
         delete_tail_freq_table(current_node->table);
         current_node->table = NULL;

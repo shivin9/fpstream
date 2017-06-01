@@ -848,8 +848,8 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
         }
 
         assert(curr_header_node != NULL);
-        if((pattern == 0 && curr_header_node->cnt >= MINSUP_SEMIFREQ)
-                || (pattern == 1 && curr_header_node->cnt >= MINSUP_FREQ))
+        if((pattern == 0 && curr_header_node->cnt >= CNT*MINSUP_SEMIFREQ)
+                || (pattern == 1 && curr_header_node->cnt >= CNT*MINSUP_FREQ))
         {
 
             //frequent itemset
@@ -878,7 +878,8 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
                 fprintf(fp, " %d", arr[t]);
                 t--;
             }
-            if(pattern == 0){
+            // if(pattern == 0)
+            {
                 fprintf(fp, " %d", curr_header_node->cnt);
                 // printf(" %d", curr_header_node->cnt);
             }
