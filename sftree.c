@@ -1851,36 +1851,33 @@ void sf_prune_helper(sfnode node, int root_data, int tid)
                     buff_cnt = node->hbuffer[child%HSIZE]->freq;
                 }
 
-                if(node->children[child]->freq + buff_cnt <= EPS*(get_currtime() - node->children[child]->ftid))
+                if(node->children[child]->freq + buff_cnt <= EPS*(tid - node->children[child]->ftid))
                 {
                     sf_delete_sftree_structure(node->children[child]);
                     node->children[child] = NULL;
                 }
 
-                else
+                else if(node->children[child]->fptree)
                 {
-                    if(node->children[child]->fptree)
+                    child_htable = node->children[child]->fptree->head_table;
+                    root_data = child_htable[0]->data_item;
+                    for(i = 0; i < last_index(root_data) && child_htable[i]; i++)
                     {
-                        child_htable = node->children[child]->fptree->head_table;
-                        root_data = child_htable[0]->data_item;
-                        for(i = 0; i < last_index(root_data) && child_htable[i]; i++)
+                        if(child_htable[i]->cnt < EPS*(tid - child_htable[i]->ftid))
                         {
-                            if(child_htable[i]->cnt < EPS*(tid - child_htable[i]->ftid))
+                            // printf("child: %d, i: %d\n", child, i);
+                            if(sf_fp_prune(child_htable, i, tid))
                             {
-                                // printf("child: %d, i: %d\n", child, i);
-                                if(sf_fp_prune(child_htable, i, tid))
-                                {
-                                    sf_delete_fptree(node->children[child]->fptree);
-                                    node->children[child]->fptree = NULL;
-                                    child_htable = NULL;
-                                    break;
-                                }
+                                sf_delete_fptree(node->children[child]->fptree);
+                                node->children[child]->fptree = NULL;
+                                child_htable = NULL;
+                                break;
                             }
                         }
                     }
-                    else
-                        push(qstack, node->children[child]);
                 }
+                else
+                    push(qstack, node->children[child]);
             }
         }
     }

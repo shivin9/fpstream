@@ -60,7 +60,7 @@ echo "\t\tRunning Code..."
 #$1 is input file and $2 is output file to which the program output is to be written
 touch temp1
 input_file=$1\.data
-output_file=$temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].res
+output_file=$temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer\_Gamma=$GAMMA\_Hash%=%HSize].res
 
 ./$exename $data_folder$input_file $output_file -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup -r$Rate -t$Theta -b$Buffer -g$GAMMA -H$Hash > temp1
 

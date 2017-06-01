@@ -177,13 +177,10 @@ int main(int argc, char* argv[])
     // sf_delete_data_node(end->itemset); 
     // deleting the head of itemset LL which was dummy.
     free(end);
-    
+
     int buffered = 0;
     while(stream)
     {
-        // // fprintf(stdout, "inserting: ");
-        // sf_print_data_node(stream->itemset);
-
         gettimeofday(&t3, NULL);
         if(RATE_PARAMETER < 0)
             sf_insert_itemset(forest, stream->itemset, tid, stream->freq, NULL);
