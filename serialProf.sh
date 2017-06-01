@@ -58,23 +58,25 @@ echo "\t\tRunning Code..."
 
 #$1 and $2 are the command line arguments 
 #$1 is input file and $2 is output file to which the program output is to be written
-touch temp1
+touch temp1 temp2
 input_file=$1\.data
 output_file=$temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer\_Gamma=$GAMMA\_Hash%=%HSize].res
 
-./$exename $data_folder$input_file $output_file -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup -r$Rate -t$Theta -b$Buffer -g$GAMMA -H$Hash > temp1
+./$exename $data_folder$input_file $output_file -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup -r$Rate -t$Theta -b$Buffer -g$GAMMA -H$Hash > temp1 & (./calc_mem.sh > temp2)
 
 if [ $? -ne 0 ] ;	then
 	echo "\tError occured. Terminating script...\n"
 	exit 1
 fi
+kill -9 $(pgrep bltree)
 
+per_sup=`echo $6*100|bc`
 #gprof -z output > gprof_dataset-$2\_m=$m\_M=$M\_EPS=$Epsilon\_MINPOINTS=$MINPOINTS.txt 
 # gprof ./$exename gmon.out >> temp1
 echo "converting input data file to tab file"
 python convert.py $input_file
 rm ./tests/res.gnd
-tail -100000 ./tests/$1\.tab >tmp && ./fpgrowth -s1 tmp ./tests/res.gnd && rm tmp # send tab file for recall check
+tail -100000 ./tests/$1\.tab >tmp && ./fpgrowth -s$per_sup tmp ./tests/res.gnd && rm tmp # send tab file for recall check
 python verify.py $output_file res.gnd >> temp1
 
 echo "Exeuction Done on : `date`"
@@ -82,5 +84,6 @@ echo "Exeuction Done on : `date`"
 #cd $temp
 #cd ..
 # touch $tempProfiling_result_dataset-$1\_m=$m\_M=$M\_EPS=$Epsilon\_Lvl=$Lvl\_Dict=$Dict\_Decay=$Decay\_Sup=$Sup].prof
+cat temp2 >> temp1
 cat temp1 >> $temp/ProfRes-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].prof
-rm temp1
+rm temp1 temp2

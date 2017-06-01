@@ -827,7 +827,7 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                         // printf("not pruning freq = %lf, pbound = %lf\n", current_child_ptr[idx]->freq, EPS*(tid - current_child_ptr[idx]->ftid));
                         current_child_ptr[idx]->ltid = get_currtime();
 
-                        if((current_child_ptr[idx]->fptree == NULL))
+                        if((current_child_ptr[idx]->fptree == NULL) && current_child_ptr[idx]->children)
                         {
                             if(current_child_ptr[idx]->children[idx_next] || CARRY == 2.0 ||
                                current_child_ptr[idx]->freq > THETA*(tid - current_child_ptr[idx]->ftid))
@@ -1108,8 +1108,8 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
         // printf("root = %d, freq = %lf\n", root->data_item, root->freq);
         sf_empty_tree(root, tid);
         cnt += sf_mine_frequent_itemsets_helper(root, collected, -1, tid, pattern);
-        sf_delete_sftree_structure(root);
-        forest[idx] = NULL;
+    //     sf_delete_sftree_structure(root);
+    //     forest[idx] = NULL;
     }
     free(collected);
     return cnt;

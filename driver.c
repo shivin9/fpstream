@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
         // intermittent pruning
         if(tid%BATCH == 0)
         {
-            fprintf(stdout, "pruning at tid = %d\n", tid);
+            //fprintf(stdout, "pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
             sf_prune(forest, tid);

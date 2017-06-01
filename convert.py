@@ -82,5 +82,5 @@ def main():
 
 
 if __name__ == '__main__':
-    data_to_tab()
-    #main()
+    #data_to_tab()
+    main()
