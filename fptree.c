@@ -1130,7 +1130,7 @@ void fp_prune_obsolete_II_patterns(header_table htable, data_type data_item, int
 
     while(fir!=NULL)
     {
-        if(fir->tid <= tid - tid)
+        if(fir->tid <= tid - N)
         {
             fp_update_ancestor(fir);
             to_free = fir;
@@ -1267,17 +1267,17 @@ void fp_prune(fptree ftree, int tid)
         if(htable->first != NULL)
         {
             // printf("data_item = %d, cnt = %lf, tid = %d\n", htable->data_item, htable->cnt, htable->tid);
-            if(htable->tid <= tid - tid)
+            if(htable->tid <= tid - N)
             {
                 // printf("pruning obsolete1\n");
                 fp_prune_obsolete_I_patterns(htable, htable->data_item, tid);
             }
-            else if(htable->tid < tid - tid + THETA*tid)
+            else if(htable->tid < tid - N + THETA*N)
             {
                 // printf("pruning infrequent1\n");
                 fp_prune_infrequent_I_patterns(htable, htable->data_item, tid);
             }
-            else if(htable->tid >= tid - tid + THETA*tid && fp_ineq7(htable, tid))
+            else if(htable->tid >= tid - N + THETA*N && fp_ineq7(htable, tid))
             {
                 // printf("pruning infrequent2\n");
                 fp_prune_infrequent_II_patterns(htable, htable->data_item, tid);
@@ -1468,7 +1468,6 @@ int fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, buffer* s
 
                 int t = 0, arr[DICT_SIZE];
 
-                // temp = temp->next;
                 while(temp != NULL)
                 {
                     // printf("%d ", temp->data_item);
@@ -1485,7 +1484,7 @@ int fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, buffer* s
                     // printf(" %d", arr[t]);
                     t--;
                 }
-                if(pattern%2 == 0)
+                // if(pattern%2 == 0)
                 {
                     fprintf(fp, " %lf", curr_header_node->cnt);
                     // printf(" %lf", curr_header_node->cnt);
@@ -1494,7 +1493,6 @@ int fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, buffer* s
 
                 fprintf(fp, "\n");
                 fclose(fp);
-                // printf("printed to intermediate\n");
             }
         }
     }
