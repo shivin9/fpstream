@@ -42,14 +42,15 @@ int CNT = 0;
 
 int main(int argc, char* argv[])
 {
-    if(argc == 1){
+    if(argc == 1)
+    {
         printf("Please enter filename!\n");
         exit(-1);
     }
 
     FILE *fp;
 
-    struct timeval t1, t2, tp1, tp2;
+    struct timeval t1, t2, tp1, tp2, tt1, tt2;
     double elapsedTime = 0, pruneTime = 0;
 
     fp = fopen("intermediate", "w");
@@ -59,7 +60,8 @@ int main(int argc, char* argv[])
 
     fp = fopen(argv[1], "r");
 
-    if(fp == NULL){
+    if(fp == NULL)
+    {
         printf("invalid file\n");
         exit(0);
     }
@@ -72,8 +74,48 @@ int main(int argc, char* argv[])
     patterntree ptree = NULL;
     ptree = create_pattern_tree();
 
-    while(fscanf(fp, "%d", &sz) != EOF){
-        if(CNT > 0 && CNT % BATCH_SIZE == 0){
+    buffer stream = NULL, end = NULL, curr = NULL;
+    stream =  (buffer) malloc(sizeof(struct buffer_node));
+    stream->itemset = (data) malloc(sizeof(struct data_node));
+    stream->itemset->next = NULL;
+    stream->next = NULL;
+    curr = stream;
+    end = stream;
+
+    while(fscanf(fp, "%d", &sz) != EOF)
+    {
+        data d = NULL;
+        while(sz--)
+        {
+            data_type item;
+            fscanf(fp, "%d", &item);
+
+            data new_d = malloc(sizeof(struct data_node));
+            if(new_d == NULL)
+            {
+                //printf("new_d malloc failed\n");
+            }
+            new_d->data_item = item;
+            new_d->next = d;
+            d = new_d;
+            // sleepTime = 2000;
+            // usleep(sleepTime);
+        }
+
+        fp_sort_data(d, NULL);
+        end->next = (buffer) malloc(sizeof(struct buffer_node));
+        end = end->next;
+        end->itemset = d;
+        end->next = NULL;
+    }
+    end->next = NULL;
+    curr = curr->next;
+
+    gettimeofday(&tt1, NULL);
+    while(curr)
+    {
+        if(CNT > 0 && CNT % BATCH_SIZE == 0)
+        {
             printf("pruning at tid = %d\n", CNT);
             gettimeofday(&tp1, NULL);
             fp_create_header_table(ftree);
@@ -97,37 +139,21 @@ int main(int argc, char* argv[])
             ftree = fp_create_fptree();
         }
 
-        data d = NULL;
-        while(sz--){
-
-            data_type item;
-            fscanf(fp, "%d", &item);
-
-            data new_d = malloc(sizeof(struct data_node));
-            if(new_d == NULL)
-            {
-                printf("new_d malloc failed\n");
-            }
-            new_d->data_item = item;
-            new_d->next = d;
-            d = new_d;
-        }
-        // removes duplicates items also
-        // printf("FP: ");
-        fp_sort_data(d, NULL);
-        // fp_print_data_node(d);
-
 	    gettimeofday(&t1, NULL);
-        ftree = fp_insert_itemset(ftree, d, 0);
+        ftree = fp_insert_itemset(ftree, curr->itemset, 0);
 	    gettimeofday(&t2, NULL);
 
         elapsedTime += (t2.tv_sec - t1.tv_sec)*1000 + 
               ((t2.tv_usec - t1.tv_usec)/1000.0);
 
-        fp_delete_data_node(d);
         CNT++;
+        stream = curr;
+        curr = curr->next;
+        fp_delete_data_node(stream->itemset);
+        free(stream);
     }
     fclose(fp);
+    gettimeofday(&tt2, NULL);
 
     printf("total time taken to insert in FP tree = %lf ms\n", elapsedTime);
 
@@ -142,6 +168,10 @@ int main(int argc, char* argv[])
       ((tp2.tv_usec - tp1.tv_usec)/1000.0);
 
     printf("total time taken to prune the Pattern tree = %lf ms\n", pruneTime);
+
+    pruneTime = (tt2.tv_sec - tt1.tv_sec)*1000 + 
+      ((tt2.tv_usec - tt1.tv_usec)/1000.0);
+    printf("total time taken to insert+prune the Pattern tree = %lf ms\n", pruneTime);
 
     // fp = fopen("./tests/final.gnd", "w");
     // fprintf(fp, "After batch %d:\n", CNT/BATCH_SIZE);
