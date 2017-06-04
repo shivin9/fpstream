@@ -32,6 +32,7 @@ void sf_delete_buffer_table(bufferTable*);
 double sf_size_of_sforest(sforest forest);
 double sf_size_of_tree(sfnode);
 buffer sf_pop_buffer(sfnode, int bucket, int tid);
+buffer sf_get_buffer(sfnode, int bucket, int tid);
 int sf_no_sfchildren(sfnode);
 int sf_no_fpchildren(fpnode);
 int sf_get_height(sfnode node);

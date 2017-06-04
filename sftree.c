@@ -489,10 +489,11 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
         curr_buffer->ftid = tid;
         return;
     }
-
+    /* appending at the end of the list*/
     if(curr_buffer->buffertail)
     {
         curr_buffer->buffertail->next = new;
+        new->prev = curr_buffer->buffertail;
     }
 
     curr_buffer->buffertail = new;
@@ -510,7 +511,7 @@ void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
 }
 
 
-buffer sf_pop_buffer(sfnode curr, int bucket, int tid) //seen
+buffer sf_get_buffer(sfnode curr, int bucket, int tid)
 {
     if(curr->bufferSize == 0 || curr->hbuffer == NULL)
     {
@@ -525,12 +526,66 @@ buffer sf_pop_buffer(sfnode curr, int bucket, int tid) //seen
     {
         bucket = (bucket+1)%HSIZE;
     }
+
     double currtime;
     bufferTable curr_buffer = curr->hbuffer[bucket];
-    buffer to_pop = curr_buffer->bufferhead;
+    buffer to_get = curr_buffer->bufferhead;
+    assert(to_get != NULL);    
+    // to_get = curr_buffer->bufferhead;
+    curr_buffer->bufferhead = to_get->next;
+    if(curr_buffer->bufferhead)
+        curr_buffer->bufferhead->prev = NULL; // dirst element has NULL 'prev'
+    currtime = get_currtime();
+    curr_buffer->freq *= pow(DECAY, currtime - curr_buffer->ltid); /* update hbuffer's freq and ltid*/
+    curr_buffer->ltid = currtime;
+
+    /* updating the outgoing buffer here only*/
+    to_get->freq *= pow(DECAY, currtime - to_get->ltid);
+    to_get->ltid = get_currtime();
+    to_get->next = NULL;
+
+    curr_buffer->freq -= to_get->freq;
+
+    curr->last = -1;
+
+    if(curr_buffer->bufferhead == NULL)
+    {
+        assert(curr_buffer->buffertail == to_get);
+        curr_buffer->buffertail = NULL;
+        curr_buffer->ftid = -1;
+        curr_buffer->ltid = -1;
+        // free(curr->hbuffer[bucket]);
+        // curr->hbuffer[bucket] = NULL;
+    }
+    curr->hbuffer[bucket] = curr_buffer;
+    curr->bufferSize--;
+    // sf_check_node_buffer(curr);
+    return to_get;
+}
+
+
+buffer sf_pop_buffer(sfnode curr, int bucket, int tid)
+{
+    if(curr->bufferSize == 0 || curr->hbuffer == NULL)
+    {
+        return NULL;
+    }
+
+    if(curr->last != -1)
+        bucket = curr->last;
+
+    /* this should not get stuck forever as buffersize is not 0*/
+    while(curr->hbuffer[bucket] == NULL || curr->hbuffer[bucket]->bufferhead == NULL)
+    {
+        bucket = (bucket+1)%HSIZE;
+    }
+
+    double currtime;
+    bufferTable curr_buffer = curr->hbuffer[bucket];
+    buffer to_pop = curr_buffer->buffertail; // will pop the last element
     assert(to_pop != NULL);    
-    to_pop = curr_buffer->bufferhead;
-    curr_buffer->bufferhead = to_pop->next;
+    curr_buffer->buffertail = to_pop->prev;
+    curr_buffer->buffertail->next = NULL; // last element has NULL 'next'
     currtime = get_currtime();
     curr_buffer->freq *= pow(DECAY, currtime - curr_buffer->ltid); /* update hbuffer's freq and ltid*/
     curr_buffer->ltid = currtime;
@@ -694,7 +749,7 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
         data_type this_data = current_node->data_item;
         // sf_check_node_buffer(current_node);
 
-        buffer popped = sf_pop_buffer(current_node, rand()%HSIZE, tid); /* popped is the last buffer, it has the itemset
+        buffer popped = sf_get_buffer(current_node, rand()%HSIZE, tid); /* popped is the last buffer, it has the itemset
                                                         which will be propagated down*/
         // sf_check_node_buffer(current_node);
 
