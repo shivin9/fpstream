@@ -19,7 +19,8 @@ char OUT_FILE[100];
 
 double DECAY = 1.0, EPS = 0.0, THETA = 0.1, GAMMA=2.0,\
        SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01,\
-       CARRY = 1.0, H_FRACTION = 0.1, RATE_PARAMETER = 0.1;
+       H_FRACTION = 0.1, RATE_PARAMETER = 0.1, CARRY = 1.0,\
+       TIME_MINE = 1000.0;
 
 timeval origin, global_timer;
 
@@ -34,6 +35,7 @@ int main(int argc, char* argv[])
                 -e<EPS>\n\
                 -c<CARRY>\n\
                 -t<THETA>\n\
+                -T<TIME_MINE>\n\
                 -g<GAMMA>\n\
                 -(S/s)<SUP>\n\
                 -m<min_sup_semifreq>\n\
@@ -71,6 +73,7 @@ int main(int argc, char* argv[])
                     case 'e': EPS    = strtof(s, &s);          break;
                     case 'c': CARRY  = strtof(s, &s);          break;
                     case 't': THETA  = strtof(s, &s);          break;
+                    case 'T': TIME_MINE  = strtof(s, &s);      break;
                     case 's': SUP    = strtof(s, &s);          break;
                     case 'm': MINSUP_SEMIFREQ = strtof(s, &s); break;
                     case 'M': MINSUP_FREQ = strtof(s, &s);     break;
@@ -113,11 +116,13 @@ int main(int argc, char* argv[])
             <CARRY>             %lf\n\
             <GAMMA>             %lf\n\
             <THETA>:            %lf\n\
+            <TIME_MINE>:        %lf\n\
             (S/s)<SUP>:         %lf\n\
             <LEAVE_LVL>:        %d\n",\
             DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,\
             DECAY, EPS, RATE_PARAMETER,\
-            CARRY, GAMMA, THETA, SUP, LEAVE_LVL);
+            CARRY, GAMMA, THETA, TIME_MINE, SUP,\
+            LEAVE_LVL);
 
     srand(time(NULL));
     poisson = fopen("poisson.ignore", "r");
@@ -206,7 +211,7 @@ int main(int argc, char* argv[])
         // intermittent pruning
         if(tid%BATCH == 0)
         {
-            // fprintf(stdout, "pruning at tid = %d\n", tid);
+            fprintf(stdout, "pruning at tid = %d\n", tid);
             gettimeofday(&t3, NULL);
             // sf_empty_buffers(forest, tid);
             sf_prune(forest, tid);
@@ -270,7 +275,7 @@ int main(int argc, char* argv[])
 
     gettimeofday(&t3, NULL);
     sf_prune(forest, tid); // final pruning before emptying the buffers
-    // sf_empty_buffers(forest, tid);
+    sf_empty_buffers(forest, tid, TIME_MINE);
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);

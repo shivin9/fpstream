@@ -46,7 +46,7 @@ void sf_create_header_table(fptree, int);
 /* CP-TREE FUNCTIONS*/
 data sf_sort_data(data head);
 void sf_sort_header_table(header_table*, double*);
-void sf_empty_buffers(sforest, int);
+void sf_empty_buffers(sforest, int, double);
 void sf_empty_tree(sfnode, int);
 
 /* MISCELLANEOUS FUNCTIONS*/

@@ -23,6 +23,7 @@ GAMMA=$10
 Rate=$11
 Buffer=$12
 Hash=$13
+TimeM=$14
 
 echo "=========================================="
 echo "Following code was profiled on : `date`"
@@ -40,6 +41,7 @@ echo "GAMMA->$10"
 echo "RATE->$11"
 echo "Buffer->$12"
 echo "HSize->$13"
+echo "TimeM->$14"
 echo "=========================================="
 # echo "\tCompiling Code..."
 # make -f $11 clean && make -f $11
@@ -60,9 +62,9 @@ echo "\t\tRunning Code..."
 #$1 is input file and $2 is output file to which the program output is to be written
 touch temp1 temp2
 input_file=$1\.data
-output_file=$temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer\_Gamma=$GAMMA\_Hash%=%HSize].res
+output_file=$temp/Res-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer\_Gamma=$GAMMA\_Hash=$HSize\_TimeM=$TimeM].res
 
-./$exename $data_folder$input_file $output_file -e$Epsilon -c$Carry -L$Lvl -B$Batch -D$Dict -p2 -d$Decay -s$Sup -r$Rate -t$Theta -b$Buffer -g$GAMMA -H$Hash > temp1 & (./calc_mem.sh > temp2)
+./$exename $data_folder$input_file $output_file -e$Epsilon -c$Carry -L$Lvl -T$TimeM -B$Batch -D$Dict -p2 -d$Decay -s$Sup -r$Rate -t$Theta -b$Buffer -g$GAMMA -H$Hash > temp1 & (./calc_mem.sh > temp2)
 
 if [ $? -ne 0 ] ;	then
 	echo "\tError occured. Terminating script...\n"
@@ -85,5 +87,5 @@ echo "Exeuction Done on : `date`"
 #cd ..
 # touch $tempProfiling_result_dataset-$1\_m=$m\_M=$M\_EPS=$Epsilon\_Lvl=$Lvl\_Dict=$Dict\_Decay=$Decay\_Sup=$Sup].prof
 cat temp2 >> temp1
-cat temp1 >> $temp/ProfRes-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer].prof
+cat temp1 >> $temp/ProfRes-[$1\_EPS=$Epsilon\_L=$Lvl\_D=$Dict\_d=$Decay\_S=$Sup\_B=$Batch\_c=$Carry\_Theta=$Theta\_Rate=$Rate\_Buffer=$Buffer\_TimeM=$TimeM].prof
 rm temp1 temp2

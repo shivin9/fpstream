@@ -20,6 +20,7 @@ extern int DICT_SIZE;
 extern double DECAY;
 extern long int N;
 extern double EPS;
+extern double TIME_MINE;
 extern double THETA;
 extern double CARRY;
 extern int HSIZE;

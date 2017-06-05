@@ -1406,10 +1406,10 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
     {
         sfnode root = forest[idx];
         // printf("root = %d, freq = %lf\n", root->data_item, root->freq);
-        sf_empty_tree(root, tid);
+        // sf_empty_tree(root, tid);
         cnt += sf_mine_frequent_itemsets_helper(root, collected, -1, tid, pattern);
-    //     sf_delete_sftree_structure(root);
-    //     forest[idx] = NULL;
+        sf_delete_sftree_structure(root);
+        forest[idx] = NULL;
     }
     free(collected);
     return cnt;
@@ -1832,7 +1832,7 @@ void sf_empty_tree(sfnode root, int tid)
 }
 
 
-void sf_empty_buffers(sforest forest, int tid)
+void sf_empty_buffers(sforest forest, int tid, double total_time)
 {
     int root_data, idx, i, last;
     double oricarry = CARRY, elapsedTime;
@@ -1841,7 +1841,8 @@ void sf_empty_buffers(sforest forest, int tid)
     header_table* htable;
     CARRY = 2.0; /* now we will push all the nodes down otherwise\
                     we will lose itemsets in buffer only*/
-    struct timeval t1;
+    struct timeval start, curr;
+    gettimeofday(&start, NULL);
 
     for(i = 0; i < DICT_SIZE; i++)
     {
@@ -1850,15 +1851,25 @@ void sf_empty_buffers(sforest forest, int tid)
     }
     while(qstack->size > 0)
     {
-        gettimeofday(&t1, NULL);
+        gettimeofday(&curr, NULL);
+        elapsedTime = (curr.tv_sec - start.tv_sec) * 1000.0;
+        elapsedTime += (curr.tv_usec - start.tv_usec) / 1000.0;
+        /* this controls pre-emption*/ // leaving because there is no time.
+        if(elapsedTime > total_time)
+        {
+            delete_qstack(qstack); // try re-using memory
+            return;
+        }
+
         do
         {
             root = get(qstack);
         }while(root == NULL);
+
         root_data = root->data_item;
         if(root->bufferSize > 0) /* push the buffered itemsets down*/
         {
-            sf_insert_itemset_helper(root, root_data, tid, 250, &t1);
+            sf_insert_itemset_helper(root, root_data, tid, -1, NULL);
         }
 
         else if(root->bufferSize == 0 && qstack->size > 0)
@@ -1868,7 +1879,7 @@ void sf_empty_buffers(sforest forest, int tid)
                 // {
                 //     if(qstack->size == 0)
                 //         break;
-                    current_node = get(qstack);
+                current_node = get(qstack);
                 // }while(current_node == NULL);
 
                 last = last_index(current_node->data_item);
@@ -1878,7 +1889,7 @@ void sf_empty_buffers(sforest forest, int tid)
                     /* if buffer is not empty then simply
                        call the insert function*/
                     {
-                        sf_insert_itemset_helper(current_node->children[idx], root_data, tid, 250, &t1);
+                        sf_insert_itemset_helper(current_node->children[idx], root_data, tid, -1, NULL);
                     }
                     else
                         push(qstack, current_node->children[idx]);
