@@ -903,7 +903,7 @@ void fp_mine_frequent_itemsets(fptree tree, data sorted, data till_now, int patt
     {
 
         fptree cond_tree = fp_create_conditional_fp_tree(tree, curr_data->data_item,
-                (pattern == 1) ? MINSUP_FREQ : MINSUP_SEMIFREQ);
+                (pattern == 1) ? CNT*MINSUP_FREQ : CNT*MINSUP_SEMIFREQ);
         if(cond_tree == NULL)
         {
             // printf("skipped %d\n", curr_data->data_item);

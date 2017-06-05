@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
             fprintf(fp1, "After batch %d:\n", CNT/BATCH_SIZE);
             fclose(fp1);
             */
-            // fp_delete_fptree(ftree);
+            fp_delete_fptree(ftree);
             ftree = get_fptree(ptree);
             fp_mine_frequent_itemsets(ftree, sorted, NULL, 1);
             fp_delete_fptree(ftree);
