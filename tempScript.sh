@@ -1,6 +1,6 @@
 # BLTree
 # <dataset> <decay> <eps> <Dict_Size> <TreeLvl> <Sup_cnt> <Batch_Size> <Carry>\
-# <Theta> <Gamma> <Rate> <MAX_Buffer> <Hash%>
+# <Theta> <Gamma> <Rate> <MAX_Buffer> <Hash%> <TimeM>
 
 # sh serialProf.sh 1MD100T10 1.0 0.005 100 4 0.01 10000 0.10 0.05 10 100
 # sh serialProf.sh 1MD500T10 1.0 0.005 500 4 0.01 10000 0.10 0.05 10 100
