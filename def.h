@@ -10,7 +10,7 @@
 #include <omp.h>
 #include <math.h>
 
-#define MINSUP_SEMIFREQ 0.005  //minimum support for semi-frequent itemsets
+#define MINSUP_SEMIFREQ 0.00  //minimum support for semi-frequent itemsets
 #define MINSUP_FREQ 0.01    //minimum support for frequent itemsets
 #define SUP_ERROR 50 //max error for sub-frequent itemsets
 #define DICT_SIZE 1000 // max. number of items

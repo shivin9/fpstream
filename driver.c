@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
     gettimeofday(&tt1, NULL);
     while(curr)
     {
-        if(CNT > 0 && CNT % BATCH_SIZE == 0)
+        if(CNT < 0 && CNT % BATCH_SIZE == 0)
         {
             printf("pruning at tid = %d\n", CNT);
             gettimeofday(&tp1, NULL);
@@ -158,16 +158,15 @@ int main(int argc, char* argv[])
     printf("total time taken to insert in FP tree = %lf ms\n", elapsedTime);
 
     // pruning last batch
-    gettimeofday(&tp1, NULL);
-    fp_create_header_table(ftree);
-    fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
-    process_batch(ptree, CNT/BATCH_SIZE);
-    gettimeofday(&tp2, NULL);
+    // gettimeofday(&tp1, NULL);
+    // fp_mine_frequent_itemsets(ftree, sorted, NULL, 0);
+    // process_batch(ptree, CNT/BATCH_SIZE);
+    // gettimeofday(&tp2, NULL);
 
-    pruneTime += (tp2.tv_sec - tp1.tv_sec)*1000 + 
-      ((tp2.tv_usec - tp1.tv_usec)/1000.0);
+    // pruneTime += (tp2.tv_sec - tp1.tv_sec)*1000 + 
+    //   ((tp2.tv_usec - tp1.tv_usec)/1000.0);
 
-    printf("total time taken to prune the Pattern tree = %lf ms\n", pruneTime);
+    // printf("total time taken to prune the Pattern tree = %lf ms\n", pruneTime);
 
     pruneTime = (tt2.tv_sec - tt1.tv_sec)*1000 + 
       ((tt2.tv_usec - tt1.tv_usec)/1000.0);
@@ -177,12 +176,13 @@ int main(int argc, char* argv[])
     // fprintf(fp, "After batch %d:\n", CNT/BATCH_SIZE);
     // fclose(fp);
 
-    fp_delete_fptree(ftree);
+    // fp_delete_fptree(ftree);
 
     // Final Mining
     printf("Mining with support count = %lf\n", CNT*MINSUP_FREQ);
     gettimeofday(&t1, NULL);
-    ftree = get_fptree(ptree);
+    fp_create_header_table(ftree);
+    // ftree = get_fptree(ptree);
     fp_mine_frequent_itemsets(ftree, sorted, NULL, 1);
     gettimeofday(&t2, NULL);
 
