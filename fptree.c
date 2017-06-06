@@ -6,6 +6,14 @@
 */
 #include "fptree.h"
 
+double get_currtime()
+{
+    gettimeofday(&global_timer, NULL);
+    // printf("origin time = %lf\n", origin.tv_sec+origin.tv_usec/1000000.0);
+    // printf("global time = %lf\n", global_timer.tv_sec-origin.tv_sec + global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0);
+    return ((global_timer.tv_sec-origin.tv_sec) + (global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0))/60.0;
+}
+
 int is_equal(data d1, data d2)
 {
     return (d1->data_item == d2->data_item);
@@ -189,7 +197,7 @@ void fp_create_and_insert_new_child(fpnode current_node, data d, int tid)
     new_node->prev_similar = NULL;
     new_node->hnode = NULL;
     new_node->freq = 0.0;
-    new_node->tid = tid;
+    new_node->tid = get_currtime();
     new_node->touched = 0;
     new_node->data_item = d->data_item;
     new_node->parent = current_node;
@@ -335,9 +343,9 @@ fpnode fp_insert_itemset_helper(fpnode current_node, header_table htable, data d
 
 
     //updating the frequency of the node according to the formula
-    current_node->freq *= pow(DECAY, tid - current_node->tid);
+    current_node->freq *= pow(DECAY, get_currtime() - current_node->tid);
     current_node->freq++;
-    current_node->tid = tid;
+    current_node->tid = get_currtime();
 
     if(d == NULL)    return current_node;    //terminate when all items have been inserted
 
@@ -349,7 +357,7 @@ fpnode fp_insert_itemset_helper(fpnode current_node, header_table htable, data d
         buffer new = (buffer) calloc(1, sizeof(struct buffer_node));
 
         data temp;
-        new->tid = tid;
+        new->tid = get_currtime();
         new->itemset = (data) calloc(1, sizeof(struct data_node));
         new->itemset->data_item = d->data_item;
         temp = new->itemset;
@@ -485,7 +493,7 @@ void fp_update_header_table(header_table htable, data dat, int tid)
         while(nxtnode)
         {
             temp->tid = max(temp->tid, nxtnode->tid);
-            temp->cnt += nxtnode->freq * pow(DECAY, tid - nxtnode->tid);
+            temp->cnt += nxtnode->freq * pow(DECAY, get_currtime() - nxtnode->tid);
             nxtnode = nxtnode->next_similar;
         }
         tdat = tdat->next;
@@ -806,7 +814,7 @@ void fp_update_ancestor(fpnode temp)
     fpnode temp1 = temp->parent;
     while(temp1->parent != NULL)
     {
-        temp1->freq -= (temp->freq * pow(DECAY, temp1->tid - temp->tid));
+        temp1->freq -= (temp->freq * pow(DECAY, get_currtime() - temp->tid));
         temp1=temp1->parent;
     }
 }
@@ -862,8 +870,8 @@ void fp_merge1(fpnode parent, fpnode child, int tid)
     assert(childptr->tree_node->data_item == curr_item->data_item);
 
     selected_child = childptr->tree_node;
-    selected_child->freq = selected_child->freq * pow(DECAY, tid - selected_child->tid) + child->freq * pow(DECAY, tid - selected_child->tid);
-    selected_child->tid = tid;
+    selected_child->freq = selected_child->freq * pow(DECAY, get_currtime() - selected_child->tid) + child->freq * pow(DECAY, get_currtime() - selected_child->tid);
+    selected_child->tid = get_currtime();
 
 
     if(child->next_similar != NULL)
@@ -1134,7 +1142,7 @@ void fp_prune_obsolete_II_patterns(header_table htable, data_type data_item, int
         {
             fp_update_ancestor(fir);
             to_free = fir;
-            if(to_free->parent->children->tree_node==to_free)
+            if(to_free->parent->children->tree_node == to_free)
             {
                 temp = to_free->parent->children;
                 prntdata = to_free->parent->item_list;
@@ -1198,7 +1206,7 @@ void fp_prune_obsolete_I_patterns(header_table htable, data_type data_item, int 
     while(fir != NULL)
     {
         parent = fir->parent;
-        if(fir->freq * pow(DECAY, tid - fir->tid) >= EPS*N)
+        if(fir->freq * pow(DECAY, get_currtime() - fir->tid) >= EPS*N)
         {
             fp_update_ancestor(fir);
         }
@@ -1267,26 +1275,26 @@ void fp_prune(fptree ftree, int tid)
         if(htable->first != NULL)
         {
             // printf("data_item = %d, cnt = %lf, tid = %d\n", htable->data_item, htable->cnt, htable->tid);
-            if(htable->tid <= tid - N)
+            if(htable->cnt*pow(DECAY, get_currtime() - htable->tid) <= EPS*N)
             {
                 // printf("pruning obsolete1\n");
                 fp_prune_obsolete_I_patterns(htable, htable->data_item, tid);
             }
-            else if(htable->tid < tid - N + THETA*N)
-            {
-                // printf("pruning infrequent1\n");
-                fp_prune_infrequent_I_patterns(htable, htable->data_item, tid);
-            }
-            else if(htable->tid >= tid - N + THETA*N && fp_ineq7(htable, tid))
-            {
-                // printf("pruning infrequent2\n");
-                fp_prune_infrequent_II_patterns(htable, htable->data_item, tid);
-            }
-            else
-            {
-                // printf("pruning obsolete2\n");
-                fp_prune_obsolete_II_patterns(htable, htable->data_item, tid);
-            }
+            // else if(htable->tid < tid - N + THETA*N)
+            // {
+            //     // printf("pruning infrequent1\n");
+            //     fp_prune_infrequent_I_patterns(htable, htable->data_item, tid);
+            // }
+            // else if(htable->tid >= tid - N + THETA*N && fp_ineq7(htable, tid))
+            // {
+            //     // printf("pruning infrequent2\n");
+            //     fp_prune_infrequent_II_patterns(htable, htable->data_item, tid);
+            // }
+            // else
+            // {
+            //     // printf("pruning obsolete2\n");
+            //     fp_prune_obsolete_II_patterns(htable, htable->data_item, tid);
+            // }
         }
         htable=htable->next;
     }
@@ -1354,7 +1362,7 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
 
     // printf("val of %d = %lf\n", curr_head_table_node->data_item, curr_head_table_node->cnt);
 
-    if(curr_head_table_node == NULL || curr_head_table_node->cnt*pow(DECAY, tid - curr_head_table_node->tid) < minsup){
+    if(curr_head_table_node == NULL || curr_head_table_node->cnt*pow(DECAY, get_currtime() - curr_head_table_node->tid) < minsup){
         return NULL;
     }
 
@@ -1372,7 +1380,7 @@ fptree fp_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
     while(node != NULL)
     {
         fpnode temp = node;
-        add = temp->freq * pow(DECAY, tid - temp->tid);
+        add = temp->freq * pow(DECAY, get_currtime() - temp->tid);
         // temp->touched = 0;
         while(temp != NULL)
         {

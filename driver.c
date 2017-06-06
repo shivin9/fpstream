@@ -26,6 +26,8 @@ int cmpfunc (const void * a, const void * b)
    return -( *(double*)a - *(double*)b );
 }
 
+timeval origin, global_timer;
+
 int main(int argc, char* argv[])
 {
     if(argc == 1){
@@ -93,6 +95,9 @@ int main(int argc, char* argv[])
     end->next = NULL;
     curr = curr->next;
     printf("read stream\n");
+
+    // initialize the origin
+    gettimeofday(&origin, NULL);
 
     gettimeofday(&tt1, NULL);
     while(curr)
