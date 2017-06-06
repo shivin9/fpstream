@@ -1,8 +1,8 @@
 CC=gcc
-FLAG=-pg -fopenmp -c -g 
+FLAG=-c -Ofast
 
 exe: driver.o fptree.o atstream.o
-	$(CC) -o exe -pg -fopenmp driver.o fptree.o def.h -lm
+	$(CC) -Ofast -o exe -pg -fopenmp driver.o fptree.o def.h -lm
 
 driver.o: driver.c
 	$(CC) $(FLAG) driver.c -lm

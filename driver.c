@@ -27,6 +27,8 @@ int cmpfunc (const void * a, const void * b)
 }
 
 timeval origin, global_timer;
+int CNT = 0, SPEED = 10;
+double DECAY;
 
 int main(int argc, char* argv[])
 {
@@ -49,6 +51,10 @@ int main(int argc, char* argv[])
         exit(0);
     }
     // fpstream(argv[1]);
+    char* s;
+    SPEED = atoi(argv[2]);
+    s = argv[3];
+    DECAY = strtof(s,&s);
 
     int sz, tid = 1, size, cnt, batch_size = 10000;
     fptree ftree = NULL;
@@ -128,6 +134,7 @@ int main(int argc, char* argv[])
             pruneTime += (t2.tv_sec - t1.tv_sec) * 1000.0;
             pruneTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
         }
+        CNT++;
         tid++;
     }
     fclose(fp);

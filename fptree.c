@@ -11,7 +11,7 @@ double get_currtime()
     gettimeofday(&global_timer, NULL);
     // printf("origin time = %lf\n", origin.tv_sec+origin.tv_usec/1000000.0);
     // printf("global time = %lf\n", global_timer.tv_sec-origin.tv_sec + global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0);
-    return ((global_timer.tv_sec-origin.tv_sec) + (global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0))/60.0;
+    return ((global_timer.tv_sec-origin.tv_sec) + (global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0))/(60.0*SPEED);
 }
 
 int is_equal(data d1, data d2)
@@ -812,9 +812,10 @@ int fp_ineq7(header_table head, int tid)
 void fp_update_ancestor(fpnode temp)
 {
     fpnode temp1 = temp->parent;
+    double to_sub = temp->freq * pow(DECAY, get_currtime() - temp->tid);
     while(temp1->parent != NULL)
     {
-        temp1->freq -= (temp->freq * pow(DECAY, get_currtime() - temp->tid));
+        temp1->freq -= to_sub;
         temp1=temp1->parent;
     }
 }
@@ -1019,6 +1020,7 @@ void fp_prune_infrequent_I_patterns(header_table htable, data_type data_item, in
 
     while(fir != NULL)
     {
+        fp_update_ancestor(fir);
         parent = fir->parent;
         assert(parent->children != NULL);
         fir->parent = NULL;
@@ -1275,7 +1277,7 @@ void fp_prune(fptree ftree, int tid)
         if(htable->first != NULL)
         {
             // printf("data_item = %d, cnt = %lf, tid = %d\n", htable->data_item, htable->cnt, htable->tid);
-            if(htable->cnt*pow(DECAY, get_currtime() - htable->tid) <= EPS*N)
+            if(htable->cnt*pow(DECAY, get_currtime() - htable->tid) <= EPS*CNT)
             {
                 // printf("pruning obsolete1\n");
                 fp_prune_obsolete_I_patterns(htable, htable->data_item, tid);

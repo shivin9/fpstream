@@ -13,7 +13,8 @@
 #define max(a,b) ((a) > (b) ? a : b)
 #define min(a,b) ((a) < (b) ? a : b)
 
-#define DECAY 0.99
+// #define DECAY 0.99
+//.99, .95, .8, .7, .6
 #define DICT_SIZE 1000 // max. number of items
 #define N 1000000 //window size
 #define EPS 0.0
@@ -46,7 +47,9 @@ typedef int data_type;    //the data type of individual items in the transaction
 typedef struct timeval timeval;
 extern timeval origin;
 extern timeval global_timer;
-
+extern int CNT;
+extern int SPEED;
+extern double DECAY;
 // linked list of data_items ie. an itemset
 struct data_node{
     data_type data_item;
