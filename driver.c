@@ -1,15 +1,10 @@
 #define GLOBAL_VARS 0
 #include "sftree.h"
-/*
-    note: be careful with mining functions of cptree and sforest
-    all are working correct but just that they need to be properly adjusted ie. sorting the sorted list for cptree and initializing all the arrays to 0 before using etc.
-
-    CP and sf trees are working alright
-*/
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,\
     LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100;
 
+/* structures for conducting tests*/
 unsigned int MAX_BUFFER_SIZE[10], CNT_BUFFER_SIZE[10],\
              AVG_BUFFER_SIZE[10], MIN_BUFFER_SIZE[10] = {INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX},\
              RED_BUFFER_SIZE[10];
@@ -182,17 +177,19 @@ int main(int argc, char* argv[])
     // sf_delete_data_node(end->itemset); 
     // deleting the head of itemset LL which was dummy.
     free(end);
+    /* Stream has been read */
 
     int buffered = 0;
     while(stream)
     {
         gettimeofday(&t3, NULL);
-        if(RATE_PARAMETER < 0)
+        if(RATE_PARAMETER < 0) /* this means that we have all the time to insert the item */
             sf_insert_itemset(forest, stream->itemset, tid, stream->freq, NULL);
         else
+            /* t3 has the time when the insertion started */
             sf_insert_itemset(forest, stream->itemset, tid, stream->freq, &t3);
-        gettimeofday(&t4, NULL);
         
+        gettimeofday(&t4, NULL);
         buffered += LEAVE_AS_BUFFER;
         LEAVE_AS_BUFFER = 0;
         // sf_fp_insert(tree->root, tree->head_table, d->next, tid);
@@ -202,13 +199,13 @@ int main(int argc, char* argv[])
         insertionTime += elapsedTime;
 
         end = stream->next;
-        sf_delete_data_node(stream->itemset); // freeing the transaction after inserting. // change it to array.
+        sf_delete_data_node(stream->itemset); // freeing the transaction after inserting.
         free(stream);
         stream = end;
 
         // sf_prune(forest, tid);
         // break;
-        // intermittent pruning
+        /* intermittent pruning */
         if(tid%BATCH == 0)
         {
             // fprintf(stdout, "pruning at tid = %d\n", tid);
@@ -225,10 +222,10 @@ int main(int argc, char* argv[])
 
     
     N = tid;
-    /* this is to accomodate hard support counts instead of %*/
+    /* this is to accomodate hard support counts instead of % */
     if(SUP > 1.0)
     {
-        // if(SUP/N - EPS < 0) /* mine with very less support*/
+        // if(SUP/N - EPS < 0) /* mine with very less support */
             SUP = SUP/N;
         // else
         //     SUP = SUP/N - EPS;

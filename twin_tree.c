@@ -1,5 +1,7 @@
 #include "fpstream.h"
 
+/* Initial attempt to make FPStream anytime */
+
 int main(int argc, char* argv[])
 {
     if(argc == 1){

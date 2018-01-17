@@ -1,4 +1,4 @@
-#define GLOBAL_VARS 0
+#define GLOBAL_VARS 1
 #include "sftree.h"
 /*
     note: be careful with mining functions of cptree and sforest
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
 
     gettimeofday(&t3, NULL);
     sf_prune(forest, tid); // final pruning before emptying the buffers
-    sf_empty_buffers(forest, tid);
+    sf_empty_buffers(forest, tid, 1000.0);
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);
