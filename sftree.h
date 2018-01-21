@@ -18,7 +18,6 @@ int sf_insert_itemset_helper(sfnode, int root_data, int tid, double, timeval*);
 void sf_fp_insert(fpnode, header_table*, data, double, int);
 void sf_insert_itemset(sforest, data, int tid, double, timeval*);
 
-
 /* DELETION FUNCTIONS*/
 void sf_delete_header_table(header_table*);
 void sf_delete_sftree_structure(sfnode current_node);
@@ -37,7 +36,6 @@ int sf_no_sfchildren(sfnode);
 int sf_no_fpchildren(fpnode);
 int sf_get_height(sfnode node);
 long unsigned sf_no_of_nodes(sfnode curr);
-
 
 /* HEADER TABLE FUNCTIONS*/
 void sf_create_header_table_helper(fpnode, header_table*);

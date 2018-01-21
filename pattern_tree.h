@@ -15,8 +15,8 @@ void update_tilted_tw_table(pattern_node, int, float);
 tilted_tw_table insert_batch(tilted_tw_table, int, int, float);
 tilted_tw_table create_new_tilted_tw_table(int, int, float);
 
-sfnode dfs(pattern_node);
-sftree get_sftree(patterntree);
+fpnode dfs(pattern_node);
+fptree get_sftree(patterntree);
 
 void delete_tail_freq_table(tilted_tw_table);
 void tail_prune(pattern_node);

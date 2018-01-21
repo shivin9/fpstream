@@ -44,7 +44,6 @@ int main(int argc, char* argv[])
     }
 
     FILE *sf, *poisson; // files to read the data set and poisson values
-    int sz, cnt, tid = 1, pattern = 0, no_patterns = 0;
     sf = fopen("intermediate", "w");
     fclose(sf);
     sf = fopen("output", "w");
@@ -56,7 +55,10 @@ int main(int argc, char* argv[])
     char *s, output;
     
     int i, batch_no = 0, stream_batch = 0, sleepTime = 100, tree_to_prune, sz, batch_size, cnt,\
-        item_ready, leavecnt = 1, tid = 1;
+        item_ready, leavecnt = 1, tid = 1, pattern = 0, no_patterns = 0, curr_tree;
+    
+    int leave_as_buffer;
+    
     for (i = 3; i < argc; i++)
     {                /* traverse arguments */
         s = argv[i]; /* get option argument */
@@ -161,13 +163,14 @@ int main(int argc, char* argv[])
     poisson = fopen("poisson.ignore", "r");
     
     // long unsigned size;
-    sforest forest = NULL;
+    sforest forest1 = NULL, forest2 = NULL, temp = NULL;
+    forest1 = sf_create_sforest(); // initializing the forest1 and creating root nodes of all the trees.
+    forest2 = sf_create_sforest(); // initializing the forest2 and creating root nodes of all the trees.
     
-    // data sorted = sf_create_sorted_dummy(0);
-    forest = sf_create_sforest(); // initializing the forest and creating root nodes of all the trees.
-    
-    // sftree tree = sf_create_sftree(0);
-    // sf_create_header_table(tree, tid);
+    patterntree ptree = NULL;
+    ptree = create_pattern_tree();
+
+    fptree aux = NULL;
     
     struct timeval t1, t2, t3, t4;
     double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
@@ -177,7 +180,7 @@ int main(int argc, char* argv[])
     // gettimeofday(&global_timer, NULL);
 
     // initializing the first LL of stream separately. Buffer structure is being re-used here.
-    buffer stream = NULL, end = NULL;
+    buffer stream = NULL, end = NULL, curr = NULL;
     stream = (buffer)calloc(1, sizeof(struct buffer_node));
     // stream->itemset = (data) calloc(1, sizeof(struct data_node));
     // stream->itemset->next = NULL;
@@ -211,20 +214,16 @@ int main(int argc, char* argv[])
     fclose(sf);
     end = stream;
     stream = stream->next;
+    curr = stream;
+
     // sf_print_buffer(stream);
-    // sf_delete_data_node(end->itemset);
+    sf_delete_data_node(end->itemset);
     // deleting the head of itemset LL which was dummy.
     free(end);
     printf("Read the Stream...\n");
     /* Stream has been read */
 
-    if(argc == 1){
-        printf("format is ./exe <filename><sleepTime(in microseconds)><batchSize>\n");
-        exit(-1);
-    }
-
     gettimeofday(&t1, NULL);
-
     omp_set_num_threads(4); /* 2 streams, 1 pattern tree and 1 stream manager*/
 
     curr_tree = 0;
@@ -254,10 +253,11 @@ int main(int argc, char* argv[])
                         item_ready = 1;
                         // printf("Releasing Item no. %d\n", cnt);
                         leave_as_buffer = 0;
-                        // sleepTime = rand()%100;
-                        // cnt += leavecnt;
-                        // usleep(sleepTime); /* not needed as time to insert is supplied in the stream */
-                        item_ready = 0;
+/*                         sleepTime = rand()%100;
+                        cnt += leavecnt;
+                        usleep(sleepTime); // not needed as time to insert is supplied in the stream
+*/
+                         item_ready = 0;
                     // }
                 }
             // }
@@ -275,14 +275,14 @@ int main(int argc, char* argv[])
             // 6. All other aspects of handling the CP-tree. (Yet to complete)
             do{
                 // printf("stream_batch = %d, batch_no = %d\n", stream_batch, batch_no);
-                if(stream_batch >= batch_no && T2 == 0)
+                if(stream_batch >= batch_no && T2 == 1)
                     break;
 
                 while(item_ready == 0 && stream_batch < cnt)
                 {
                     // printf("stuck in T1\n");
                 }
-                if(stream_batch < cnt && curr_tree == 0 && T1== 0)
+                if(stream_batch < cnt && curr_tree == 0 && T1 == 1)
                 {
                     // usleep(sleepTime*10);
                     // printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 1, T1, T2);
@@ -290,7 +290,7 @@ int main(int argc, char* argv[])
                     // printf("leave_as_buffer before = %d\n", leave_as_buffer);
                     // assert(ftree->head_table != NULL);
                     gettimeofday(&t3, NULL);
-                    sf_insert_itemset(forest, curr->itemset, tid, curr->freq, &t3);
+                    sf_insert_itemset(forest1, curr->itemset, tid, curr->freq, &t3);
                     // printf("leave_as_buffer after = %d\n", leave_as_buffer);
                     stream_batch++;
 
@@ -302,18 +302,18 @@ int main(int argc, char* argv[])
                         free(stream);
                     }
 
-                    // prune the tree if 5000 transactions have been inserted or if the stream has ended
-                    if(T2 == 0 && (stream_batch%BATCH == 0 || stream_batch >= batch_no))
+                    /* prune the tree if 5000 transactions have been inserted or if the stream has ended */
+                    if(T2 == 1 && (stream_batch%BATCH == 0 || stream_batch >= batch_no))
                     {
                         // direct away the stream
                         printf("\nCHANGING TREE 1->2; count = %d\n", stream_batch);
                         #pragma omp critical
                         {
                             curr_tree = 1;
-                            T1 = -1;
+                            T1 = 0;
                         }
-                        sf_prune(forest, tid);
-                        printf("finished pruning TREE_1\n");
+                        sf_prune(forest1, tid);
+                        printf("finished pruning FOREST_1\n");
                         T1 = 1;
                     }
                 }
@@ -324,18 +324,19 @@ int main(int argc, char* argv[])
         {
             do{
                 // printf("stream_batch = %d, batch_no = %d\n", stream_batch, batch_no);
-                if(stream_batch >= batch_no && T2 == 0)
+                /* this is to break from the infinite loop */
+                if(stream_batch >= batch_no && T2 == 1)
                     break;
                 while(item_ready == 0 && stream_batch < cnt)
                 {
                     // printf("stuck in T2\n");
                 }
-                if(stream_batch < cnt && curr_tree == 1  && T2 == 0)
+                if(stream_batch < cnt && curr_tree == 1  && T2 == 1)
                 {
                     printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 2, T1, T2);
                     // fp_print_data_node(curr->itemset);
                     gettimeofday(&t3, NULL);
-                    sf_insert_itemset(forest, curr->itemset, tid, curr->freq, &t3);
+                    sf_insert_itemset(forest2, curr->itemset, tid, curr->freq, &t3);
 
                     stream_batch++;
                     if(curr->next)
@@ -346,16 +347,16 @@ int main(int argc, char* argv[])
                         free(stream);
                     }
 
-                    if (T1 == 0)
+                    if (T1 == 1)
                     {
                         printf("\nCHANGING TREE 2->1; count = %d\n", stream_batch);
                         // direct away the stream
                         #pragma omp critical
                         {
                             curr_tree = 0;
-                            T2 = -1;
+                            T2 = 0;
                         }
-                        printf("finished converting TREE_2\n");
+                        printf("finished converting FOREST_2\n");
                         T2 = 1;
                     }
                 }
@@ -367,45 +368,29 @@ int main(int argc, char* argv[])
             /* 1. When we receive a notification from one of the worker threads,
                   insert the extracted FIs into the pattern tree. */
             do{
-                if(T1==1 || T2==1){
+                if(T1 == 0 || T2 == 0){
                     tree_to_prune = 1 - curr_tree;
                     // printf("Servicing TREE_%d, batch_ready=%d\n", tree_to_prune + 1, batch_ready);
 
-                    if(tree_to_prune){
-                        T2 = -1;
-                        aux = aux;
-                    }
-                    else{
-                        T1 = -1;
-                        aux = ftree;
-                    }
-
-                    // fp_print_tree(aux->root);
-                    fp_create_header_table(aux);
-                    fp_sort_header_table(aux->head_table, arr);
-                    fp_sort_data(sorted, arr);
-                    sorted = fp_reverse_data(sorted);
+                    /* we will the forest which is full */
+                    if(tree_to_prune)
+                        temp = forest1;
+                    else
+                        temp = forest2;
 
                     # pragma omp critical
                     {
-                        fp_mine_frequent_itemsets(aux, sorted, NULL, 0);
+                        no_patterns = sf_mine_frequent_itemsets\
+                                      (temp, tid, pattern); // mining for frequent patterns
+
                         process_batch(ptree, ++batch_ready);
                         // printf("Done Servicing TREE_%d\n\n", tree_to_prune + 1);
 
+                        aux = fp_create_fptree();
                         if(tree_to_prune)
-                        {
-                            // printf("deleting tree2\n");
-                            // fp_delete_fptree(aux);
-                            aux = fp_create_fptree();
                             T2 = 0;
-                        }
-                        else{
-                            // printf("deleting tree1\n");
-                            // fp_delete_fptree(ftree);
-                            ftree = fp_create_fptree();
+                        else
                             T1 = 0;
-                        }
-
                     }
 
                     FILE *fp1;
@@ -413,9 +398,9 @@ int main(int argc, char* argv[])
                     fprintf(fp1, "After batch %d:\n",batch_ready);
                     fclose(fp1);
 
-                    fp_delete_fptree(aux);
                     aux = get_fptree(ptree);
-                    fp_mine_frequent_itemsets(aux, sorted, NULL, 1);
+                    // sf_fp_mine_frequent_itemsets(aux, 0,\
+                    //                             data till_now, bufferTable collected, tid, double minsup);
                     fp_delete_fptree(aux);
                 }
             }while(stream_batch <= batch_no);
@@ -474,8 +459,11 @@ int main(int argc, char* argv[])
  */
 
     gettimeofday(&t3, NULL);
-    sf_prune(forest, tid); // final pruning before emptying the buffers
-    sf_empty_buffers(forest, tid, TIME_MINE);
+    sf_prune(forest1, tid); // final pruning before emptying the buffers
+    sf_prune(forest2, tid); // final pruning before emptying the buffers
+
+    sf_empty_buffers(forest1, tid, TIME_MINE);
+    sf_empty_buffers(forest2, tid, TIME_MINE);
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);
@@ -484,7 +472,8 @@ int main(int argc, char* argv[])
     fprintf(stdout, "total time taken to empty/prune the buffers = %lf ms\n", elapsedTime);
 
     gettimeofday(&t1, NULL);
-    no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern); // mining for frequent patterns
+    no_patterns += sf_mine_frequent_itemsets(forest1, tid, pattern); // mining for frequent patterns
+    no_patterns += sf_mine_frequent_itemsets(forest2, tid, pattern); // mining for frequent patterns
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;

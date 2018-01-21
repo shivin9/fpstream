@@ -51,9 +51,8 @@ extern timeval global_timer;
 #define first(d) (((d)[(0)]) + (2))
 #define last(d) (((d)[(0)]) + ((d)[(1)]) + (1))
 
-// -1: something in between
-// 0: ready
-// 1: converted to CP and ready for pruning and reinitialization
+// 0: something in between
+// 1: ready
 static int T1;
 static int T2;
 //static int item_ready;
@@ -180,5 +179,48 @@ struct dictionary
     int size;
 };
 
+
+struct tilted_tw_table
+{
+    int starting_batch;
+    int ending_batch;
+    double freq;
+
+    int buffer_empty;
+    int buffer_starting_batch;
+    int buffer_ending_batch;
+    int buffer_freq;
+
+    struct tilted_tw_table* next;
+};
+typedef struct tilted_tw_table* tilted_tw_table;
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+typedef struct pattern_node_list_node* pattern_node_list;
+
+struct pattern_node_
+{
+    pattern_node_list children;
+    data item_list;
+    data_type data_item;
+    tilted_tw_table table;
+};
+typedef struct pattern_node_* pattern_node;
+
+
+struct pattern_node_list_node
+{
+    pattern_node tree_node;
+    pattern_node_list next;
+};
+
+
+struct pattern_tree
+{
+    pattern_node root;
+};
+typedef struct pattern_tree* patterntree;
 
 #endif //STRUCT_DEF
