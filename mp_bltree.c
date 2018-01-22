@@ -1,4 +1,6 @@
-#include "pattern_tree.h"
+#define GLOBAL_VARS 0
+
+#include "sftree.h"
 
 /* This code was originally for making SWP-tree an anytime algorithm*/
 

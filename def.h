@@ -179,6 +179,16 @@ struct dictionary
     int size;
 };
 
+//////////////////////////////////////////////////////////////////////////////
+
+
+struct data_node
+{
+    data_type data_item;
+    struct data_node* next;
+};
+
+typedef struct data_node* pdata; /* data node used in pattern tree */
 
 struct tilted_tw_table
 {
@@ -195,15 +205,12 @@ struct tilted_tw_table
 };
 typedef struct tilted_tw_table* tilted_tw_table;
 
-
-//////////////////////////////////////////////////////////////////////////////
-
 typedef struct pattern_node_list_node* pattern_node_list;
 
 struct pattern_node_
 {
     pattern_node_list children;
-    data item_list;
+    pdata item_list;
     data_type data_item;
     tilted_tw_table table;
 };

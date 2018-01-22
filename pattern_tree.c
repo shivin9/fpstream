@@ -1,6 +1,3 @@
-#include <assert.h>
-#include <stdlib.h>
-#include <malloc.h>
 #include "pattern_tree.h"
 
 patterntree create_pattern_tree()
@@ -17,7 +14,6 @@ patterntree create_pattern_tree()
 
 pattern_node create_new_pattern_node(data_type d)
 {
-
     pattern_node new_node = malloc(sizeof(struct pattern_node_));
     new_node->children = NULL;
     new_node->item_list = NULL;
@@ -26,9 +22,11 @@ pattern_node create_new_pattern_node(data_type d)
     return new_node;
 }
 
-void delete_pattern_node(pattern_node pnode){
+void delete_pattern_node(pattern_node pnode)
+{
     pattern_node_list child = pnode->children, prev;
-    while(child){
+    while(child)
+    {
         prev = child;
         child = child->next;
         delete_pattern_node(prev->tree_node);
@@ -48,7 +46,7 @@ void delete_pattern_tree(patterntree ptree){
 
 //////////////////////////////////////////////////////////////////////////////
 
-void create_and_insert_new_child(pattern_node current_node, data d)
+void create_and_insert_new_child(pattern_node current_node, pdata d)
 {
 
     pattern_node new_node = create_new_pattern_node(d->data_item);
@@ -57,7 +55,7 @@ void create_and_insert_new_child(pattern_node current_node, data d)
     new_list_node->tree_node = new_node;
     new_list_node->next = NULL;
 
-    data new_data = malloc(sizeof(struct data_node));
+    pdata new_data = malloc(sizeof(struct data_node));
     new_data->data_item = d->data_item;
     new_data->next = NULL;
 
@@ -71,7 +69,7 @@ void create_and_insert_new_child(pattern_node current_node, data d)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_num, float add)
+pattern_node insert_itemset_helper(pattern_node current_node, pdata d, int batch_num, float add)
 {
 
     assert(current_node != NULL);
@@ -100,17 +98,17 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
     if(d == NULL)    return current_node;    //terminate when all items have been inserted
 
     //iterate through children
-    //if the next data item has already occurred earlier, go along that child
+    //if the next pdata item has already occurred earlier, go along that child
     //otherwise make a new child
 
     pattern_node_list current_child_ptr = current_node->children;
-    data current_data_ptr = current_node->item_list;
+    pdata current_data_ptr = current_node->item_list;
 
     while(current_child_ptr != NULL)
     {
 
         pattern_node this_child = current_child_ptr->tree_node;
-        data this_data_item = current_data_ptr;
+        pdata this_data_item = current_data_ptr;
 
         if(is_equal(this_data_item, d) == 1)
         {
@@ -127,7 +125,7 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
 
     // printf("could not find appropriate child :(\n");
 
-    //data item has to be inserted as new child
+    //pdata item has to be inserted as new child
     assert(current_data_ptr == NULL);
     assert(current_child_ptr == NULL);
 
@@ -139,7 +137,7 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
     {
 
         pattern_node this_child = current_child_ptr->tree_node;
-        data this_data_item = current_data_ptr;
+        pdata this_data_item = current_data_ptr;
 
         if(is_equal(this_data_item, d))
         {
@@ -156,7 +154,7 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
 }
 
 
-patterntree insert_itemset(patterntree tree, data d, int batch_num, float add)
+patterntree insert_itemset(patterntree tree, pdata d, int batch_num, float add)
 {
     tree->root = insert_itemset_helper(tree->root, d, batch_num, add);
     return tree;
@@ -260,18 +258,18 @@ fpnode dfs(pattern_node current_node)
     new_node->next_similar = NULL;
     new_node->parent = NULL;
     new_node->item_list = NULL;
-    new_node->children = NULL;
+    new_node->child = NULL;
     new_node->touched = 0;
     new_node->freq = f;
     new_node->data_item = current_node->data_item;
 
     pattern_node_list current_child_ptr = current_node->children;
-    data current_data_ptr = current_node->item_list;
+    pdata current_data_ptr = current_node->item_list;
     while(current_child_ptr != NULL)
     {
 
         pattern_node this_child = current_child_ptr->tree_node;
-        data this_data_item = current_data_ptr;
+        pdata this_data_item = current_data_ptr;
 
         fpnode new_child = dfs(this_child);
         if(new_child != NULL)
@@ -352,7 +350,7 @@ void print_node(pattern_node node)
 {
     if(node == NULL)    return;
     int c = 0;
-    data d = node->item_list;
+    pdata d = node->item_list;
     while(d != NULL)
     {
         c++;
@@ -375,7 +373,7 @@ void print_tree(pattern_node node)
 {
     print_node(node);
     pattern_node_list curr_child_list = node->children;
-    data curr_data = node->item_list;
+    pdata curr_data = node->item_list;
     while(curr_data != NULL)
     {
         pattern_node this_child = curr_child_list->tree_node;

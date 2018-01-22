@@ -1,3 +1,6 @@
+#ifndef QSTACK
+#define QSTACK
+
 #include "def.h"
 
 void delete_qstack(QStack* qstack);
@@ -10,3 +13,5 @@ void push(QStack* l, sfnode v); /* push a node in the qstack*/
 sfnode get(QStack* l); /* get a node in LIFO manner*/
 sfnode pop(QStack* l); /* get a node in FIFO manner*/
 QStack* createQStack(); /* create a qstack*/
+
+#endif

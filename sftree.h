@@ -52,7 +52,7 @@ data sf_array_to_datalist(int*, int);
 void sf_free_data_node(data);
 
 /* MINING FUNCTIONS*/
-fpnode sf_dfs(fpnode, header_table*, data_type);
+fpnode sf_fp_dfs(fpnode, header_table*, data_type);
 fptree sf_create_conditional_fp_tree(fptree, data_type, double, int);
 int sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern);
 int sf_mine_frequent_itemsets(sforest, int tid, int pattern);

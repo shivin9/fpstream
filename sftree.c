@@ -40,7 +40,7 @@ int sf_is_equal(data d1, data d2)
     int i;
     for(i = 0; i < d1[1]; i++)
     {
-        if(d1[d1[0] + i + 2] != d2[d2[0] + i + 2])
+        if(d1[d1[0] + i + 2] != d2[d2[0] + i + 2]) /* actual itemset starts from index 2 */
             return 0;
     }
     return 1;
@@ -1420,7 +1420,7 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
 }
 
 
-fpnode sf_dfs(fpnode node, header_table* htable, data_type highest_priority_data_item)
+fpnode sf_fp_dfs(fpnode node, header_table* htable, data_type highest_priority_data_item)
 {
     if(node->touched == 0)    return NULL;
 
@@ -1473,7 +1473,7 @@ fpnode sf_dfs(fpnode node, header_table* htable, data_type highest_priority_data
         fpnode this_child = temp_child_list;
         if(this_child->touched > 0)
         {
-            fpnode new_child = sf_dfs(this_child, htable, highest_priority_data_item);
+            fpnode new_child = sf_fp_dfs(this_child, htable, highest_priority_data_item);
             if(new_child == NULL)    continue;
             sf_insert_new_child(new_node, new_child, this_child->data_item);
         }
@@ -1556,7 +1556,7 @@ fptree sf_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
 
     /* now run a DFS from the root of the given FP_tree, for all touched nodes,*/
     /* create a copy for the conditional FP-tree*/
-    fpnode cond_fptree = sf_dfs(tree->root, cond_tree->head_table, data_item);
+    fpnode cond_fptree = sf_fp_dfs(tree->root, cond_tree->head_table, data_item);
     if(cond_fptree == NULL)
     {
         // printf("condtree = NULL!!!\n");
