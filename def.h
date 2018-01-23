@@ -88,7 +88,7 @@ typedef buffer_table* bufferTable;
 //////////////////////////////////////////////////////////////////////////////
 
 typedef struct sf_node* sfnode; // BL-tree node
-typedef struct fp_node* fpnode; // FP-Tree node
+typedef struct pfp_node* fpnode; // FP-Tree node
 typedef struct fptree_node* fptree; // tree which has root node and header table
 typedef struct sf_node** sforest; //array of trees for forest
 typedef struct header_table_node* header_table; // header table is implemeted as an array (lazy allocation) using this node of this struct.
@@ -108,7 +108,7 @@ struct sf_node
     fptree fptree; // contains header table and root node
 };
 
-struct fp_node
+struct pfp_node
 {
     fpnode child; // first child in case of FP-tree (LL)
     fpnode next; // next pointer of child linked list
@@ -117,9 +117,9 @@ struct fp_node
     double freq; //count of transaction or item, depending on whether it is used in FP-tree or BL-tree. This is also used to prune along with LTID.
     data_type data_item; // integer data item.
     header_table hnode; // pointer to the header table node in FP-tree
-    struct fp_node* next_similar; //pointer to next similar node in FP-tree (DLL originating from Header table; used to make conditional pattern trees)
-    struct fp_node* prev_similar; //pointer to prev similar node in FP-tree
-    struct fp_node* parent; // parent pointer in both BL as well as FP
+    struct pfp_node* next_similar; //pointer to next similar node in FP-tree (DLL originating from Header table; used to make conditional pattern trees)
+    struct pfp_node* prev_similar; //pointer to prev similar node in FP-tree
+    struct pfp_node* parent; // parent pointer in both BL as well as FP
     double touched; // used to generated conditional pattern tree
 };
 
@@ -180,15 +180,60 @@ struct dictionary
 };
 
 //////////////////////////////////////////////////////////////////////////////
+////////////////////////////////Pattern-Tree//////////////////////////////////
+//////////////////////////////Data Structures/////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
 
-struct data_node
+struct pdata_node
 {
     data_type data_item;
-    struct data_node* next;
+    struct pdata_node* next;
 };
 
-typedef struct data_node* pdata; /* data node used in pattern tree */
+typedef struct pdata_node* pdata; /* data node used in pattern tree */
+
+struct pheader_table_node{
+    data_type data_item;
+    pfpnode first;
+    double cnt;
+    int tid;
+    struct pheader_table_node* next;
+};
+typedef struct pheader_table_node* pheader_table;
+
+
+typedef struct pfp_node* pfpnode;
+typedef struct pfpnode_list_node* pfpnode_list;
+typedef struct pheader_table_node* pheader_table;
+
+
+struct pfpnode_list_node{
+    pfpnode tree_node; // pointer to fp-tree node
+    pfpnode_list next; // pointer to next list node
+};
+
+
+struct pfptree_node{
+    pfpnode root;
+    header_table head_table;
+};
+typedef struct pfptree_node* pfptree;
+
+
+struct pfp_node{
+    pfpnode_list children;
+    pdata item_list;
+    int tid; // time stamp
+    double freq;
+    data_type data_item;
+    pheader_table hnode;
+    struct pfp_node* next_similar;
+    struct pfp_node* prev_similar;
+    struct pfp_node* parent;
+    double touched;
+};
 
 struct tilted_tw_table
 {

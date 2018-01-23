@@ -641,7 +641,7 @@ void sf_fp_insert(fpnode current_node, header_table* htable, data d, double cnt,
 
     if(htable && current_node->hnode == NULL && current_node->data_item != -1)
     {
-        //append to the head of the linked list for this data item
+        // append to the head of the linked list for this data item
         current_node->next_similar = curr_header_node->first;
         current_node->hnode = curr_header_node;
         if(curr_header_node->first)
