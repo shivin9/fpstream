@@ -1,6 +1,6 @@
 #define GLOBAL_VARS 0
 
-#include "sftree.h"
+#include "sfstream.h"
 
 /* This code was originally for making SWP-tree an anytime algorithm*/
 
@@ -169,10 +169,9 @@ int main(int argc, char* argv[])
     forest1 = sf_create_sforest(); // initializing the forest1 and creating root nodes of all the trees.
     forest2 = sf_create_sforest(); // initializing the forest2 and creating root nodes of all the trees.
     
-    patterntree ptree = NULL;
-    ptree = create_pattern_tree();
+    patterntree ptree = create_pattern_tree();
 
-    fptree aux = NULL;
+    pfptree aux = NULL;
     
     struct timeval t1, t2, t3, t4;
     double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
@@ -299,7 +298,7 @@ int main(int argc, char* argv[])
                     if(curr->next)
                     {
                         stream = curr;
-                        fp_delete_data_node(curr->itemset);
+                        free(curr->itemset);
                         curr = curr->next;
                         free(stream);
                     }
@@ -344,7 +343,7 @@ int main(int argc, char* argv[])
                     if(curr->next)
                     {
                         stream = curr;
-                        fp_delete_data_node(curr->itemset);
+                        free(curr->itemset);
                         curr = curr->next;
                         free(stream);
                     }

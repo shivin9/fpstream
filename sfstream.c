@@ -1,35 +1,9 @@
 #include "sfstream.h"
 
-void print_itemset(data d)
-{
-
-    if(d == NULL)
-    {
-        printf("\n");
-        return;
-    }
-    printf("%d ", d->data_item);
-    print_itemset(d->next);
-}
-
-data create_sorted_dummy()
-{
-    data d = NULL;
-    int next = 0;
-    while(next < DICT_SIZE)
-    {
-        data new_d = (data) malloc(sizeof(struct data_node));
-        new_d->data_item = next++;
-        new_d->next = d;
-        d = new_d;
-    }
-    return d;
-}
-
-void delete_itemset(data d)
+void delete_itemset(pdata d)
 {
     if(d == NULL)    return;
-    data temp = d;
+    pdata temp = d;
     delete_itemset(d->next);
     free(temp);
 }
@@ -42,7 +16,6 @@ void process_batch(patterntree tree, int batch_num)
     int sz, cnt = 0;
     while(fscanf(fp, "%d", &sz) != EOF)
     {
-
         int i, t=0, arr[100], val, freq;
         while(sz--)
         {
@@ -51,11 +24,11 @@ void process_batch(patterntree tree, int batch_num)
         }
         fscanf(fp, "%d", &freq);
 
-        data d = NULL;
+        pdata d = NULL;
         for(i=t-1;i>=0;i--)
         {
 
-            data new_d = malloc(sizeof(struct data_node));
+            pdata new_d = malloc(sizeof(struct pdata_node));
             if(new_d == NULL)
             {
                 printf("new_d malloc failed\n");
@@ -79,10 +52,10 @@ void process_batch(patterntree tree, int batch_num)
 }
 
 
-//the driver for the FP-stream data structure, takes input batch-by-batch
-//for each batch, it creates an FP-tree, mines the frequent itemsets
-//and inserts in the pattern tree
-void fpstream(char* fname)
+// the driver for the FP-stream pdata structure, takes input batch-by-batch
+// for each batch, it creates an FP-tree, mines the frequent itemsets
+// and inserts in the pattern tree
+/* void fpstream(char* fname)
 {
 
     FILE *fp;
@@ -101,7 +74,7 @@ void fpstream(char* fname)
     fptree ftree = NULL;
     ftree = fp_create_fptree();
 
-    data sorted = create_sorted_dummy();
+    pdata sorted = create_sorted_dummy();
     int cnt = 0;
     int batch_size = 1000;
 
@@ -132,14 +105,14 @@ void fpstream(char* fname)
         }
 
         // printf("%d: ", sz);
-        data d = NULL;
+        pdata d = NULL;
         while(sz--)
         {
 
             data_type item;
             fscanf(fp, "%d", &item);
 
-            data new_d = malloc(sizeof(struct data_node));
+            pdata new_d = malloc(sizeof(struct data_node));
             if(new_d == NULL)
             {
                 printf("new_d malloc failed\n");
@@ -181,4 +154,4 @@ void fpstream(char* fname)
     // ftree = get_fptree(ptree);
     // fp_print_tree(ftree->root);
     // fp_mine_frequent_itemsets(ftree, sorted, NULL, 1);
-}
+} */

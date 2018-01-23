@@ -9,11 +9,8 @@ int is_equal(pdata d1, pdata d2)
 
 patterntree create_pattern_tree()
 {
-
     patterntree new_tree = malloc(sizeof(struct pattern_tree));
-
     pattern_node new_node = create_new_pattern_node(-1);
-
     new_tree->root = new_node;
     return new_tree;
 }
@@ -260,11 +257,11 @@ pfpnode dfs(pattern_node current_node)
     // printf("now at ");
     // print_node(current_node);
 
-    pfpnode new_node = malloc(sizeof(struct fp_node));
+    pfpnode new_node = malloc(sizeof(struct pfp_node));
     new_node->next_similar = NULL;
     new_node->parent = NULL;
     new_node->item_list = NULL;
-    new_node->child = NULL;
+    new_node->children = NULL;
     new_node->touched = 0;
     new_node->freq = f;
     new_node->data_item = current_node->data_item;
@@ -343,8 +340,7 @@ void tail_prune(pattern_node current_node)
     }
 }
 //////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+///////////////////////////// Print Functions ////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
 
@@ -448,15 +444,16 @@ void fp_create_header_table(pfptree tree)
     fp_create_header_table_helper(tree->root, &(tree->head_table));
 }
 
+
 void fp_insert_new_child(pfpnode current_node, pfpnode new_child, pdata d)
 {
 
     new_child->parent = current_node;
-    data new_data = malloc(sizeof(struct pdata_node));
+    pdata new_data = malloc(sizeof(struct pdata_node));
     new_data->data_item = d->data_item;
     new_data->next = NULL;
 
-    fpnode_list new_list_node = malloc(sizeof(struct pfpnode_list_node));
+    pfpnode_list new_list_node = malloc(sizeof(struct pfpnode_list_node));
     new_list_node->tree_node = new_child;
     new_list_node->next = NULL;
 
@@ -464,4 +461,92 @@ void fp_insert_new_child(pfpnode current_node, pfpnode new_child, pdata d)
     current_node->children = new_list_node;
     new_data->next = current_node->item_list;
     current_node->item_list = new_data;
+}
+
+void fp_delete_data_node(pdata d)
+{
+    pdata temp;
+    while(d){
+        temp = d;
+        d = d->next;
+        free(temp);
+        temp = NULL;
+    }
+}
+
+pfptree fp_create_fptree()
+{
+
+    pfptree new_tree = malloc(sizeof(struct pfptree_node));
+    if(new_tree == NULL)
+    {
+        printf("new_tree malloc failed\n");
+    }
+
+    pfpnode node = malloc(sizeof(struct pfp_node));
+    if(node == NULL)
+    {
+        printf("node malloc failed\n");
+    }
+
+    node->children = NULL;
+    node->item_list = NULL;
+    node->freq = 0;
+    node->data_item = -1;
+    node->touched = 0;
+    node->parent = NULL;
+    node->next_similar = NULL;
+
+    new_tree->root = node;
+    new_tree->head_table = NULL;
+    return new_tree;
+}
+
+
+void fp_delete_tree_structure(pfpnode current_node)
+{
+    if(current_node == NULL)
+        return;
+
+    pfpnode_list current_child_ptr = current_node->children;
+    pdata current_data_ptr = current_node->item_list;
+
+    while(current_child_ptr != NULL)
+    {
+
+        pfpnode this_child = current_child_ptr->tree_node;
+        fp_delete_tree_structure(this_child);
+        free(this_child);
+        this_child = NULL;
+
+        pfpnode_list temp_list = current_child_ptr;
+        current_child_ptr = current_child_ptr->next;
+        free(temp_list);
+        temp_list = NULL;
+
+        pdata temp_data = current_data_ptr;
+        current_data_ptr = current_data_ptr->next;
+        free(temp_data);
+        temp_data = NULL;
+    }
+}
+
+void fp_delete_header_table(pheader_table h)
+{
+    if(h == NULL)    return;
+    fp_delete_header_table(h->next);
+    free(h);
+    h = NULL;
+}
+
+
+void fp_delete_fptree(pfptree tree)
+{
+    if(tree == NULL)    return;
+    fp_delete_tree_structure(tree->root);
+    free(tree->root);
+    tree->root = NULL;
+    fp_delete_header_table(tree->head_table);
+    free(tree);
+    tree = NULL;
 }
