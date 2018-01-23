@@ -1,5 +1,7 @@
 #include "fpstream.h"
 
+/* Initial attempt to make FPStream anytime */
+
 int main(int argc, char* argv[])
 {
     if(argc == 1){
@@ -29,7 +31,7 @@ int main(int argc, char* argv[])
     curr = stream;
     end = stream;
 
-    int* arr = (int*) malloc(DICT_SIZE * sizeof(int));
+    double* arr = (double*) malloc(DICT_SIZE * sizeof(double));
 
     data sorted = create_sorted_dummy();
 

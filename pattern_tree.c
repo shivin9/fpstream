@@ -1,7 +1,11 @@
-#include <assert.h>
-#include <stdlib.h>
-#include <malloc.h>
 #include "pattern_tree.h"
+
+int is_equal(pdata d1, pdata d2)
+{
+    if(d1->data_item == d2->data_item)
+        return 1;
+    return 0;
+}
 
 patterntree create_pattern_tree()
 {
@@ -17,7 +21,6 @@ patterntree create_pattern_tree()
 
 pattern_node create_new_pattern_node(data_type d)
 {
-
     pattern_node new_node = malloc(sizeof(struct pattern_node_));
     new_node->children = NULL;
     new_node->item_list = NULL;
@@ -26,9 +29,11 @@ pattern_node create_new_pattern_node(data_type d)
     return new_node;
 }
 
-void delete_pattern_node(pattern_node pnode){
+void delete_pattern_node(pattern_node pnode)
+{
     pattern_node_list child = pnode->children, prev;
-    while(child){
+    while(child)
+    {
         prev = child;
         child = child->next;
         delete_pattern_node(prev->tree_node);
@@ -48,7 +53,7 @@ void delete_pattern_tree(patterntree ptree){
 
 //////////////////////////////////////////////////////////////////////////////
 
-void create_and_insert_new_child(pattern_node current_node, data d)
+void create_and_insert_new_child(pattern_node current_node, pdata d)
 {
 
     pattern_node new_node = create_new_pattern_node(d->data_item);
@@ -57,7 +62,7 @@ void create_and_insert_new_child(pattern_node current_node, data d)
     new_list_node->tree_node = new_node;
     new_list_node->next = NULL;
 
-    data new_data = malloc(sizeof(struct data_node));
+    pdata new_data = malloc(sizeof(struct pdata_node));
     new_data->data_item = d->data_item;
     new_data->next = NULL;
 
@@ -71,7 +76,7 @@ void create_and_insert_new_child(pattern_node current_node, data d)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_num, int add)
+pattern_node insert_itemset_helper(pattern_node current_node, pdata d, int batch_num, float add)
 {
 
     assert(current_node != NULL);
@@ -100,17 +105,17 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
     if(d == NULL)    return current_node;    //terminate when all items have been inserted
 
     //iterate through children
-    //if the next data item has already occurred earlier, go along that child
+    //if the next pdata item has already occurred earlier, go along that child
     //otherwise make a new child
 
     pattern_node_list current_child_ptr = current_node->children;
-    data current_data_ptr = current_node->item_list;
+    pdata current_data_ptr = current_node->item_list;
 
     while(current_child_ptr != NULL)
     {
 
         pattern_node this_child = current_child_ptr->tree_node;
-        data this_data_item = current_data_ptr;
+        pdata this_data_item = current_data_ptr;
 
         if(is_equal(this_data_item, d) == 1)
         {
@@ -127,7 +132,7 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
 
     // printf("could not find appropriate child :(\n");
 
-    //data item has to be inserted as new child
+    //pdata item has to be inserted as new child
     assert(current_data_ptr == NULL);
     assert(current_child_ptr == NULL);
 
@@ -139,7 +144,7 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
     {
 
         pattern_node this_child = current_child_ptr->tree_node;
-        data this_data_item = current_data_ptr;
+        pdata this_data_item = current_data_ptr;
 
         if(is_equal(this_data_item, d))
         {
@@ -156,7 +161,7 @@ pattern_node insert_itemset_helper(pattern_node current_node, data d, int batch_
 }
 
 
-patterntree insert_itemset(patterntree tree, data d, int batch_num, int add)
+patterntree insert_itemset(patterntree tree, pdata d, int batch_num, float add)
 {
     tree->root = insert_itemset_helper(tree->root, d, batch_num, add);
     return tree;
@@ -166,7 +171,7 @@ patterntree insert_itemset(patterntree tree, data d, int batch_num, int add)
 //////////////////////////////////////////////////////////////////////////////
 
 
-tilted_tw_table create_new_tilted_tw_table(int starting_batch, int ending_batch, int add)
+tilted_tw_table create_new_tilted_tw_table(int starting_batch, int ending_batch, float add)
 {
     tilted_tw_table new_table = malloc(sizeof(struct tilted_tw_table));
     new_table->next = NULL;
@@ -177,7 +182,7 @@ tilted_tw_table create_new_tilted_tw_table(int starting_batch, int ending_batch,
     return new_table;
 }
 
-tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int ending_batch, int add)
+tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int ending_batch, float add)
 {
 
     if(table == NULL)
@@ -214,7 +219,8 @@ tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int endi
 
         int combined_tw_starting_batch = min(table->starting_batch, table->buffer_starting_batch);
         int combined_tw_ending_batch = min(table->ending_batch, table->buffer_ending_batch);
-        int new_add = table->freq + table->buffer_freq;
+
+        float new_add = table->freq + table->buffer_freq;
 
         table->next = insert_batch(table->next, combined_tw_starting_batch, combined_tw_ending_batch, new_add);
 
@@ -227,8 +233,7 @@ tilted_tw_table insert_batch(tilted_tw_table table, int starting_batch, int endi
     assert(0);
 }
 
-
-void update_tilted_tw_table(pattern_node node, int batch_num, int add)
+void update_tilted_tw_table(pattern_node node, int batch_num, float add)
 {
     node->table = insert_batch(node->table, batch_num, batch_num, add);
 }
@@ -238,10 +243,10 @@ void update_tilted_tw_table(pattern_node node, int batch_num, int add)
 //////////////////////////////////////////////////////////////////////////////
 
 
-fpnode dfs(pattern_node current_node)
+pfpnode dfs(pattern_node current_node)
 {
 
-    int f = 0;
+    float f = 0.0;
     tilted_tw_table curr_table = current_node->table;
     while(curr_table != NULL)
     {
@@ -253,24 +258,24 @@ fpnode dfs(pattern_node current_node)
     // printf("now at ");
     // print_node(current_node);
 
-    fpnode new_node = malloc(sizeof(struct fp_node));
+    pfpnode new_node = malloc(sizeof(struct fp_node));
     new_node->next_similar = NULL;
     new_node->parent = NULL;
     new_node->item_list = NULL;
-    new_node->children = NULL;
+    new_node->child = NULL;
     new_node->touched = 0;
     new_node->freq = f;
     new_node->data_item = current_node->data_item;
 
     pattern_node_list current_child_ptr = current_node->children;
-    data current_data_ptr = current_node->item_list;
+    pdata current_data_ptr = current_node->item_list;
     while(current_child_ptr != NULL)
     {
 
         pattern_node this_child = current_child_ptr->tree_node;
-        data this_data_item = current_data_ptr;
+        pdata this_data_item = current_data_ptr;
 
-        fpnode new_child = dfs(this_child);
+        pfpnode new_child = dfs(this_child);
         if(new_child != NULL)
             fp_insert_new_child(new_node, new_child, current_data_ptr);
 
@@ -282,15 +287,13 @@ fpnode dfs(pattern_node current_node)
 }
 
 
-
-fptree get_fptree(patterntree tree)
+pfptree get_fptree(patterntree tree)
 {
-    fptree new_tree = malloc(sizeof(struct fptree_node));
+    pfptree new_tree = malloc(sizeof(struct pfptree_node));
     new_tree->root = dfs(tree->root);
     fp_create_header_table(new_tree);
     return new_tree;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -310,7 +313,7 @@ void tail_prune(pattern_node current_node)
 
     tilted_tw_table prev = curr;
     curr = curr->next;
-    int sum = prev->freq;
+    float sum = prev->freq;
     while(curr != NULL)
     {
 
@@ -337,22 +340,23 @@ void tail_prune(pattern_node current_node)
         current_child_ptr = current_child_ptr->next;
     }
 }
-
-
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
 void print_node(pattern_node node)
 {
     if(node == NULL)    return;
     int c = 0;
-    data d = node->item_list;
+    pdata d = node->item_list;
     while(d != NULL)
     {
         c++;
         d = d->next;
     }
 
-    int f = 0;
+    float f = 0;
     tilted_tw_table curr_table = node->table;
     while(curr_table != NULL)
     {
@@ -360,7 +364,7 @@ void print_node(pattern_node node)
         curr_table = curr_table->next;
     }
 
-    printf("data_item = %d, children = %d tot_freq = %d\n", node->data_item, c, f);
+    printf("data_item = %d, children = %d tot_freq = %lf\n", node->data_item, c, f);
 }
 
 
@@ -368,7 +372,7 @@ void print_tree(pattern_node node)
 {
     print_node(node);
     pattern_node_list curr_child_list = node->children;
-    data curr_data = node->item_list;
+    pdata curr_data = node->item_list;
     while(curr_data != NULL)
     {
         pattern_node this_child = curr_child_list->tree_node;
@@ -381,3 +385,80 @@ void print_tree(pattern_node node)
 
 
 //////////////////////////////////////////////////////////////////////////////
+//////////////////////////// Old FP-tree functions ///////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+
+// this function fixes the next_similar variable also
+void fp_create_header_table_helper(pfpnode root, pheader_table* h)
+{
+    //append this node to the corresponding list for this data item in the header table
+    data_type this_data = root->data_item;
+
+    pheader_table curr_header_node = *h;
+    int found = 0;
+    while(curr_header_node != NULL)
+    {
+        if(curr_header_node->data_item == this_data)
+        {
+
+            //append to the head of the linked list for this data item
+            root->next_similar = curr_header_node->first;
+            curr_header_node->first = root;
+            curr_header_node->cnt += root->freq;
+
+            found = 1;
+            break;
+        }
+
+        curr_header_node = curr_header_node->next;
+    }
+
+    if(found == 0)
+    {
+        //create new entry in header table
+        pheader_table new_entry = malloc(sizeof(struct pheader_table_node));
+        new_entry->data_item = this_data;
+        new_entry->first = root;
+        new_entry->cnt = root->freq;
+        new_entry->next = *h;
+        *h = new_entry;
+    }
+
+    pfpnode_list current_child_ptr = root->children;
+
+    while(current_child_ptr != NULL)
+    {
+        pfpnode this_child = current_child_ptr->tree_node;
+        fp_create_header_table_helper(this_child, h);
+        current_child_ptr = current_child_ptr->next;
+    }
+}
+
+
+void fp_create_header_table(pfptree tree)
+{
+    if(tree == NULL)    return;
+    tree->head_table = NULL;
+    tree->root->parent = NULL;
+    fp_create_header_table_helper(tree->root, &(tree->head_table));
+}
+
+void fp_insert_new_child(pfpnode current_node, pfpnode new_child, pdata d)
+{
+
+    new_child->parent = current_node;
+    data new_data = malloc(sizeof(struct pdata_node));
+    new_data->data_item = d->data_item;
+    new_data->next = NULL;
+
+    fpnode_list new_list_node = malloc(sizeof(struct pfpnode_list_node));
+    new_list_node->tree_node = new_child;
+    new_list_node->next = NULL;
+
+    new_list_node->next = current_node->children;
+    current_node->children = new_list_node;
+    new_data->next = current_node->item_list;
+    current_node->item_list = new_data;
+}

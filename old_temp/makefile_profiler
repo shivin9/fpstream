@@ -1,0 +1,33 @@
+output: Data.o GList.o RList.o BCell.o PQueue.o RTree.o GridRTree.o Test_GRTree.o Main_Grid.o
+	vtcc -vt:seq -o output Data.o GList.o RList.o BCell.o PQueue.o RTree.o GridRTree.o Test_GRTree.o Main_Grid.o -lm  
+
+Main_Grid.o: Main_Grid.c
+	vtcc -vt:seq -c Main_Grid.c
+
+Data.o: Data.c
+	vtcc -vt:seq -c Data.c -lm
+	
+GridRTree.o: GridRTree.c
+	vtcc -vt:seq -c GridRTree.c -lm
+
+GList.o: GList.c
+	vtcc -vt:seq -c GList.c -lm 
+
+RList.o: RList.c
+	vtcc -vt:seq -c RList.c -lm 
+
+BCell.o: BCell.c
+	vtcc -vt:seq -c BCell.c -lm 
+
+RTree.o: RTree.c
+	vtcc -vt:seq -c RTree.c -lm
+
+Test_GRTree.o: Test_GRTree.c
+	vtcc -vt:seq -c Test_GRTree.c -lm
+
+PQueue.o: PQueue.c
+	vtcc -vt:seq -c PQueue.c -lm
+	
+clean:
+	rm *.o
+	rm output

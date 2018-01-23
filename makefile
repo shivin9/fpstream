@@ -1,26 +1,25 @@
 CC=gcc
-FLAG=-pg -fopenmp -c -g
+PROF=-g -pg
+OPT=-Ofast
+FLAG=$(PROF)
 
 exe: tt1.o twin_tree.o driver.o fpstream.o fptree.o pattern_tree.o
 	$(CC) -o exe -pg -fopenmp driver.o fpstream.o fptree.o pattern_tree.o def.h -lm
 
-driver.o: driver.c
-	$(CC) $(FLAG) driver.c -lm
+# $(driver): $(driver).o sftree.o qstack.o
+# 	$(CC) $(FLAG) -o $(driver) pattern_tree.o sftree.o qstack.o $(driver).o pattern_tree.h -lm
 
-tt1.o: tt1.c
-	$(CC) $(FLAG) tt1.c -lm
+$(driver).o: $(driver).c
+	$(CC) -c $(FLAG) $(driver).c -lm
 
-twin_tree.o: twin_tree.c
-	$(CC) $(FLAG) twin_tree.c -lm
+sftree.o: sftree.c
+	$(CC) -c $(FLAG) sftree.c -lm
 
-fpstream.o: fpstream.c
-	$(CC) $(FLAG) fpstream.c -lm
-
-fptree.o: fptree.c
-	$(CC) $(FLAG) fptree.c -lm
+qstack.o: qstack.c
+	$(CC) -c $(FLAG) qstack.c -lm
 
 pattern_tree.o: pattern_tree.c
-	$(CC) $(FLAG) pattern_tree.c -lm
+	$(CC) -c $(FLAG) pattern_tree.c -lm
 
 clean:
 	rm -f *.o *~ *.h.gch output intermediate exe*

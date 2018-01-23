@@ -1,5 +1,9 @@
 intermediate
+<<<<<<< HEAD
 BitArray/
+=======
+bltree.*
+>>>>>>> f74c585f51c55b8207e31be5aa16e99652cfb746
 [0-9]*
 temp*
 *.ignore
@@ -12,10 +16,19 @@ exe
 *.o
 *~
 *.h.gch
+<<<<<<< HEAD
 *.sh
 bltree*
+=======
+>>>>>>> f74c585f51c55b8207e31be5aa16e99652cfb746
 tests/
 exe
 *.swp
 massif*
 bltree
+<<<<<<< HEAD
+=======
+bltree_gc
+*.sh
+BitArray/
+>>>>>>> f74c585f51c55b8207e31be5aa16e99652cfb746
