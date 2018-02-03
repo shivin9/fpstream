@@ -51,8 +51,10 @@ extern timeval global_timer;
 #define first(d) (((d)[(0)]) + (2))
 #define last(d) (((d)[(0)]) + ((d)[(1)]) + (1))
 
-// 0: something in between
-// 1: ready
+/* 
+    0: something in between
+    1: ready
+*/
 static int T1;
 static int T2;
 //static int item_ready;

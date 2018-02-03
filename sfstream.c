@@ -14,15 +14,16 @@ void process_batch(patterntree tree, int batch_num)
     FILE *fp;
     fp = fopen("intermediate", "r");
     int sz, cnt = 0;
+    int i, t=0, arr[100], val;
+    double freq;
     while(fscanf(fp, "%d", &sz) != EOF)
     {
-        int i, t=0, arr[100], val, freq;
         while(sz--)
         {
             fscanf(fp, "%d", &val);
             arr[t++] = val;
         }
-        fscanf(fp, "%d", &freq);
+        fscanf(fp, "%lf", &freq);
 
         pdata d = NULL;
         for(i=t-1;i>=0;i--)

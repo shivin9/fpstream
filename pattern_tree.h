@@ -5,6 +5,7 @@
 
 patterntree create_pattern_tree();
 pattern_node create_new_pattern_node(data_type);
+pdata create_sorted_dummy();
 
 void create_and_insert_new_child(pattern_node, pdata);
 
@@ -33,9 +34,14 @@ void print_tree(pattern_node);
 void fp_create_header_table(pfptree);
 void fp_create_header_table_helper(pfpnode, pheader_table*);
 void fp_insert_new_child(pfpnode, pfpnode, pdata);
-void fp_delete_data_node(pdata);
 pfptree fp_create_fptree();
 
+pfpnode fp_dfs(pfpnode node, data_type highest_priority_data_item);
+pfptree fp_create_conditional_fp_tree(pfptree tree, data_type data_item, int minsup);
+void fp_mine_frequent_itemsets(pfptree tree, pdata sorted, pdata till_now, int tid, int pattern);
+
+
+void fp_delete_data_node(pdata);
 void fp_delete_tree_structure(pfpnode);
 void fp_delete_header_table(pheader_table);
 void fp_delete_fptree(pfptree);

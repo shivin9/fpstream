@@ -60,7 +60,8 @@ int main(int argc, char* argv[])
         item_ready, leavecnt = 1, tid = 1, pattern = 0, no_patterns = 0, curr_tree;
     
     int leave_as_buffer;
-    
+    pdata sorted = create_sorted_dummy();
+
     for (i = 3; i < argc; i++)
     {                /* traverse arguments */
         s = argv[i]; /* get option argument */
@@ -162,13 +163,14 @@ int main(int argc, char* argv[])
             LEAVE_LVL);
             
     srand(time(NULL));
-    poisson = fopen("poisson.ignore", "r");
+    poisson = fopen(".poisson.ignore", "r");
     
     // long unsigned size;
     sforest forest1 = NULL, forest2 = NULL, temp = NULL;
     forest1 = sf_create_sforest(); // initializing the forest1 and creating root nodes of all the trees.
     forest2 = sf_create_sforest(); // initializing the forest2 and creating root nodes of all the trees.
-    
+    assert(sf_check_forest(forest2));
+
     patterntree ptree = create_pattern_tree();
 
     pfptree aux = NULL;
@@ -228,8 +230,8 @@ int main(int argc, char* argv[])
     omp_set_num_threads(4); /* 2 streams, 1 pattern tree and 1 stream manager*/
 
     curr_tree = 0;
-    T1 = 0;
-    T2 = 0;
+    T1 = 1; /* tree 1 is ready */
+    T2 = 1; /* tree 2 is ready */
     tree_to_prune =-1;
     data curr_itemset;
     batch_ready = 0;
@@ -254,11 +256,12 @@ int main(int argc, char* argv[])
                         item_ready = 1;
                         // printf("Releasing Item no. %d\n", cnt);
                         leave_as_buffer = 0;
-/*                         sleepTime = rand()%100;
+/*                      sleepTime = rand()%100;
                         cnt += leavecnt;
                         usleep(sleepTime); // not needed as time to insert is supplied in the stream
 */
-                         item_ready = 0;
+                        cnt++;
+                        item_ready = 0;
                     // }
                 }
             // }
@@ -291,7 +294,8 @@ int main(int argc, char* argv[])
                     // printf("leave_as_buffer before = %d\n", leave_as_buffer);
                     // assert(ftree->head_table != NULL);
                     gettimeofday(&t3, NULL);
-                    sf_insert_itemset(forest1, curr->itemset, tid, curr->freq, &t3);
+                    sf_insert_itemset(forest1, curr->itemset, stream_batch, curr->freq, &t3);
+
                     // printf("leave_as_buffer after = %d\n", leave_as_buffer);
                     stream_batch++;
 
@@ -335,11 +339,12 @@ int main(int argc, char* argv[])
                 if(stream_batch < cnt && curr_tree == 1  && T2 == 1)
                 {
                     printf("inserting item no.: %d in TREE_%d... T1 = %d, T2 = %d\n", stream_batch, 2, T1, T2);
-                    // fp_print_data_node(curr->itemset);
+                    sf_print_data_node(curr->itemset);
                     gettimeofday(&t3, NULL);
-                    sf_insert_itemset(forest2, curr->itemset, tid, curr->freq, &t3);
+                    sf_insert_itemset(forest2, curr->itemset, stream_batch, curr->freq, &t3);
 
                     stream_batch++;
+
                     if(curr->next)
                     {
                         stream = curr;
@@ -357,7 +362,8 @@ int main(int argc, char* argv[])
                             curr_tree = 0;
                             T2 = 0;
                         }
-                        printf("finished converting FOREST_2\n");
+                        sf_prune(forest2, tid);
+                        printf("finished pruning FOREST_2\n");
                         T2 = 1;
                     }
                 }
@@ -371,23 +377,22 @@ int main(int argc, char* argv[])
             do{
                 if(T1 == 0 || T2 == 0){
                     tree_to_prune = 1 - curr_tree;
-                    // printf("Servicing TREE_%d, batch_ready=%d\n", tree_to_prune + 1, batch_ready);
+                    printf("Servicing TREE_%d, batch_ready= %d \n", tree_to_prune + 1, batch_ready);
 
-                    /* we will the forest which is full */
+                    /* we will prune the forest which is full */
                     if(tree_to_prune)
-                        temp = forest1;
-                    else
                         temp = forest2;
+                    else
+                        temp = forest1;
 
                     # pragma omp critical
                     {
                         no_patterns = sf_mine_frequent_itemsets\
-                                      (temp, tid, pattern); // mining for frequent patterns
+                                      (temp, stream_batch, pattern); // mining for frequent patterns
 
                         process_batch(ptree, ++batch_ready);
-                        // printf("Done Servicing TREE_%d\n\n", tree_to_prune + 1);
+                        printf("Done Servicing TREE_%d\n\n", tree_to_prune + 1);
 
-                        aux = fp_create_fptree();
                         if(tree_to_prune)
                             T2 = 0;
                         else
@@ -400,8 +405,7 @@ int main(int argc, char* argv[])
                     fclose(fp1);
 
                     aux = get_fptree(ptree);
-                    // sf_fp_mine_frequent_itemsets(aux, 0,\
-                    //                             data till_now, bufferTable collected, tid, double minsup);
+                    fp_mine_frequent_itemsets(aux, sorted, NULL, stream_batch, 1);
                     fp_delete_fptree(aux);
                 }
             }while(stream_batch <= batch_no);

@@ -1,0 +1,7 @@
+Mining Functions:
+pattern = 0 => print to 'intermediate' file with 'MINSUP_SEMIFREQ'
+pattern = 1 => print to 'output' file with 'MINSUP_FREQ'
+pattern = 2 => print to custom defined file with 'MINSUP_FREQ'
+
+// 0: something in between
+// 1: ready

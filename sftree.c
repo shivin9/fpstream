@@ -415,7 +415,7 @@ void sf_check_node_buffer(sfnode curr)
 }
 
 
-void sf_append_buffer(sfnode curr, data d, double freq, int tid) // seen
+void sf_append_buffer(sfnode curr, data d, double freq, int tid)
 {
     /* takes care of cases when to be buffered item is NULL*/
     /* this tid is the timestamp when the dataitem was buffered*/
@@ -1208,12 +1208,20 @@ void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timev
     while(d[1] > 0) /* this is taking time as with higher avg. len we have to insert in many trees*/
     {
         sfnode root = forest[d[first(d)]];
+ 
+/*      // temporary solution
+        if(root == NULL)
+        {
+            forest[d[first(d)]] = sf_create_sfnode(d[first(d)]);
+            root = forest[d[first(d)]];
+        }
+ */        
         // printf("d[0] = %d, d[1] = %d, first(d) = %d\n", d[0], d[1], first(d));
-        if(d[1] == 1) /* d is a single item*/
+        if (d[1] == 1) /* d is a single item*/
         {
             root->freq *= pow(DECAY, get_currtime() - root->ltid); // updating frequency according to decay factor.
-            root->ftid = min(root->ftid, tid); // updating first seen tid.
-            root->ltid = get_currtime(); // updating latest updated tid. tid is the current tid.
+            root->ftid = min(root->ftid, tid);                     // updating first seen tid.
+            root->ltid = get_currtime();                           // updating latest updated tid. tid is the current tid.
             root->freq++;
             return;
         }
@@ -1404,7 +1412,8 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern)
     int idx, cnt = 0;
     int* collected = calloc(DICT_SIZE, sizeof(int));
     double minsup = pattern>0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
-    fprintf(stdout, "mining the tree with support: %lf\n", N*minsup);
+    assert(tid*minsup > 0);
+    fprintf(stdout, "mining the tree with support: %lf\n", tid*minsup);
 
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
@@ -2198,7 +2207,6 @@ void sf_prune_helper(sfnode node, int root_data, int tid)
     }
     delete_qstack(qstack);
 }
-
 
 void sf_prune(sforest forest, int tid)
 {
