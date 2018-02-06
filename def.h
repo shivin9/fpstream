@@ -39,6 +39,7 @@ extern unsigned int MIN_BUFFER_SIZE[10];
 extern unsigned int AVG_BUFFER_SIZE[10];
 extern unsigned int RED_BUFFER_SIZE[10];
 extern unsigned int CNT_BUFFER_SIZE[10];
+extern unsigned int STREAMS;
 extern timeval origin;
 extern timeval global_timer;
 #endif
