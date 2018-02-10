@@ -40,7 +40,7 @@ pfpnode fp_dfs(pfpnode node, data_type highest_priority_data_item);
 pfptree fp_create_conditional_fp_tree(pfptree tree, data_type data_item, int minsup);
 void fp_mine_frequent_itemsets(pfptree tree, pdata sorted, pdata till_now, int tid, int pattern);
 
-
+pdata data_2_pdata(data d, int len);
 void fp_delete_data_node(pdata);
 void fp_delete_tree_structure(pfpnode);
 void fp_delete_header_table(pheader_table);

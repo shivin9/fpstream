@@ -10,7 +10,6 @@ void delete_itemset(pdata d)
 
 void process_batch(patterntree tree, int batch_num)
 {
-
     FILE *fp;
     fp = fopen("intermediate", "r");
     int sz, cnt = 0;

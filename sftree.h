@@ -36,9 +36,11 @@ int sf_no_sfchildren(sfnode);
 int sf_no_fpchildren(fpnode);
 int sf_get_height(sfnode node);
 long unsigned sf_no_of_nodes(sfnode curr);
+char *concat(const char *s1, const char *s2);
+buffer sf_get_trans(int rank);
 
 /* HEADER TABLE FUNCTIONS*/
-void sf_create_header_table_helper(fpnode, header_table*);
+void sf_create_header_table_helper(fpnode, header_table *);
 void sf_create_header_table(fptree, int);
 
 /* CP-TREE FUNCTIONS*/
@@ -54,10 +56,10 @@ void sf_free_data_node(data);
 /* MINING FUNCTIONS*/
 fpnode sf_fp_dfs(fpnode, header_table*, data_type);
 fptree sf_create_conditional_fp_tree(fptree, data_type, double, int);
-int sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern);
-int sf_mine_frequent_itemsets(sforest, int tid, int pattern);
+int sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern, int rank);
+int sf_mine_frequent_itemsets(sforest, int tid, int pattern, int rank);
 void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, bufferTable collected, int tid, double minsup);
-int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern);
+int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern, int rank);
 
 /* PRINTING FUNCTIONS*/
 void sf_print_sfnode(sfnode);
@@ -68,9 +70,10 @@ void sf_print_sforest(sforest);
 void sf_print_data_node(data d);
 void sf_print_header_table(header_table*);
 void sf_print_buffer_table(bufferTable*);
+void sf_print_buffer_node(struct buffer_node node);
 
-/* PRUNING FUNCTIONS*/
-data sf_reverse_data(data head);
+    /* PRUNING FUNCTIONS*/
+    data sf_reverse_data(data head);
 int sf_fp_prune(header_table*, int idx, int tid);
 void sf_fp_merge(fpnode parent, fpnode child, int tid);
 void sf_prune_buffer(sfnode, int);

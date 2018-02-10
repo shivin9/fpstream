@@ -1,0 +1,32 @@
+CC=mpicc
+PROF=-g -pg
+OPT=-Ofast
+FLAG=$(PROF)
+
+bltree:	mpi_bltree.o sfstream.o qstack.o sftree.o pattern_tree.o 
+	$(CC) $(FLAG) -o bltree sfstream.o sftree.o qstack.o pattern_tree.o mpi_bltree.o def.h -lm
+
+# $(driver): $(driver).o sftree.o qstack.o
+# 	$(CC) $(FLAG) -o $(driver) pattern_tree.o sftree.o qstack.o $(driver).o pattern_tree.h -lm
+
+# $(driver).o: $(driver).c
+# 	$(CC) -c $(FLAG) -openmp $(driver).c -lm
+
+
+mpi_bltree.o: mpi_bltree.c
+	$(CC) -c $(FLAG) mpi_bltree.c -lm -fopenmp
+
+sftree.o: sftree.c
+	$(CC) -c $(FLAG) sftree.c -lm
+
+sfstream.o: sfstream.c
+	$(CC) -c $(FLAG) sfstream.c -lm
+
+qstack.o: qstack.c
+	$(CC) -c $(FLAG) qstack.c -lm
+
+pattern_tree.o: pattern_tree.c
+	$(CC) -c $(FLAG) pattern_tree.c -lm
+
+clean:
+	rm -f bltree *.o *~ *.h.gch output intermediate

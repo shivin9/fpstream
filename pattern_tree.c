@@ -159,7 +159,6 @@ pattern_node insert_itemset_helper(pattern_node current_node, pdata d, int batch
 
         if(is_equal(this_data_item, d))
         {
-
             pattern_node after_insert = insert_itemset_helper(this_child, d->next, batch_num, add);
             current_child_ptr->tree_node = after_insert;
             return current_node;
@@ -171,6 +170,20 @@ pattern_node insert_itemset_helper(pattern_node current_node, pdata d, int batch
     assert(0);
 }
 
+pdata data_2_pdata(data d, int len)
+{
+    int i = len - 1;
+    pdata pd = NULL;
+    while(i >= 0)
+    {
+        pdata new_d = malloc(sizeof(struct pdata_node));
+        new_d->data_item = d[i];
+        new_d->next = pd;
+        pd = new_d;
+        i--;
+    }
+    return pd;
+}
 
 patterntree insert_itemset(patterntree tree, pdata d, int batch_num, float add)
 {
