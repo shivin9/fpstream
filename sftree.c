@@ -18,13 +18,14 @@
 #include "sftree.h"
 #include <stdlib.h>
 
-buffer sf_get_trans(int rank)
+char* sf_get_trans(int rank)
 {
     FILE *fp;
     char file[33];
     sprintf(file, "%d", rank);
     char *fname = concat("result_", file);
     fp = fopen(fname, "r");
+
     int sz, cnt = 0, i, t = 0, arr[100], val;
     double freq;
 
@@ -37,11 +38,14 @@ buffer sf_get_trans(int rank)
         fscanf(fp, "%lf", &freq);
         cnt++;
     }
+
     buffer items = (buffer) calloc(cnt, sizeof(struct buffer_node));
     cnt = 0;
-
+    rewind(fp);
+    
     while (fscanf(fp, "%d", &sz) != EOF)
     {
+        t = 0;
         while (sz--)
         {
             fscanf(fp, "%d", &val);
@@ -49,16 +53,21 @@ buffer sf_get_trans(int rank)
         }
         fscanf(fp, "%lf", &freq);
 
-        data d = calloc(t, sizeof(int));
-
+        data d = calloc(t+2, sizeof(int));
+        d[0] = 0;
+        d[1] = t;
         for(i = 0; i < t; i++)
-            d[i] = arr[i];
+            d[i+2] = arr[i];
 
         items[cnt].itemset = d;
         items[cnt].freq = freq;
         cnt++;
     }
     items[0].ftid = cnt; /* small hack to track the total number of items fetched from file */
+
+    fp = fopen(fname, "w");
+    fclose(fp);
+
     return items;
 }
 

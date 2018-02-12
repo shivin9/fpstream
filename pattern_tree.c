@@ -170,14 +170,15 @@ pattern_node insert_itemset_helper(pattern_node current_node, pdata d, int batch
     assert(0);
 }
 
-pdata data_2_pdata(data d, int len)
+pdata data_2_pdata(data d)
 {
-    int i = len - 1;
+    int i = d[1] - 1;
     pdata pd = NULL;
-    while(i >= 0)
+    while(i >= 2) /* data d is in 'smart' form */
     {
         pdata new_d = malloc(sizeof(struct pdata_node));
         new_d->data_item = d[i];
+        printf("%d, ", d[i]);
         new_d->next = pd;
         pd = new_d;
         i--;
@@ -840,4 +841,15 @@ void fp_mine_frequent_itemsets(pfptree tree, pdata sorted, pdata till_now, int t
         }
         curr_data = curr_data->next;
     }
+}
+
+void print_pdata_node(pdata d)
+{
+    printf("{");
+    while(d)
+    {
+        printf("%d, ", d->data_item);
+        d = d->next;
+    }
+    printf("}\n");
 }

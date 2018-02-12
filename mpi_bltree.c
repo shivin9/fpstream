@@ -218,8 +218,8 @@ int main(int argc, char* argv[])
 
     int world_size;
 
-    const int MAX_NUMBERS = 100;
-    buffer items = (buffer)calloc(MAX_NUMBERS, sizeof(struct buffer_node));
+    const int MAX_NUMBERS = 1000;
+    buffer items = (buffer) calloc(MAX_NUMBERS, sizeof(struct buffer_node));
 
     MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -230,14 +230,18 @@ int main(int argc, char* argv[])
     }
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm MPI_SLAVES, MPI_MASTER;
 
     if(world_rank == 0) // the pattern tree
     {
+        MPI_Comm_split(MPI_COMM_WORLD, 0, world_rank, &MPI_MASTER);
         MPI_Status status;
         patterntree ptree = create_pattern_tree();
         pfptree aux = NULL;
         items = (buffer)calloc(MAX_NUMBERS, sizeof(struct buffer_node));
         int item_count, itemset_len;
+        printf("master node started\n");
+
         FILE *output;
         do
         {
@@ -245,15 +249,23 @@ int main(int argc, char* argv[])
             fprintf(output, "After batch %d:\n", batch_ready);
             fclose(output);
             i = 1;
-            while(i <= world_rank)
+            while(i < world_size)
             {
+                printf("receiving items from slave no. %d\n", i);
                 MPI_Recv(items, 10000000, MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
                 item_count = items[0].ftid; /* small hack to get the total number of frequent itemsets */
+
+                printf("master received total %d items from 1. Message source = %d, tag = %d\n",
+                       item_count, status.MPI_SOURCE, status.MPI_TAG);
+                // sf_print_data_node(items[0].itemset);
+                // print_pdata_node(data_2_pdata(items[0].itemset));
+                printf("first item of itemset = %d\n", items[0].ftid);
                 for(j = 0; j < item_count; j++)
                 {
                     itemset_len = sizeof(items[j].itemset) / sizeof(items[j].itemset[0]);
-                    ptree = insert_itemset(ptree, data_2_pdata(items[j].itemset, itemset_len), batch_ready, items[j].freq);
+                    ptree = insert_itemset(ptree, data_2_pdata(items[j].itemset), batch_ready, items[j].freq);
                 }
+                i++;
             }
             batch_ready++;
             aux = get_fptree(ptree);
@@ -267,8 +279,15 @@ int main(int argc, char* argv[])
 
     else if(world_rank > 0) // any tree
     {
-        data curr_itemset;
+        int row_rank, row_size;
+        MPI_Comm_split(MPI_COMM_WORLD, 1, world_rank, &MPI_MASTER);
 
+        MPI_Comm_rank(MPI_MASTER, &row_rank);
+        MPI_Comm_size(MPI_MASTER, &row_size);
+         
+        // printf("WORLD RANK/SIZE: %d/%d \t ROW RANK/SIZE: %d/%d\n",
+        //     world_rank, world_size, row_rank, row_size);
+            
         struct timeval t1, t2, t3, t4;
         double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
         gettimeofday(&origin, NULL);
@@ -289,16 +308,12 @@ int main(int argc, char* argv[])
         {
             if (item_no <= total_items)
             {
-                // usleep(sleepTime*10);
-                printf("inserting item no.: %d in TREE_%d... \n", item_no, world_rank);
-                sf_print_data_node(curr->itemset);
-                // printf("leave_as_buffer before = %d\n", leave_as_buffer);
-                // assert(ftree->head_table != NULL);
+                // printf("inserting item no.: %d in TREE_%d... \n", item_no, world_rank);
+                // sf_print_data_node(curr->itemset);
                 gettimeofday(&t3, NULL);
                 sf_insert_itemset(forest[world_rank], curr->itemset, item_no, curr->freq, &t3);
-
-                // printf("leave_as_buffer after = %d\n", leave_as_buffer);
                 item_no++;
+
                 if (curr->next)
                 {
                     stream = curr;
@@ -314,14 +329,22 @@ int main(int argc, char* argv[])
                     cnt = sf_mine_frequent_itemsets(forest[world_rank], item_no, -2, world_rank);
                     buffer items = sf_get_trans(world_rank);
                     fetched_items = items[0].ftid;
-                    printf("testing sf_get_trans function\n");
+                    unsigned long size = 0;
+                    // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
                     for(i = 0; i < fetched_items; i++)
                     {
-                        sf_print_buffer_node(items[i]);
+                        // sf_print_buffer_node(items[i]);
+                        size += sizeof(items[i]);
+                        size += sizeof(items[i].itemset);
+                        // printf("sizeof(items[%d] = %ld\n", i, sizeof(items[i]));
+                        // sf_print_data_node(items[1].itemset);
                     }
-                    sf_prune(forest[world_rank], tid);
-                    printf("finished pruning FOREST_%d\n", world_rank);
-                    MPI_Send(items, cnt * sizeof(items[0]), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+
+                    // sf_prune(forest[world_rank], tid);
+                    MPI_Barrier(MPI_MASTER);
+                    MPI_Send(items, size, MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+                    printf("FOREST_%d has sent items\n", world_rank);
+                    MPI_Barrier(MPI_MASTER);
                 }
             }
             else

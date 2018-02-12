@@ -63,7 +63,7 @@ static int batch_ready;
 
 ////////////////////////////////////////////////////////////////////////////////
 typedef int data_type; //the data type of individual items in the transaction
-typedef int* data; // data[0] has start; data[1] has length
+typedef int* data; // data[0] has starting index 0->2; data[1] has length
 
 struct buffer_node
 {
