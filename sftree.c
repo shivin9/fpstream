@@ -16,21 +16,17 @@
 12. Need to take down buffered transactions in a bunch now
 */
 #include "sftree.h"
-#include <stdlib.h>
 
-char* sf_get_trans(int rank)
+buffer sf_string2buffer(char* items)
 {
-    FILE *fp;
-    char file[33];
-    sprintf(file, "%d", rank);
-    char *fname = concat("result_", file);
-    fp = fopen(fname, "r");
-
-    int sz, cnt = 0, i, t = 0, arr[100], val;
+    int i = 0, t = 0, len = strlen(items) + 1, cnt = 0, sz, arr[DICT_SIZE], val;
     double freq;
+    
+    FILE* fp = fmemopen(items, len, "r");
 
-    while (fscanf(fp, "%d", &sz) != EOF)
+    while (fscanf(fp, "%d", &sz) != '\0')
     {
+        // printf("sz = %d\n", sz);
         while (sz--)
         {
             fscanf(fp, "%d", &val);
@@ -39,11 +35,11 @@ char* sf_get_trans(int rank)
         cnt++;
     }
 
-    buffer items = (buffer) calloc(cnt, sizeof(struct buffer_node));
-    cnt = 0;
     rewind(fp);
-    
-    while (fscanf(fp, "%d", &sz) != EOF)
+    buffer itemsets = (buffer) calloc(cnt, sizeof(struct buffer_node));
+    cnt = 0;
+
+    while (fscanf(fp, "%d", &sz) != '\0')
     {
         t = 0;
         while (sz--)
@@ -52,23 +48,45 @@ char* sf_get_trans(int rank)
             arr[t++] = val;
         }
         fscanf(fp, "%lf", &freq);
-
-        data d = calloc(t+2, sizeof(int));
+        data d = calloc(t + 2, sizeof(int));
         d[0] = 0;
         d[1] = t;
-        for(i = 0; i < t; i++)
-            d[i+2] = arr[i];
+        for (i = 0; i < t; i++)
+            d[i + 2] = arr[i];
 
-        items[cnt].itemset = d;
-        items[cnt].freq = freq;
+        itemsets[cnt].itemset = d;
+        itemsets[cnt].freq = freq;
         cnt++;
     }
-    items[0].ftid = cnt; /* small hack to track the total number of items fetched from file */
+    itemsets[0].ftid = cnt; /* small hack to track the total number of items fetched from file */
+    return itemsets;
+}
 
-    fp = fopen(fname, "w");
-    fclose(fp);
+char* sf_get_trans(int rank)
+{
+    FILE *fp;
+    char file[33];
+    sprintf(file, "%d", rank);
+    char *fname = concat("result_", file);
 
-    return items;
+    char *buffer = 0;
+    long length;
+    FILE *f = fopen(fname, "rb");
+
+    if (f)
+    {
+        fseek(f, 0, SEEK_END);
+        length = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        buffer = malloc(length);
+        if (buffer)
+        {
+            fread(buffer, 1, length, f);
+        }
+        fclose(f);
+    }
+    fopen(fname, "w");
+    return buffer;
 }
 
 double get_currtime()
