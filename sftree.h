@@ -37,10 +37,11 @@ int sf_no_fpchildren(fpnode);
 int sf_get_height(sfnode node);
 long unsigned sf_no_of_nodes(sfnode curr);
 char *concat(const char *s1, const char *s2);
-buffer sf_get_trans(int rank);
+char* sf_get_trans(int rank);
+buffer sf_string2buffer(char*);
 
-/* HEADER TABLE FUNCTIONS*/
-void sf_create_header_table_helper(fpnode, header_table *);
+    /* HEADER TABLE FUNCTIONS*/
+    void sf_create_header_table_helper(fpnode, header_table *);
 void sf_create_header_table(fptree, int);
 
 /* CP-TREE FUNCTIONS*/
