@@ -87,7 +87,7 @@ def main():
             if vset[pttrn] != gset[pttrn]:
                 wrng_cnt += 1
         else:
-            flag1+=1
+            flag1 += 1
             extra.write(str(pttrn) + '\n')
 
     # wrng_cnt = 0
@@ -96,7 +96,7 @@ def main():
         if pttrn in vset:
             rec += 1
         else:
-            flag2+=1
+            flag2 += 1
             missing.write(str(pttrn) + '\n')
             # print str(pttrn)
 
