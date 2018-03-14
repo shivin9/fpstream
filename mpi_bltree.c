@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
                 
                 for (j = 0; j < item_count; j++)
                 {
-                    // sf_print_buffer_node(trans[j]);
+                    sf_print_buffer_node(trans[j]);
                     // printf("j = %d\n", j);
                     // print_pdata_node(data2pdata(trans[j].itemset));
                     ptree = insert_itemset(ptree, data2pdata(trans[j].itemset), batch_ready, trans[j].freq);
@@ -336,7 +336,18 @@ int main(int argc, char* argv[])
                     char* items = sf_get_trans(world_rank);
                     unsigned long size = strlen(items) + 1;
                     // printf("sender file (%ld bytes): %s\n", size, items);
+/* 
+                    printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
+                    for(i = 0; i < fetched_items; i++)
+                    {
+                        // sf_print_buffer_node(items[i]);
+                        size += sizeof(items[i]);
+                        size += sizeof(items[i].itemset);
+                        // printf("sizeof(items[%d] = %ld\n", i, sizeof(items[i]));
+                        // sf_print_data_node(items[1].itemset);
+                    }
                     sf_prune(forest[world_rank], tid);
+ */
                     MPI_Barrier(MPI_MASTER);
                     MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
                     printf("FOREST_%d has sent items\n", world_rank);
