@@ -1272,20 +1272,13 @@ int sf_insert_itemset_helper1(sfnode node, int root_data, int tid, double total_
 }
 
 
-void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timeval* start) // seen
+void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timeval* start)
 {
     int flag = 1;
     while(d[1] > 0) /* this is taking time as with higher avg. len we have to insert in many trees*/
     {
         sfnode root = forest[d[first(d)]];
  
-/*      // temporary solution
-        if(root == NULL)
-        {
-            forest[d[first(d)]] = sf_create_sfnode(d[first(d)]);
-            root = forest[d[first(d)]];
-        }
- */        
         // printf("d[0] = %d, d[1] = %d, first(d) = %d\n", d[0], d[1], first(d));
         if (d[1] == 1) /* d is a single item*/
         {
@@ -1316,6 +1309,30 @@ void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timev
     return;
 }
 
+
+/* adding frequency directly */
+void sf_prefix_inset_itemset(sforest forest, data d, double freq, int tid)
+{
+    sfnode root = forest[d[first(d)]];
+    int idx;
+    while(d[1] > 0) /* this is taking time as with higher avg. len we have to insert in many trees*/
+    {
+	    // printf("d[0] = %d, d[1] = %d, first(d) = %d\n", d[0], d[1], first(d));
+    	/* multi-port does not decay factor */
+	    assert(get_currtime() - root->ltid >= 0); /* not inserting backward in time */
+        d[0]++; // moving the transaction forward
+        d[1]--; // decreasing the size
+
+        idx = index(d[first(d)], root->data_item); /* move forward down the tree*/
+		root = root->children[idx];
+	    // printf("printing buffer of node %d\n", root->data_item);
+	    // sf_print_buffer_table(root->hbuffer);
+
+	}
+    root->ftid = min(root->ftid, tid);                     // updating first seen tid.
+    root->ltid = get_currtime();                           // updating latest updated tid. tid is the current tid.
+    root->freq += freq;
+}
 
 /*************************************************************************************************/
 /* Various mining functions*/

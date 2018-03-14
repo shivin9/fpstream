@@ -237,8 +237,6 @@ int main(int argc, char* argv[])
     {
         MPI_Comm_split(MPI_COMM_WORLD, 0, world_rank, &MPI_MASTER);
         MPI_Status status;
-        patterntree ptree = create_pattern_tree();
-        pfptree aux = NULL;
         // items = (buffer) calloc(MAX_NUMBERS, sizeof(struct buffer_node));
         int item_count, itemset_len;
         printf("master node started\n");
@@ -257,7 +255,7 @@ int main(int argc, char* argv[])
                 MPI_Recv(items, 10000000, MPI_CHAR, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
                 /* converting the strings to a buffer array */
                 buffer trans = sf_string2buffer(items);
-                item_count = trans[0].ftid;
+                item_count = trans[0].ftid; /* small hack to store the total number of itemsets */
                 
                 printf("master received total %d items from 1. Message source = %d, tag = %d\n",
                        item_count, status.MPI_SOURCE, status.MPI_TAG);
@@ -267,7 +265,6 @@ int main(int argc, char* argv[])
                     sf_print_buffer_node(trans[j]);
                     // printf("j = %d\n", j);
                     // print_pdata_node(data2pdata(trans[j].itemset));
-                    ptree = insert_itemset(ptree, data2pdata(trans[j].itemset), batch_ready, trans[j].freq);
                 }
                 i++;
             }
