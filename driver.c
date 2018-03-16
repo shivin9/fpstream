@@ -1,4 +1,4 @@
-#define GLOBAL_VARS 0
+#define GLOBAL_VARS 1
 #include "sftree.h"
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,\

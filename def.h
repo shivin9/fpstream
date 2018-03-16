@@ -29,7 +29,7 @@ extern double CARRY;
 extern int HSIZE;
 extern double SUP;
 extern int BATCH;
-extern double MINSUP_SEMIFREQ;
+extern double MINSUP_SEMIFREQ; /* epsilon basically */
 extern double MINSUP_FREQ;
 extern int LEAVE_AS_BUFFER;
 extern char OUT_FILE[100];
@@ -252,7 +252,6 @@ struct tilted_tw_table
     struct tilted_tw_table* next;
 };
 typedef struct tilted_tw_table* tilted_tw_table;
-
 typedef struct pattern_node_list_node* pattern_node_list;
 
 struct pattern_node_
