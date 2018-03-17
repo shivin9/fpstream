@@ -873,7 +873,7 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                     continue;
                 }
                 
-                /*data item has to be inserted as new child*/
+                /* data item has to be inserted as new child */
                 /* this code just creates the nodes*/
                 if(current_child_ptr[idx] == NULL)
                     sf_create_and_insert_new_child(current_node, temp[first(temp)], tid);
@@ -1316,15 +1316,19 @@ void sf_prefix_inset_itemset(sforest forest, data d, double freq, int tid)
 {
     sfnode root = forest[d[first(d)]];
     int idx;
-    while(d[1] > 0) /* this is taking time as with higher avg. len we have to insert in many trees*/
+    while(d[1] > 1) /* this is taking time as with higher avg. len we have to insert in many trees*/
     {
 	    // printf("d[0] = %d, d[1] = %d, first(d) = %d\n", d[0], d[1], first(d));
 	    assert(get_currtime() - root->ltid >= 0); /* not inserting backward in time */
+        idx = index(d[first(d)], root->data_item); /* move forward down the tree*/
+	    if (root->children[idx] == NULL)
+	    {
+            sf_create_and_insert_new_child(root, d[first(d)], tid);
+	    }
+		root = root->children[idx];
         d[0]++; // moving the transaction forward
         d[1]--; // decreasing the size
 
-        idx = index(d[first(d)], root->data_item); /* move forward down the tree*/
-		root = root->children[idx];
     /* 
 	    printf("printing buffer of node %d\n", root->data_item);
 	    sf_print_buffer_table(root->hbuffer);
