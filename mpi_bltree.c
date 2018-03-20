@@ -257,7 +257,7 @@ int main(int argc, char* argv[])
                 buffer trans = sf_string2buffer(items);
                 item_count = trans[0].ftid; /* small hack to store the total number of itemsets */
 
-                printf("master received total %d items from 1. Message source = %d, tag = %d\n",
+                printf("master received total %d items from %d, tag = %d\n",
                        item_count, status.MPI_SOURCE, status.MPI_TAG);
                 
                 for (j = 0; j < item_count; j++)
@@ -272,9 +272,11 @@ int main(int argc, char* argv[])
             printf("inserted all itemsets in the main forest!\n");
             batch_ready++;
             // aux = get_fptree(ptree);
-            item_no += BATCH;
+            item_no += item_count;
 
-            printf("mining main with freq = %lf\n", item_no * MINSUP_SEMIFREQ);
+            printf("mining main with freq = %lf\n", item_no * SUP);
+			// sf_print_sforest(forest[0]);
+			sf_mine_frequent_itemsets(forest[0], item_no, 2, world_rank);
             // fp_mine_frequent_itemsets(aux, sorted, NULL, item_no, 1);
             // fp_delete_fptree(aux);
         } while (1);

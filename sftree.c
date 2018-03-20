@@ -1320,14 +1320,14 @@ void sf_prefix_inset_itemset(sforest forest, data d, double freq, int tid)
     {
 	    // printf("d[0] = %d, d[1] = %d, first(d) = %d\n", d[0], d[1], first(d));
 	    assert(get_currtime() - root->ltid >= 0); /* not inserting backward in time */
+        d[0]++; // moving the transaction forward
+        d[1]--; // decreasing the size
         idx = index(d[first(d)], root->data_item); /* move forward down the tree*/
 	    if (root->children[idx] == NULL)
 	    {
             sf_create_and_insert_new_child(root, d[first(d)], tid);
 	    }
 		root = root->children[idx];
-        d[0]++; // moving the transaction forward
-        d[1]--; // decreasing the size
 
     /* 
 	    printf("printing buffer of node %d\n", root->data_item);
@@ -1373,7 +1373,7 @@ char *concat(const char *s1, const char *s2)
 int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern, int rank)
 {
     FILE *sf;
-    if(pattern == -2)
+    if(pattern == -2 || pattern == 2)
     {
         char file[33];
         sprintf(file, "%d", rank);
@@ -1384,8 +1384,8 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
         sf = fopen("intermediate", "a");
     else if(pattern ==1)
         sf = fopen("output", "a");
-    else if(pattern == 2)
-        sf = fopen(OUT_FILE, "a");
+    // else if(pattern == 2)
+    //     sf = fopen(OUT_FILE, "a");
 
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     minsup *= N;
@@ -1479,6 +1479,8 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     if(node->freq >= tid*minsup)
     {
+    	printf("node->freq = %d, tid = %d, minsup = %lf, tid*minsup = %lf\n", node->freq, tid, minsup, tid*minsup);
+	    // sf_print_sfnode(node);
         collected[++end] = node->data_item;
         if(end >= 0)
         {
@@ -1507,12 +1509,10 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
                 node->fptree->root->data_item = node->fptree->head_table[0]->data_item;
                 // printf("\n****node->freq = %lf, collected from tree****\n", node->freq);
             }
-/* 
-            int i;
-            printf("collected: ");
-            for(i = 0; i < end + 1; i++)
-                printf("%d, ", collected[i]);
- */
+            // int i;
+            // printf("collected: ");
+            // for(i = 0; i < end + 1; i++)
+            //     printf("%d, ", collected[i]);
             /*
                 collector has only the FIs from the FP-tree. They have to be concatenated with
                 the prefix coming from top
@@ -1550,8 +1550,8 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern, int rank)
         // printf("root = %d, freq = %lf\n", root->data_item, root->freq);
         // sf_empty_tree(root, tid);
         cnt += sf_mine_frequent_itemsets_helper(root, collected, -1, tid, pattern, rank);
-        sf_delete_sftree_structure(root);
-        forest[idx] = NULL;
+        // sf_delete_sftree_structure(root) /* no need to delete the tree after mining it */
+        // forest[idx] = NULL;
     }
     free(collected);
     return cnt;
