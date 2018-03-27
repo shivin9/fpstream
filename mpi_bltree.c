@@ -5,7 +5,7 @@
 /* This code was originally for making SWP-tree an anytime algorithm*/
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,
-    LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100, STREAMS = 1;
+    LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100, STREAMS = 2;
 
 /* structures for conducting tests*/
 unsigned int MAX_BUFFER_SIZE[10], CNT_BUFFER_SIZE[10],
@@ -256,27 +256,32 @@ int main(int argc, char* argv[])
                 /* converting the strings to a buffer array */
                 buffer trans = sf_string2buffer(items);
                 item_count = trans[0].ftid; /* small hack to store the total number of itemsets */
-                
-                printf("master received total %d items from 1. Message source = %d, tag = %d\n",
+
+                printf("master received total %d items from %d, tag = %d\n",
                        item_count, status.MPI_SOURCE, status.MPI_TAG);
                 
                 for (j = 0; j < item_count; j++)
                 {
-                    sf_print_buffer_node(trans[j]);
+                    // sf_print_buffer_node(trans[j]);
                     // printf("j = %d\n", j);
                     // print_pdata_node(data2pdata(trans[j].itemset));
+                    sf_prefix_inset_itemset(forest[0], trans[j].itemset, trans[j].freq, batch_ready);
                 }
                 i++;
             }
-            printf("inserted all itemsets in the pattern tree!\n");
+            printf("inserted all itemsets in the main forest!\n");
             batch_ready++;
-            aux = get_fptree(ptree);
-            printf("getting fp tree from pattern tree!\n");
-            item_no += BATCH;
+            // aux = get_fptree(ptree);
+            item_no += item_count;
 
-            printf("mining fp-tree with freq = %lf\n", item_no * MINSUP_SEMIFREQ);
-            fp_mine_frequent_itemsets(aux, sorted, NULL, item_no, 1);
-            fp_delete_fptree(aux);
+            printf("mining main with freq = %lf\n", item_no * SUP);
+
+            sf = fopen("result_0", "a");
+            fprintf(sf, "\nAfter BATCH %d\n", batch_ready);
+            fclose(sf);
+            
+			int mined_cnt = sf_mine_frequent_itemsets(forest[0], item_no, -2, world_rank);
+            printf("\n+++\nMINED %d ITEMS FROM TREE 0 IN BATCH %d\n+++\n", mined_cnt, batch_ready);
         } while (1);
     }
 
@@ -288,8 +293,8 @@ int main(int argc, char* argv[])
         MPI_Comm_rank(MPI_MASTER, &row_rank);
         MPI_Comm_size(MPI_MASTER, &row_size);
          
-        // printf("WORLD RANK/SIZE: %d/%d \t ROW RANK/SIZE: %d/%d\n",
-        //     world_rank, world_size, row_rank, row_size);
+        printf("WORLD RANK/SIZE: %d/%d \t ROW RANK/SIZE: %d/%d\n",
+            world_rank, world_size, row_rank, row_size);
             
         struct timeval t1, t2, t3, t4;
         double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
@@ -330,9 +335,9 @@ int main(int argc, char* argv[])
                 {
                     // N = item_no;
                     cnt = sf_mine_frequent_itemsets(forest[world_rank], item_no, -2, world_rank);
+                    printf("sender:%d sending %d items\n", world_rank, cnt);
                     char* items = sf_get_trans(world_rank);
                     unsigned long size = strlen(items) + 1;
-                    // printf("sender file (%ld bytes): %s\n", size, items);
 /* 
                     printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
                     for(i = 0; i < fetched_items; i++)

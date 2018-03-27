@@ -121,7 +121,7 @@ sfnode get(QStack* l)
     slink curr = l->head;
     sfnode v;
     if(curr == NULL)
-        return;
+        return NULL;
 
     else
     {
