@@ -275,10 +275,13 @@ int main(int argc, char* argv[])
             item_no += item_count;
 
             printf("mining main with freq = %lf\n", item_no * SUP);
-			// sf_print_sforest(forest[0]);
-			sf_mine_frequent_itemsets(forest[0], item_no, 2, world_rank);
-            // fp_mine_frequent_itemsets(aux, sorted, NULL, item_no, 1);
-            // fp_delete_fptree(aux);
+
+            sf = fopen("result_0", "a");
+            fprintf(sf, "\nAfter BATCH %d\n", batch_ready);
+            fclose(sf);
+            
+			int mined_cnt = sf_mine_frequent_itemsets(forest[0], item_no, -2, world_rank);
+            printf("\n+++\nMINED %d ITEMS FROM TREE 0 IN BATCH %d\n+++\n", mined_cnt, batch_ready);
         } while (1);
     }
 
