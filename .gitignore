@@ -20,4 +20,4 @@ bltree
 bltree_gc
 *.sh
 BitArray/
-result_*
+result*

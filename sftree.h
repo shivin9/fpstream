@@ -19,8 +19,8 @@ int sf_insert_itemset_helper(sfnode, int root_data, int tid, double, timeval*);
 void sf_fp_insert(fpnode, header_table*, data, double, int);
 void sf_insert_itemset(sforest, data, int tid, double, timeval*);
 void sf_prefix_inset_itemset(sforest forest, data d, double freq, int tid);
-void sf_merge_tree(sforest f1, sforest f2, double sup, int tid, int rank);
-
+sforest sf_merge_tree(sforest f1, sforest f2, int tid);
+void sf_update_TTW(sfTTW, sforest);
 
 /* DELETION FUNCTIONS*/
 void sf_delete_header_table(header_table *);
@@ -77,15 +77,15 @@ void sf_print_sfnode(sfnode);
 void sf_print_fptree(fpnode);
 void sf_print_fpnode(fpnode);
 void sf_print_buffer(buffer);
+void sf_print_TTW(sfTTW sftw);
 void sf_print_sforest(sforest);
 void sf_print_data_node(data d);
 void sf_print_header_table(header_table*);
 void sf_print_buffer_table(bufferTable*);
 void sf_print_buffer_node(struct buffer_node node);
 
-
-/* PRUNING FUNCTIONS*/
-data sf_reverse_data(data head);
+    /* PRUNING FUNCTIONS*/
+    data sf_reverse_data(data head);
 int sf_fp_prune(header_table*, int idx, int tid);
 void sf_fp_merge(fpnode parent, fpnode child, int tid);
 void sf_prune_buffer(sfnode, int);
