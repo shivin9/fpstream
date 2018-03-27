@@ -98,6 +98,13 @@ typedef struct fp_node* fpnode; // FP-Tree node
 typedef struct fptree_node* fptree; // tree which has root node and header table
 typedef struct sf_node** sforest; //array of trees for forest
 typedef struct header_table_node* header_table; // header table is implemeted as an array (lazy allocation) using this node of this struct.
+typedef struct sf_TT_wndw* sfTTW;
+
+struct sf_TT_wndw
+{
+    sforest main;
+    sforest temp;
+};
 
 struct sf_node
 {

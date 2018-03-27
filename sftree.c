@@ -1340,14 +1340,15 @@ void sf_prefix_inset_itemset(sforest forest, data d, double freq, int tid)
 }
 
 /* Just mine f2 and insert the frequent items in f1 */
-void sf_merge_tree(sforest f1, sforest f2, double sup, int tid, int rank)
+sforest sf_merge_tree(sforest f1, sforest f2, int tid)
 {
     sf_prune(f2, tid); // final pruning before emptying the buffers
     sf_empty_buffers(f2, tid, 0);
     /* it will store FIs in file named */
-    int no_patterns = sf_mine_frequent_itemsets(f2, tid, -2, rank); // mining for frequent patterns
+    tid = 0;
+    int no_patterns = sf_mine_frequent_itemsets(f2, tid, -2, 0); // mining for frequent patterns
     /* now read the patterns from the file */
-    char* trans_str = sf_get_trans(rank);
+    char* trans_str = sf_get_trans(0);
     buffer items = sf_string2buffer(trans_str);
     /* now do a prefix insertion */
 
@@ -1356,9 +1357,43 @@ void sf_merge_tree(sforest f1, sforest f2, double sup, int tid, int rank)
     {
         sf_prefix_inset_itemset(f1, items[i].itemset, items[i].freq, tid);
     }
+    return f1;
 }
+
+/* updating the tilted time window */
+void sf_update_TTW(sfTTW sftw, sforest latest)
+{
+    int current = 0;
+    sforest window = sftw[current + 1].temp, temp = NULL, carry = NULL;
+    carry = sftw[current].main; /* for initial case, carry = NULL */
+    sftw[current].main = latest;
+    current++;
+
+    while(1)
+    {
+        // printf("in loop\n");
+        if(sftw[current].temp == NULL)
+        {
+            // printf("in IF1\n");
+            sftw[current].temp = sftw[current].main;
+            // printf("in IF2\n");
+            sftw[current].main = carry;
+            break;
+        }
+        
+        else
+        {
+            temp = sf_merge_tree(sftw[current].main, sftw[current].temp, 0);
+            sftw[current].main = carry;
+            sftw[current].temp = NULL;
+            carry = temp;
+            current++;
+        }
+    }
+}
+
 /*************************************************************************************************/
-/* Various mining functions*/
+/* Various mining functions */
 /* do end = -1 and collected = NULL to print buff onto the file */
 
 char *concat(const char *s1, const char *s2)
@@ -1477,7 +1512,6 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
     // node->freq *= pow(DECAY, get_currtime() - node->ltid);
     // assert(node->freq > 0);
     int cnt = 0, i;
-    assert(pattern == -2);
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     assert(minsup == MINSUP_SEMIFREQ);
     double prod = tid*minsup;
@@ -1491,6 +1525,7 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
         {
             bufferTable collector = calloc(1, sizeof(buffer_table));
             /* there is an FPTree at this node*/
+            // assert(node->fptree == NULL);
             if(node->fptree != NULL)
             {
                 // printf("\n****mining this FP-tree****\n");
@@ -1546,7 +1581,7 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern, int rank)
     int idx, cnt = 0;
     int* collected = calloc(DICT_SIZE, sizeof(int));
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
-    assert(tid*minsup > 0);
+    // assert(tid*minsup > 0);
     fprintf(stdout, "mining tree%d with pattern: %d, support: %lf, MINSUP = %lf, tid = %d\n",
             rank, pattern, tid*minsup, minsup, tid);
 
@@ -2502,4 +2537,21 @@ void sf_print_data_node(data d)
     printf("\n");
 }
 
+void sf_print_TTW(sfTTW sftw)
+{
+    int i;
+    printf("  ");
+    for(i = 1; i < 64; i++)
+    {
+        if(sftw[i].temp)
+            printf("X ");
+    }
+    printf("\n");
+    for(i = 0; i < 64; i++)
+    {
+        if(sftw[i].main)
+            printf("X ");
+    }
+    printf("\n");
+}
 /****************************************************************************/

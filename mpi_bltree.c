@@ -2,8 +2,12 @@
 #include <mpi.h>
 #include "sfstream.h"
 
-/* This code was originally for making SWP-tree an anytime algorithm*/
-
+/* This code was originally for making SWP-tree an anytime algorithm */
+/* 
+    Let forest[0] be the tree in which all streams are getting merged.
+    After they are taken cared of, we move on to merging the tilted time
+    windows.
+*/
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,
     LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100, STREAMS = 2;
 
@@ -110,7 +114,6 @@ int main(int argc, char* argv[])
         item_ready, leavecnt = 1, tid = 1, pattern = 0, no_patterns = 0, curr_tree;
     
     int leave_as_buffer;
-    pdata sorted = create_sorted_dummy();
 
     for (i = 3; i < argc; i++)
     {                /* traverse arguments */
@@ -212,6 +215,15 @@ int main(int argc, char* argv[])
     poisson = fopen(".poisson.ignore", "r");
 
     sforest forest[STREAMS];
+    struct sf_TT_wndw tt_window[64];
+
+    for(i = 0; i < 64; i++)
+    {
+        // tt_window[i].main = sf_create_sforest();
+        // tt_window[i].temp = sf_create_sforest();        
+        tt_window[i].main = NULL;
+        tt_window[i].temp = NULL;
+    }
 
     for (i = 0; i < STREAMS; i++)
         forest[i] = sf_create_sforest();
@@ -274,14 +286,16 @@ int main(int argc, char* argv[])
             // aux = get_fptree(ptree);
             item_no += item_count;
 
-            printf("mining main with freq = %lf\n", item_no * SUP);
+            printf("mining main with freq = %lf\n\n\n", item_no * SUP);
 
             sf = fopen("result_0", "a");
             fprintf(sf, "\nAfter BATCH %d\n", batch_ready);
             fclose(sf);
             
-			int mined_cnt = sf_mine_frequent_itemsets(forest[0], item_no, -2, world_rank);
-            printf("\n+++\nMINED %d ITEMS FROM TREE 0 IN BATCH %d\n+++\n", mined_cnt, batch_ready);
+			// int mined_cnt = sf_mine_frequent_itemsets(forest[0], item_no, -2, world_rank);
+            sf_update_TTW(tt_window, forest[0]);
+            sf_print_TTW(tt_window);
+            // printf("\n+++\nMINED %d ITEMS FROM TREE 0 IN BATCH %d\n+++\n", mined_cnt, batch_ready);
         } while (1);
     }
 
