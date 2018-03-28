@@ -1568,8 +1568,8 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
 
     if(node->freq >= prod)
     {
-        printf("rank = %d, node->freq = %lf, pattern = %d, tid = %d, minsup = %lf,\
-            tid*minsup = %lf\n", rank, node->freq, pattern, tid, minsup, prod);
+        // printf("rank = %d, node->freq = %lf, pattern = %d, tid = %d, minsup = %lf,\
+        //     tid*minsup = %lf\n", rank, node->freq, pattern, tid, minsup, prod);
 
         collected[++end] = node->data_item;
         if(end >= 0)

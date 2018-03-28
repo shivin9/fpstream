@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
             printf("\n+++\nMINED %d ITEMS FROM TREE 0 IN BATCH %d\n+++\n", mined_cnt, batch_ready);
 
             /* initialize a new forest after every batch */
-            // sf_delete_sforest(forest[0]);
+            /* sf_delete_sforest(forest[0]); */
             forest[0] = sf_create_sforest();
 
             /* this means that no itemsets were sent to master */
