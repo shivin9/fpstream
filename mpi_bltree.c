@@ -7,9 +7,11 @@
     Let forest[0] be the tree in which all streams are getting merged.
     After they are taken cared of, we move on to merging the tilted time
     windows.
+
+    Master tree is writing result in result_0. It uses result_-1 as auxillary file.
 */
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,
-    LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100, STREAMS = 2;
+    LEAVE_AS_BUFFER = 0, LEAVE_LVL = INT_MAX, BUFFER_SIZE = 100, STREAMS = 2;
 
 /* structures for conducting tests*/
 unsigned int MAX_BUFFER_SIZE[10], CNT_BUFFER_SIZE[10],
@@ -102,6 +104,9 @@ int main(int argc, char* argv[])
     fclose(sf);
     sf = fopen("output", "w");
     fclose(sf);
+    sf = fopen("result_0", "w");
+    fclose(sf);
+    
     
     // sfstream(argv[1]);
     // strcpy(OUT_FILE, argv[2]); // the name of the output file is being copied.
@@ -256,6 +261,7 @@ int main(int argc, char* argv[])
         FILE *output;
         do
         {
+            item_count = 0;
             output = fopen("output", "a");
             fprintf(output, "After batch %d:\n", batch_ready);
             fclose(output);
@@ -263,11 +269,14 @@ int main(int argc, char* argv[])
             while(i < world_size)
             {
                 printf("receiving items from slave no. %d\n", i);
+
                 /* receiving a string from the slaves */
                 MPI_Recv(items, 10000000, MPI_CHAR, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+
                 /* converting the strings to a buffer array */
                 buffer trans = sf_string2buffer(items);
-                item_count = trans[0].ftid; /* small hack to store the total number of itemsets */
+
+                item_count += trans[0].ftid; /* small hack to store the total number of itemsets */
 
                 printf("master received total %d items from %d, tag = %d\n",
                        item_count, status.MPI_SOURCE, status.MPI_TAG);
@@ -281,21 +290,31 @@ int main(int argc, char* argv[])
                 }
                 i++;
             }
-            printf("inserted all itemsets in the main forest!\n");
+            printf("inserted %d itemsets in the main forest!\n", item_count);
             batch_ready++;
             // aux = get_fptree(ptree);
             item_no += item_count;
 
-            printf("mining main with freq = %lf\n\n\n", item_no * SUP);
+            printf("mining main with freq = %lf\n\n", item_no * SUP);
 
+            /* print itemsets mined after every batch */
             sf = fopen("result_0", "a");
             fprintf(sf, "\nAfter BATCH %d\n", batch_ready);
             fclose(sf);
-            
-			// int mined_cnt = sf_mine_frequent_itemsets(forest[0], item_no, -2, world_rank);
+
+            /* mine the tree when needed. pattern = 2 => mine with SUP */
+			int mined_cnt = sf_mine_frequent_itemsets(forest[0], item_no, 2, world_rank);
             sf_update_TTW(tt_window, forest[0]);
             sf_print_TTW(tt_window);
-            // printf("\n+++\nMINED %d ITEMS FROM TREE 0 IN BATCH %d\n+++\n", mined_cnt, batch_ready);
+            printf("\n+++\nMINED %d ITEMS FROM TREE 0 IN BATCH %d\n+++\n", mined_cnt, batch_ready);
+
+            /* initialize a new forest after every batch */
+            // sf_delete_sforest(forest[0]);
+            forest[0] = sf_create_sforest();
+
+            /* this means that no itemsets were sent to master */
+            if(item_count == 0)
+                break;
         } while (1);
     }
 
@@ -362,8 +381,8 @@ int main(int argc, char* argv[])
                         // printf("sizeof(items[%d] = %ld\n", i, sizeof(items[i]));
                         // sf_print_data_node(items[1].itemset);
                     }
-                    sf_prune(forest[world_rank], tid);
  */
+                    sf_prune(forest[world_rank], tid);
                     MPI_Barrier(MPI_MASTER);
                     MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
                     printf("FOREST_%d has sent items\n", world_rank);
