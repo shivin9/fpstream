@@ -192,6 +192,7 @@ int main(int argc, char* argv[])
         }
     }
 
+    LEAVE_LVL = DICT_SIZE;
 
     HSIZE = H_FRACTION * DICT_SIZE; // size of the hash table computed here
 
@@ -235,8 +236,7 @@ int main(int argc, char* argv[])
 
     int world_size;
 
-    const int MAX_NUMBERS = 1000000000;
-    // buffer items = (buffer) calloc(MAX_NUMBERS, sizeof(struct buffer_node));
+    const int MAX_NUMBERS = INT_MAX;
     char *items = (char *) calloc(MAX_NUMBERS, sizeof(char));
 
     MPI_Init(NULL, NULL);
@@ -286,7 +286,12 @@ int main(int argc, char* argv[])
                     // sf_print_buffer_node(trans[j]);
                     // printf("j = %d\n", j);
                     // print_pdata_node(data2pdata(trans[j].itemset));
-                    sf_prefix_inset_itemset(forest[0], trans[j].itemset, trans[j].freq, batch_ready);
+                    if(!(trans[j].freq < FLT_MAX))
+                    {
+                        printf("\n$$$ item from tree %d has inf freq. $$$\n", i);
+                        sf_print_buffer_node(trans[j]);
+                    }
+                    // sf_prefix_insert_itemset(forest[0], trans[j].itemset, trans[j].freq, batch_ready);
                 }
                 i++;
             }
@@ -310,7 +315,7 @@ int main(int argc, char* argv[])
 
             /* initialize a new forest after every batch */
             /* sf_delete_sforest(forest[0]); */
-            forest[0] = sf_create_sforest();
+            // forest[0] = sf_create_sforest();
 
             /* this means that no itemsets were sent to master */
             if(item_count == 0)
@@ -352,7 +357,11 @@ int main(int argc, char* argv[])
                 // printf("inserting item no.: %d in TREE_%d... \n", item_no, world_rank);
                 // sf_print_data_node(curr->itemset);
                 gettimeofday(&t3, NULL);
-                sf_insert_itemset(forest[world_rank], curr->itemset, item_no, curr->freq, &t3);
+                assert(curr->freq < FLT_MAX);
+                sf_insert_itemset(forest[world_rank], curr->itemset, item_no, curr->freq, NULL);
+                // sf_check_inf(forest[world_rank]);
+
+                assert(curr->freq < FLT_MAX);
                 item_no++;
 
                 if (curr->next)
@@ -367,22 +376,18 @@ int main(int argc, char* argv[])
                 if(item_no % BATCH == 0 || item_no == total_items)
                 {
                     // N = item_no;
+                    // sf_prune(forest[world_rank], tid);
+                    printf("\n+++\nMINING ITEMS FROM SLAVE TREE %d with freq = %lf\n+++\n", world_rank, item_no*EPS);
+
                     cnt = sf_mine_frequent_itemsets(forest[world_rank], item_no, -2, world_rank);
                     printf("sender:%d sending %d items\n", world_rank, cnt);
                     char* items = sf_get_trans(world_rank);
                     unsigned long size = strlen(items) + 1;
-/* 
-                    printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
-                    for(i = 0; i < fetched_items; i++)
-                    {
-                        // sf_print_buffer_node(items[i]);
-                        size += sizeof(items[i]);
-                        size += sizeof(items[i].itemset);
-                        // printf("sizeof(items[%d] = %ld\n", i, sizeof(items[i]));
-                        // sf_print_data_node(items[1].itemset);
-                    }
- */
-                    sf_prune(forest[world_rank], tid);
+
+                    // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
+                    // sf_delete_sforest(forest[world_rank]);
+                    // forest[world_rank] = sf_create_sforest();
+
                     MPI_Barrier(MPI_MASTER);
                     MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
                     printf("FOREST_%d has sent items\n", world_rank);
@@ -397,7 +402,7 @@ int main(int argc, char* argv[])
         }while (1);
     }
 
-
+    sf_print_sforest(forest[1]);
     N = tid;
     /* this is to accomodate hard support counts instead of % */
     if (SUP > 1.0)

@@ -16,7 +16,7 @@ void delete_qstack(QStack* qstack)
     return;
 }
 
-/* inserting the string in the corresponding linked list of the hash table*/
+/* inserting the string in the corresponding linked list of the hash table */
 void insert(hlink head, char* node)
 {
     while(head->next != NULL)
@@ -29,7 +29,7 @@ void insert(hlink head, char* node)
 }
 
 
-/* mapping the state matrix to a string*/
+/* mapping the state matrix to a string */
 char* map(int *state, int len)
 {
     int i;
@@ -40,7 +40,7 @@ char* map(int *state, int len)
 }
 
 
-/* to hash the game state which is in the form of a string*/
+/* to hash the game state which is in the form of a string */
 int hash(char* key)
 {
     int sum = 0, i = 0, len = strlen(key);
@@ -52,7 +52,7 @@ int hash(char* key)
 }
 
 
-/* saving stuff in the hash table*/
+/* saving stuff in the hash table */
 void save(dict htable, char* key)
 {
     int sum = 0, i, row;
@@ -64,7 +64,7 @@ void save(dict htable, char* key)
 }
 
 
-/* find function for the hash table*/
+/* find function for the hash table */
 int find(dict htable, char* key)
 {
     int sum = 0, i, row;
@@ -82,7 +82,7 @@ int find(dict htable, char* key)
 }
 
 
-/* to push a node onto the QStack.*/
+/* to push a node onto the QStack. */
 void push(QStack* l, sfnode v)
 {
     if(v == NULL)
