@@ -46,6 +46,7 @@ long unsigned sf_no_of_nodes(sfnode curr);
 char *concat(const char *s1, const char *s2);
 char* sf_get_trans(int rank);
 buffer sf_string2buffer(char*);
+void sf_check_inf(sforest);
 
 
 /* HEADER TABLE FUNCTIONS*/

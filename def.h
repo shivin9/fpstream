@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <malloc.h>
+#include <float.h>
 #include <limits.h>
 #include <omp.h>
 #include <math.h>
