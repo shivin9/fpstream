@@ -1,19 +1,19 @@
 /*
-1. When deleting a child of a node, fix the child_list as well as the item_list
-2. When removing nodes, also fix the header table
-3. Header table is now not being recreated from scratch, it is being updated periodically
-    using the sf_update_header_table function
-4. But the tree is being constructed ie. next_similar and prev_similar pointers are being
-    given periodically just before pruning
-5. Decide whether a node can have both a buffer fptree along with prev. opened transactions
-    or only a fptree
-6. Header tables are ignorant of the data item present in the node
-7. Have -1 as the root node surely
-8. FPTrees have child as linked list but header table is still an array
-9. The header table is updated just before pruning the tree
-10. Implementing lazy buffer allocation
-11. If some node's buffer goes fully empty, don't delete the hbuffer field; we'll use ot later
-12. Need to take down buffered transactions in a bunch now
+    1. When deleting a child of a node, fix the child_list as well as the item_list
+    2. When removing nodes, also fix the header table
+    3. Header table is now not being recreated from scratch, it is being updated periodically
+        using the sf_update_header_table function
+    4. But the tree is being constructed ie. next_similar and prev_similar pointers are being
+        given periodically just before pruning
+    5. Decide whether a node can have both a buffer fptree along with prev. opened transactions
+        or only a fptree
+    6. Header tables are ignorant of the data item present in the node
+    7. Have -1 as the root node surely
+    8. FPTrees have child as linked list but header table is still an array
+    9. The header table is updated just before pruning the tree
+    10. Implementing lazy buffer allocation
+    11. If some node's buffer goes fully empty, don't delete the hbuffer field; we'll use ot later
+    12. Need to take down buffered transactions in a bunch now
 */
 #include "sftree.h"
 
@@ -48,6 +48,8 @@ buffer sf_string2buffer(char* items)
             arr[t++] = val;
         }
         fscanf(fp, "%lf", &freq);
+        assert(freq < FLT_MAX);
+        // printf("freq = %lf\n", freq);
         data d = calloc(t + 2, sizeof(int));
         d[0] = 0;
         d[1] = t;
@@ -141,8 +143,9 @@ sfnode sf_create_sfnode(data_type dat) // seen
         printf("node calloc failed\n");
     }
 
-    node->children = calloc(last_index(dat), sizeof(sfnode)); // smart allocation of children array using a macro
+    node->children = calloc(last_index(dat), sizeof(sfnode)); /* smart allocation of children array using a macro */
     node->hbuffer = calloc(HSIZE, sizeof(bufferTable));
+    node->freq = 0.0;
     node->data_item = dat;
     node->ftid = INT_MAX;
     node->ltid = -1;
@@ -979,7 +982,7 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
                     // printf("printing buffer\n");
                     // sf_print_buffer(popped);
                     // printf("printing node\n");
-                    // sf_print_sfnode(current_child_ptr[idx]);
+                    sf_print_sfnode(current_child_ptr[idx]);
                     assert(current_child_ptr[idx]->freq < FLT_MAX);
                     assert(popped->freq < FLT_MAX);
                 }
@@ -1398,7 +1401,7 @@ void sf_insert_itemset(sforest forest, data d, int tid, double total_time, timev
 
 
 /* adding frequency directly */
-void sf_prefix_inset_itemset(sforest forest, data d, double freq, int tid)
+void sf_prefix_insert_itemset(sforest forest, data d, double freq, int tid)
 {
     sfnode root = forest[d[first(d)]];
     int idx;
@@ -1443,7 +1446,7 @@ sforest sf_merge_tree(sforest f1, sforest f2, int tid)
     for (i = 0; i < item_count; i++)
     {
         // sf_print_buffer_node(items[i]);
-        sf_prefix_inset_itemset(f1, items[i].itemset, items[i].freq, tid);
+        sf_prefix_insert_itemset(f1, items[i].itemset, items[i].freq, tid);
     }
     sf_decay_tree(f1);
     return f1;
@@ -1612,7 +1615,7 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
     if(node == NULL)
         return 0;
     // sf_print_sfnode(node);
-    // // node->freq *= pow(DECAY, tid - node->ltid);
+    // node->freq *= pow(DECAY, tid - node->ltid);
     // assert(node->freq > 0);
     int cnt = 0, i;
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
@@ -1643,7 +1646,7 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
             }
             if(node->fptree != NULL)
             {
-                // printf("\n****mining this FP-tree****\n");
+                printf("\n****mining this FP-tree****\n");
                 // sf_print_tree(node->fptree->root);
                 // printf("****HEADER TABLE:****\n");
                 // sf_print_header_table(node->fptree->head_table);

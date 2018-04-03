@@ -1,11 +1,15 @@
 Mining Functions:
 pattern = 0 => print to 'intermediate' file with 'MINSUP_SEMIFREQ'
 pattern = 1 => print to 'output' file with 'MINSUP_FREQ'
-pattern = 2 => print to custom defined file with 'MINSUP_FREQ'
+pattern = 2 => print to custom defined file with 'SUP'
 pattern =-2 => used in multi-port version by processes to print their itemsets
+
+result_-1 file is used in TTW as an intermediate.
 
 // 0: something in between
 // 1: ready
 
 Itemset representation:
 {_,_,...} - First value is the starting index and the second value tells the length of the itemset. This way we can easily represent suffix projections without any sophisticated operations.
+
+TODO: check merging
