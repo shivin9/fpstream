@@ -272,7 +272,12 @@ int main(int argc, char* argv[])
 
                 /* receiving a string from the slaves */
                 MPI_Recv(items, 10000000, MPI_CHAR, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-
+                // printf("%s\n", items);
+                if(!strcmp(items, "fin"))
+                {
+                    printf("received fin\n");
+                    break;
+                }
                 /* converting the strings to a buffer array */
                 buffer trans = sf_string2buffer(items);
 
@@ -285,13 +290,12 @@ int main(int argc, char* argv[])
                 {
                     // sf_print_buffer_node(trans[j]);
                     // printf("j = %d\n", j);
-                    // print_pdata_node(data2pdata(trans[j].itemset));
                     // if(!(trans[j].freq < FLT_MAX))
                     // {
                     //     printf("\n$$$ item from tree %d has inf freq. $$$\n", i);
                     //     sf_print_buffer_node(trans[j]);
                     // }
-                    sf_prefix_inset_itemset(forest[0], trans[j].itemset, trans[j].freq, batch_ready);
+                    sf_prefix_insert_itemset(forest[0], trans[j].itemset, trans[j].freq, batch_ready);
                 }
                 i++;
             }
@@ -300,7 +304,6 @@ int main(int argc, char* argv[])
             // aux = get_fptree(ptree);
             item_no += item_count;
 
-            printf("mining main with freq = %lf\n\n", item_no * SUP);
 
             /* print itemsets mined after every batch */
             sf = fopen("result_0", "a");
@@ -308,14 +311,19 @@ int main(int argc, char* argv[])
             fclose(sf);
 
             /* mine the tree when needed. pattern = 2 => mine with SUP */
+            printf("mining main with freq = %lf\n\n", item_no * SUP);
 			int mined_cnt = sf_mine_frequent_itemsets(forest[0], item_no, 2, world_rank);
             sf_update_TTW(tt_window, forest[0]);
             sf_print_TTW(tt_window);
+
             printf("\n+++\nMINED %d ITEMS FROM TREE 0 IN BATCH %d\n+++\n", mined_cnt, batch_ready);
 
             /* initialize a new forest after every batch */
-            /* sf_delete_sforest(forest[0]); */
+            // sf_delete_sforest(forest[0]);
+            sforest temp = forest[0];
             forest[0] = sf_create_sforest();
+            // sf_delete_sforest(temp);
+            // free(temp);
 
             /* this means that no itemsets were sent to master */
             if(item_count == 0)
@@ -340,7 +348,7 @@ int main(int argc, char* argv[])
         gettimeofday(&t1, NULL);
 
         int i, j, total_items, item_no = 0, fetched_items;
-        sf = fopen(argv[world_rank], "r"); // input  tells which tree to read from which file
+        sf = fopen(argv[world_rank], "r"); // input tells which tree to read from which file
         printf("reading file %s\n", argv[world_rank]);
         if (sf == NULL)
         {
@@ -358,7 +366,7 @@ int main(int argc, char* argv[])
                 // sf_print_data_node(curr->itemset);
                 gettimeofday(&t3, NULL);
                 assert(curr->freq < FLT_MAX);
-                sf_insert_itemset(forest[world_rank], curr->itemset, item_no, curr->freq, &t3);
+                sf_insert_itemset(forest[world_rank], curr->itemset, item_no, curr->freq, NULL); /* removing the limited time insertion feature for now */
                 // sf_check_inf(forest[world_rank]);
 
                 assert(curr->freq < FLT_MAX);
@@ -372,37 +380,47 @@ int main(int argc, char* argv[])
                     free(stream);
                 }
 
+                // printf("item number is: %d", item_no);                
                 /* prune the tree if 5000 transactions have been inserted or if the stream has ended */
-                if(item_no % BATCH == 0 || item_no == total_items)
+                if(item_no % BATCH == 0)
                 {
+
                     // N = item_no;
-                    sf_prune(forest[world_rank], tid);
+                    // sf_prune(forest[world_rank], tid);
                     printf("\n+++\nMINING ITEMS FROM SLAVE TREE %d with freq = %lf\n+++\n", world_rank, item_no*EPS);
 
                     cnt = sf_mine_frequent_itemsets(forest[world_rank], item_no, -2, world_rank);
                     printf("sender:%d sending %d items\n", world_rank, cnt);
-                    char* items = sf_get_trans(world_rank);
+                    char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
                     unsigned long size = strlen(items) + 1;
 
                     // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
-
                     // sf_delete_sforest(forest[world_rank]);
                     // forest[world_rank] = sf_create_sforest();
 
+                    printf("Struck before barrier1\n");
+
                     MPI_Barrier(MPI_MASTER);
-                    MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+                    MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
                     printf("FOREST_%d has sent items\n", world_rank);
+                    printf("Struck before barrier2\n");
+                    if (item_no == total_items)
+                    {
+                        printf("slave %d sent a FIN signal\n", world_rank);
+                        MPI_Send("fin", 4, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */                    
+                    }
                     MPI_Barrier(MPI_MASTER);
+                    printf("Reached end of both barriers\n");
                 }
             }
             else
             {
+                printf("stuck in MPI finalize\n");
                 MPI_Finalize();
                 break;
             }
         }while (1);
     }
-
 
     N = tid;
     /* this is to accomodate hard support counts instead of % */

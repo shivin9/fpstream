@@ -18,7 +18,7 @@ void sf_insert_new_child(fpnode, fpnode, int);
 int sf_insert_itemset_helper(sfnode, int root_data, int tid, double, timeval*);
 void sf_fp_insert(fpnode, header_table*, data, double, int);
 void sf_insert_itemset(sforest, data, int tid, double, timeval*);
-void sf_prefix_inset_itemset(sforest forest, data d, double freq, int tid);
+void sf_prefix_insert_itemset(sforest forest, data d, double freq, int tid);
 sforest sf_merge_tree(sforest f1, sforest f2, int tid);
 void sf_update_TTW(sfTTW, sforest);
 void sf_decay_tree(sforest);
