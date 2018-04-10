@@ -913,7 +913,7 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
         /* this is to insert the transaction in the fptree*/
         if(current_node->fptree == NULL && (sf_get_height(current_node) >= LEAVE_LVL) /*some decision*/)
         {
-            printf("shouldn't print this!!\n\n");
+            // printf("shouldn't print this!!\n\n");
             /* this is because we dont want the children array in fp-tree nodes*/
             current_node->fptree = sf_create_fptree(DICT_SIZE + 1);
             current_node->fptree->root->data_item = current_node->data_item;
@@ -1637,7 +1637,6 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
             /* collector collects FIs from the FP-tree */
             bufferTable collector = calloc(1, sizeof(buffer_table));
             /* there is an FPTree at this node*/
-            assert(node->fptree == NULL);
             if(!(node->freq < FLT_MAX))
             {
                 // printf("rank = %d, node->freq = %lf, pattern = %d, tid = %d, minsup = %lf,\

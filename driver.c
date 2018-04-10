@@ -1,8 +1,9 @@
 #define GLOBAL_VARS 1
-#include "sftree.h"
+#include "sfstream.h"
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,\
-    LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100;
+    LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100,\
+    RANK = 0, STREAMS = 0;
 
 /* structures for conducting tests*/
 unsigned int MAX_BUFFER_SIZE[10], CNT_BUFFER_SIZE[10],\
@@ -38,6 +39,7 @@ int main(int argc, char* argv[])
                 -L<LEAVE_LVL>\n\
                 -B<BUFFER_SIZE>\n\
                 -H<SIZEOF_HASH_TABLE>\n\
+                -R<RANK>\n\
                 -p<pattern>\n");
         exit(-1);
     }
@@ -49,13 +51,11 @@ int main(int argc, char* argv[])
     sf = fopen("output", "w");
     fclose(sf);
 
-    // sfstream(argv[1]);
-    strcpy(OUT_FILE, argv[2]); // the name of the output file is being copied.
 
     char* s, output;
 
     int i, batch_no;
-    for (i = 3; i < argc; i++)
+    for (i = 2; i < argc; i++)
     {                               /* traverse arguments */
         s = argv[i];                /* get option argument */
         if ((*s == '-') && *++s)
@@ -71,6 +71,7 @@ int main(int argc, char* argv[])
                     case 'T': TIME_MINE  = strtof(s, &s);      break;
                     case 's': SUP    = strtof(s, &s);          break;
                     case 'm': MINSUP_SEMIFREQ = strtof(s, &s); break;
+                    case 'n': STREAMS = strtof(s, &s);         break;
                     case 'M': MINSUP_FREQ = strtof(s, &s);     break;
                     case 'B': BATCH  =       strtod(s, &s);    break;
                     case 'b': BUFFER_SIZE  = strtod(s, &s);    break;
@@ -81,6 +82,7 @@ int main(int argc, char* argv[])
                     case 'S': SUP =  strtof(s, &s);            break;
                     case 'L': LEAVE_LVL =  strtod(s, &s);      break;
                     case 'r': RATE_PARAMETER =  strtof(s, &s); break;
+                    case 'R': RANK =  strtof(s, &s);           break;
                     default : fprintf(stdout, "UNKNOWN ARGUMENT! %c", *(s-1));
                               exit(-1);                        break;
                 }
@@ -88,8 +90,12 @@ int main(int argc, char* argv[])
         }
     }
 
-    sf = fopen(OUT_FILE, "w");
-    fclose(sf);
+    if(pattern != -2) /* -2 means MP-stream */
+    {
+        strcpy(OUT_FILE, argv[2]); // the name of the output file is being copied.
+        sf = fopen(OUT_FILE, "w");
+        fclose(sf);
+    }
 
     sf = fopen(argv[1], "r");
     if(sf == NULL)
@@ -121,6 +127,11 @@ int main(int argc, char* argv[])
 
     srand(time(NULL));
     poisson = fopen("poisson.ignore", "r");
+    if(poisson == NULL)
+    {
+        printf("Please create poisson.ignore!\n");
+        exit(0);
+    }
 
     // long unsigned size;
     sforest forest = NULL;
@@ -281,7 +292,7 @@ int main(int argc, char* argv[])
     fprintf(stdout, "total time taken to empty/prune the buffers = %lf ms\n", elapsedTime);
 
     gettimeofday(&t1, NULL);
-    no_patterns = sf_mine_frequent_itemsets(forest, tid, pattern); // mining for frequent patterns
+    no_patterns = sf_mine_frequent_itemsets(forest, tid, -2, RANK); // mining for frequent patterns
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;

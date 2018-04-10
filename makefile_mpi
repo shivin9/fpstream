@@ -3,8 +3,8 @@ PROF=-g -pg
 OPT=-Ofast
 FLAG=$(PROF)
 
-bltree:	mpi_bltree.o sfstream.o qstack.o sftree.o pattern_tree.o 
-	$(CC) $(FLAG) -o bltree sfstream.o sftree.o qstack.o pattern_tree.o mpi_bltree.o def.h -lm
+bltree:	indirect_bltree.o sfstream.o qstack.o sftree.o pattern_tree.o str_builder.o
+	$(CC) $(FLAG) -o bltree sfstream.o sftree.o qstack.o pattern_tree.o str_builder.o indirect_bltree.o def.h -lm
 
 # $(driver): $(driver).o sftree.o qstack.o
 # 	$(CC) $(FLAG) -o $(driver) pattern_tree.o sftree.o qstack.o $(driver).o pattern_tree.h -lm
@@ -13,11 +13,14 @@ bltree:	mpi_bltree.o sfstream.o qstack.o sftree.o pattern_tree.o
 # 	$(CC) -c $(FLAG) -openmp $(driver).c -lm
 
 
-mpi_bltree.o: mpi_bltree.c
-	$(CC) -c $(FLAG) mpi_bltree.c -lm -fopenmp
+indirect_bltree.o: indirect_bltree.c
+	$(CC) -c $(FLAG) indirect_bltree.c -lm -fopenmp
 
 sftree.o: sftree.c
 	$(CC) -c $(FLAG) sftree.c -lm
+
+str_builder.o: str_builder.c
+	$(CC) -c $(FLAG) str_builder.c -lm
 
 sfstream.o: sfstream.c
 	$(CC) -c $(FLAG) sfstream.c -lm

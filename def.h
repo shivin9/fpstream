@@ -14,6 +14,9 @@
 #include<sys/types.h>
 #include<sys/uio.h>
 #include<fcntl.h>
+#include <unistd.h>    /* for fork */
+#include <sys/types.h> /* for pid_t */
+#include <sys/wait.h>  /* for wait */
 
 typedef struct timeval timeval;
 
@@ -35,6 +38,7 @@ extern double MINSUP_FREQ;
 extern int LEAVE_AS_BUFFER;
 extern char OUT_FILE[100];
 extern int LEAVE_LVL;
+extern int RANK;
 extern int BUFFER_SIZE;
 extern double GAMMA;
 extern double RATE_PARAMETER;
