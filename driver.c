@@ -249,35 +249,35 @@ int main(int argc, char* argv[])
 
     gettimeofday(&t2, NULL);
 
-    for(i = 1; i < LEAVE_LVL + 1; i++)
-        fprintf(stdout, "MAX_BUFFER_SIZE[%d] = %u\n", i, MAX_BUFFER_SIZE[i]);
+    // for(i = 1; i < LEAVE_LVL + 1; i++)
+    //     fprintf(stdout, "MAX_BUFFER_SIZE[%d] = %u\n", i, MAX_BUFFER_SIZE[i]);
     
-    fprintf(stdout, "***************************************************\n");
+    // fprintf(stdout, "***************************************************\n");
     
-    for(i = 1; i < LEAVE_LVL + 1; i++)
-        fprintf(stdout, "MIN_BUFFER_SIZE[%d] = %u\n", i, MIN_BUFFER_SIZE[i]);
+    // for(i = 1; i < LEAVE_LVL + 1; i++)
+    //     fprintf(stdout, "MIN_BUFFER_SIZE[%d] = %u\n", i, MIN_BUFFER_SIZE[i]);
 
-    fprintf(stdout, "***************************************************\n");
+    // fprintf(stdout, "***************************************************\n");
 
-    for(i = 1; i < LEAVE_LVL + 1; i++)
-        fprintf(stdout, "AVG_BUFFER_SIZE[%d] = %lf\n", i, (float)AVG_BUFFER_SIZE[i]/CNT_BUFFER_SIZE[i]);
+    // for(i = 1; i < LEAVE_LVL + 1; i++)
+    //     fprintf(stdout, "AVG_BUFFER_SIZE[%d] = %lf\n", i, (float)AVG_BUFFER_SIZE[i]/CNT_BUFFER_SIZE[i]);
 
-    fprintf(stdout, "***************************************************\n");
+    // fprintf(stdout, "***************************************************\n");
 
-    for(i = 1; i < LEAVE_LVL + 1; i++)
-        fprintf(stdout, "RED_BUFFER_SIZE[%d] = %lf\n", i, (float)RED_BUFFER_SIZE[i]/CNT_BUFFER_SIZE[i]);
+    // for(i = 1; i < LEAVE_LVL + 1; i++)
+    //     fprintf(stdout, "RED_BUFFER_SIZE[%d] = %lf\n", i, (float)RED_BUFFER_SIZE[i]/CNT_BUFFER_SIZE[i]);
 
-    fprintf(stdout, "***************************************************\n");
+    // fprintf(stdout, "***************************************************\n");
 
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    fprintf(stdout, "total time taken to insert in sf tree = %lf ms, buffered = %d\n", elapsedTime, buffered);
-    fprintf(stdout, "average time to insert in sf tree = %lf ms\n", insertionTime/tid);
+    // fprintf(stdout, "total time taken to insert in sf tree = %lf ms, buffered = %d\n", elapsedTime, buffered);
+    // fprintf(stdout, "average time to insert in sf tree = %lf ms\n", insertionTime/tid);
 
-    fprintf(stdout, "total intermittent prune time = %lf ms\n", prune_time);
-    fprintf(stdout, "avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
+    // fprintf(stdout, "total intermittent prune time = %lf ms\n", prune_time);
+    // fprintf(stdout, "avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
     // sf_print_sforest(forest);
 
