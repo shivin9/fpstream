@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 
     FILE *sf, *poisson, *state; // files to read the data set and poisson values.
     int sz, cnt, tid = 1, pattern = 0, no_patterns = 0, transactions = 0;
-    long pos = 0;
+    long pos = 0, size;
 
     sf = fopen("intermediate", "w");
     fclose(sf);
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 
     char* s, output;
 
-    int i, batch_no;
+    int i;
     for (i = 2; i < argc; i++)
     {                               /* traverse arguments */
         s = argv[i];                /* get option argument */
@@ -105,6 +105,9 @@ int main(int argc, char* argv[])
         fprintf(stdout, "invalid file\n");
         exit(0);
     }
+    fseek(sf, 0, SEEK_END);
+    size = ftell(sf);
+    rewind(sf);
 
     char file[33];
     sprintf(file, "%d", RANK);
@@ -117,6 +120,13 @@ int main(int argc, char* argv[])
         fprintf(state, "%ld", pos);
     }
     fscanf(state, "%ld", &pos);
+    if (pos == -1L)
+    {
+        printf("file has already been read!\n");
+        fclose(state);
+        exit(0);
+    }
+
     fclose(state);
     state = fopen(fname, "w");
 
@@ -189,7 +199,6 @@ int main(int argc, char* argv[])
             fscanf(sf, "%d", &item);
             d[d[1] + 2] = item;
             d[1]++;
-            batch_no++;
         }
 
         d = sf_sort_data(d); // canonical sort of incoming trans
@@ -202,8 +211,12 @@ int main(int argc, char* argv[])
         transactions++;
     }
 
-    fprintf(state, "%ld", ftell(sf) + 1);
+    if (size == ftell(sf))
+        fprintf(state, "%ld", -1L);
+    else
+        fprintf(state, "%ld", ftell(sf) + 1);
     fclose(state);
+
     fclose(sf);
     end = stream;
     stream = stream->next;

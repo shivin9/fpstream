@@ -360,7 +360,9 @@ int main(int argc, char* argv[])
 
     else if(world_rank > 0) // any tree
     {
-        int row_rank, row_size;
+        long pos = 0;
+        int row_rank, row_size, pipefd[2];
+
         MPI_Comm_split(MPI_COMM_WORLD, 1, world_rank, &MPI_MASTER);
 
         MPI_Comm_rank(MPI_MASTER, &row_rank);
@@ -383,37 +385,58 @@ int main(int argc, char* argv[])
         int i, j, total_items, item_no = 0, fetched_items;
         printf("\n+++\nMINING ITEMS FROM SLAVE TREE %d with freq = %lf\n+++\n", world_rank, item_no*EPS);
         // sf = fopen(argv[world_rank], "r"); // input tells which tree to read from which file
+
+        char state_file[33];
+        sprintf(state_file, "%d", world_rank);
+        char *fname = concat(".state_", state_file);
+        FILE *state = fopen(fname, "r");
+        pipe(pipefd);
         pid_t pid = fork();
+        /* execute the child process till the time all batches have not been consumed */
         if (pid == 0)
         { /* child process */
-            system(cmd);
+            fscanf(state, "%ld", &pos);
+            printf("pos = %ld, state = %s\n", pos, fname);
+            while (pos != -1L)
+            {
+                system(cmd);
+                fscanf(state, "%ld", &pos);
+                /* use pipe here */
+            }
         }
         else
-        {                       /* pid!=0; parent process */
-            waitpid(pid, 0, 0); /* wait for child to exit */
-            printf("MINING COMPLETED IN SLAVE%d!\n", world_rank);
-            char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
-            unsigned long size = strlen(items) + 1;
+        {
+            fscanf(state, "%ld", &pos);
+            while(1) /* execute the parent process till state != -1 */
+            {
+                while (pos != -1); /* wait for pipe from the child process */
 
-            // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
-            // sf_delete_sforest(forest[world_rank]);
-            // forest[world_rank] = sf_create_sforest();
+                // waitpid(pid, 0, 0); /* wait for child to exit */
+                printf("MINING COMPLETED IN SLAVE%d!\n", world_rank);
+                char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
+                unsigned long size = strlen(items) + 1;
 
-            printf("size of file %ld sent by slave %d\n", size, world_rank);
-            color("YELLOW");
-            if(size < 10)
-                printf("file = %s\n", items);
-            reset();
-            
-            // MPI_Barrier(MPI_MASTER);
-            MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
-            MPI_Barrier(MPI_MASTER);
-            // printf("Struck before barrier2\n");
-            // if (item_no == total_items)
-            // {
-            //     printf("slave %d sent a FIN signal\n", world_rank);
-            //     MPI_Send("fin", 4, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */                    
-            // }
+                // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
+                // sf_delete_sforest(forest[world_rank]);
+                // forest[world_rank] = sf_create_sforest();
+
+                printf("size of file %ld sent by slave %d\n", size, world_rank);
+                color("YELLOW");
+                if(size < 10)
+                    printf("file = %s\n", items);
+                reset();
+                
+                // MPI_Barrier(MPI_MASTER);
+                MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
+                MPI_Barrier(MPI_MASTER);
+                // printf("Struck before barrier2\n");
+                // if (item_no == total_items)
+                // {
+                //     printf("slave %d sent a FIN signal\n", world_rank);
+                //     MPI_Send("fin", 4, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */                    
+                // }
+                fscanf(state, "%ld", &pos);
+            }
         }
 
     }

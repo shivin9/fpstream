@@ -30,7 +30,7 @@ void sf_print_data_node(data d)
 int main()
 {
     int sz, cnt, tid = 1, pattern = 0, no_patterns = 0, transactions = 0;
-    long pos = 0;
+    long pos = 0, size;
     
     FILE *sf, *state;
 
@@ -42,12 +42,22 @@ int main()
     }
 
     fscanf(state, "%ld", &pos);
-    fclose(state);
+    if(pos == -1L)
+    {
+        printf("file has already been read!\n");
+        fclose(state);
+        exit(0);
+    }
+
     state = fopen(".state_1", "w");
 
     printf("state = %ld\n", pos);
 
     sf = fopen("./data/5kD100T10.data", "r");
+    fseek(sf, 0, SEEK_END);
+    size = ftell(sf);
+    rewind(sf);
+
     buffer stream = NULL, end = NULL;
     stream = (buffer) calloc(1, sizeof(struct buffer_node));
     // stream->itemset = (data) calloc(1, sizeof(struct data_node));
@@ -58,10 +68,10 @@ int main()
     fseek(sf, pos, SEEK_SET);
     printf("seek now at %ld\n", ftell(sf));
 
-    while(transactions < BATCH && fscanf(sf, "%d", &sz) != EOF)
+    while (transactions < BATCH && fscanf(sf, "%d", &sz) != EOF)
     {
         // printf("transactions = %d, sz = %d\n", transactions, sz);
-        data d = malloc((sz+2)*sizeof(int));
+        data d = malloc((sz + 2) * sizeof(int));
         d[0] = 0;
         d[1] = 0;
         while(sz--)
@@ -86,7 +96,13 @@ int main()
     sf_print_data_node(end->itemset);
 
     printf("seek now at %ld\n", ftell(sf));
-    fprintf(state, "%ld", ftell(sf)+1);
+    if (size == ftell(sf))
+    {
+        printf("end of file2\n");
+        fprintf(state, "%ld", -1L);
+    }
+    else
+        fprintf(state, "%ld", ftell(sf)+1);
     fclose(state);
     fclose(sf);
     end = stream;
