@@ -3,35 +3,13 @@
 #include "sfstream.h"
 #include "str_builder.h"
 
-/* This code was originally for making SWP-tree an anytime algorithm */
 /* 
-    Let forest[0] be the tree in which all streams are getting merged.
+    Let forest be the tree in which all streams are getting merged.
     After they are taken cared of, we move on to merging the tilted time
     windows.
 
     Master tree is writing result in result_0. It uses result_-1 as auxillary file.
 */
-
-void color(char* color)
-{
-    if(!strcmp(color, "RED"))
-        printf(RED);
-    else if (!strcmp(color, "BLUE"))
-        printf(BLUE);
-    else if (!strcmp(color, "GREEN"))
-        printf(GREEN);
-    else if (!strcmp(color, "YELLOW"))
-        printf(YELLOW);
-    else if (!strcmp(color, "MAGENTA"))
-        printf(MAGENTA);
-    else if (!strcmp(color, "CYAN"))
-        printf(CYAN);
-}
-
-void reset()
-{
-    printf("\033[0m");
-}
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,
     LEAVE_AS_BUFFER = 0, LEAVE_LVL = INT_MAX, BUFFER_SIZE = 100, STREAMS = 2;
@@ -98,7 +76,7 @@ buffer read_stream(FILE* sf, FILE* poisson, int *total_items)
     return curr;
 }
 
-char* build_command(int argc, char* argv[], int rank)
+char *build_command(int argc, char *argv[], int rank)
 {
     str_builder_t *sb;
     char *str;
@@ -109,14 +87,14 @@ char* build_command(int argc, char* argv[], int rank)
     str_builder_add_str(sb, " ", 0);
 
     int i;
-    for(i = STREAMS; i < argc; i++)
+    for (i = STREAMS; i < argc; i++)
     {
         str_builder_add_str(sb, argv[i], 0);
         str_builder_add_str(sb, " ", 0);
     }
     str_builder_add_str(sb, "-R", 0);
     str_builder_add_int(sb, rank);
-    return (char*) str_builder_peek(sb);
+    return (char *)str_builder_peek(sb);
 }
 
 int main(int argc, char* argv[])
@@ -298,19 +276,20 @@ int main(int argc, char* argv[])
         MPI_Comm_split(MPI_COMM_WORLD, 0, world_rank, &MPI_MASTER);
         MPI_Status status;
         // items = (buffer) calloc(MAX_NUMBERS, sizeof(struct buffer_node));
-        int item_count, itemset_len;
+        int item_count, itemset_len, total;
         printf("master node started\n");
         color("BLUE");
         FILE *output;
         do
         {
-            item_count = 0;
             output = fopen("output", "a");
             fprintf(output, "After batch %d:\n", batch_ready);
             fclose(output);
             i = 1;
+            total = 0;
             while(i < world_size)
             {
+                item_count = 0;
                 // printf("receiving items from slave no. %d\n", i);
 
                 /* receiving a string from the slaves */
@@ -324,9 +303,10 @@ int main(int argc, char* argv[])
                 /* converting the strings to a buffer array */
                 buffer trans = sf_string2buffer(items);
 
-                item_count += trans[0].ftid; /* small hack to store the total number of itemsets */
-
-                printf("master received total %d items from %d, tag = %d\n",
+                item_count = trans[0].ftid; /* small hack to store the total number of itemsets */
+                total += item_count;
+                
+                printf("master received %d items from %d, tag = %d\n",
                        item_count, status.MPI_SOURCE, status.MPI_TAG);
 
                 color("GREEN");
@@ -343,17 +323,14 @@ int main(int argc, char* argv[])
                 }
                 color("RED");
                 printf("Inserted %d itemsets in the main forest from slave %d!\n", item_count, i);
-                color("YELLOW");
                 i++;
             }
             reset();
             color("MAGENTA");
-            printf("Inserted total %d itemsets in the main forest!\n", item_count);
-            reset();
+            printf("Inserted total %d itemsets in the main forest in batch = %d!\n", total, batch_ready);
             batch_ready++;
             // aux = get_fptree(ptree);
-            item_no += item_count;
-
+            item_no += total;
 
             /* print itemsets mined after every batch */
             sf = fopen("result_0", "a");
@@ -361,7 +338,7 @@ int main(int argc, char* argv[])
             fclose(sf);
 
             /* mine the tree when needed. pattern = 2 => mine with SUP */
-            // printf("mining main with freq = %lf\n\n", item_no * SUP);
+            printf("MINING MAIN TREE WITH FREQ = %lf\n\n", item_no * SUP);
 			int mined_cnt = sf_mine_frequent_itemsets(forest, item_no, 2, world_rank);
             sf_update_TTW(tt_window, forest);
             // sf_print_TTW(tt_window);
@@ -372,7 +349,7 @@ int main(int argc, char* argv[])
             // sf_delete_sforest(forest[0]);
             sforest temp = forest;
             forest = sf_create_sforest();
-            // sf_delete_sforest(temp);
+            sf_delete_sforest(temp);
             // free(temp);
             reset();
             /* this means that no itemsets were sent to master */
@@ -392,9 +369,12 @@ int main(int argc, char* argv[])
         printf("WORLD RANK/SIZE: %d/%d \t ROW RANK/SIZE: %d/%d\n",
             world_rank, world_size, row_rank, row_size);
 
+        reset();
         char* cmd = build_command(argc, argv, world_rank);
+        color("RED");
         printf("cmd for process %d = %s", world_rank, cmd);
-            
+        reset();
+
         struct timeval t1, t2, t3, t4;
         double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
         gettimeofday(&origin, NULL);
@@ -411,28 +391,31 @@ int main(int argc, char* argv[])
         else
         {                       /* pid!=0; parent process */
             waitpid(pid, 0, 0); /* wait for child to exit */
+            printf("MINING COMPLETED IN SLAVE%d!\n", world_rank);
+            char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
+            unsigned long size = strlen(items) + 1;
+
+            // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
+            // sf_delete_sforest(forest[world_rank]);
+            // forest[world_rank] = sf_create_sforest();
+
+            printf("size of file %ld sent by slave %d\n", size, world_rank);
+            color("YELLOW");
+            if(size < 10)
+                printf("file = %s\n", items);
+            reset();
+            
+            // MPI_Barrier(MPI_MASTER);
+            MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
+            MPI_Barrier(MPI_MASTER);
+            // printf("Struck before barrier2\n");
+            // if (item_no == total_items)
+            // {
+            //     printf("slave %d sent a FIN signal\n", world_rank);
+            //     MPI_Send("fin", 4, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */                    
+            // }
         }
 
-        printf("mining completed in slave %d!\n", world_rank);
-        char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
-        unsigned long size = strlen(items) + 1;
-
-        // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
-        // sf_delete_sforest(forest[world_rank]);
-        // forest[world_rank] = sf_create_sforest();
-
-        printf("size of file %ld sent by slave %d\n", size, world_rank);
-
-        MPI_Barrier(MPI_MASTER);
-        MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
-        // printf("FOREST_%d has sent items\n", world_rank);
-        // printf("Struck before barrier2\n");
-        if (item_no == total_items)
-        {
-            printf("slave %d sent a FIN signal\n", world_rank);
-            MPI_Send("fin", 4, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */                    
-        }
-        MPI_Barrier(MPI_MASTER);
     }
 
     fflush(stdout);

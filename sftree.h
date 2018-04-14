@@ -64,6 +64,8 @@ void sf_empty_tree(sfnode, int);
 /* MISCELLANEOUS FUNCTIONS*/
 data sf_array_to_datalist(int*, int);
 void sf_free_data_node(data);
+void color(char *color);
+void reset();
 
 
 /* MINING FUNCTIONS*/
@@ -87,8 +89,9 @@ void sf_print_header_table(header_table*);
 void sf_print_buffer_table(bufferTable*);
 void sf_print_buffer_node(struct buffer_node node);
 
-    /* PRUNING FUNCTIONS*/
-    data sf_reverse_data(data head);
+
+/* PRUNING FUNCTIONS*/
+data sf_reverse_data(data head);
 int sf_fp_prune(header_table*, int idx, int tid);
 void sf_fp_merge(fpnode parent, fpnode child, int tid);
 void sf_prune_buffer(sfnode, int);

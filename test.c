@@ -1,20 +1,93 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h> /* for fork */
-#include <sys/types.h> /* for pid_t */
-#include <sys/wait.h> /* for wait */
+#include "sfstream.h"
+#include<string.h>
+
+int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100, RANK = 1,
+    LEAVE_AS_BUFFER = 0, LEAVE_LVL = INT_MAX, BUFFER_SIZE = 100;
+
+/* structures for conducting tests*/
+unsigned int MAX_BUFFER_SIZE[10], CNT_BUFFER_SIZE[10],
+    AVG_BUFFER_SIZE[10], MIN_BUFFER_SIZE[10] = {INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX},
+                         RED_BUFFER_SIZE[10];
+
+long int N;
+char OUT_FILE[100];
+
+double DECAY = 1.0, EPS = 0.0, THETA = 0.1, GAMMA = 2.0,
+       SUP, MINSUP_FREQ = 0.02, MINSUP_SEMIFREQ = 0.01,
+       H_FRACTION = 0.1, RATE_PARAMETER = 0.1, CARRY = 1.0,
+       TIME_MINE = 1000.0;
+
+void sf_print_data_node(data d)
+{
+    int i;
+    for (i = 0; i < d[1]; i++)
+    {
+        printf("%d ", d[first(d) + i]);
+    }
+    printf("\n");
+}
 
 int main()
 {
-    /*Spawn a child to run the program.*/
-    pid_t pid=fork();
-    if (pid==0) { /* child process */
-        static char *argv[]={"./slave","./data/10kD100T10.data",NULL};
-        system("./slave");
-        exit(127); /* only if execv fails */
+    int sz, cnt, tid = 1, pattern = 0, no_patterns = 0, transactions = 0;
+    long pos = 0;
+    
+    FILE *sf, *state;
+
+    state = fopen(".state_1", "r");
+    if (state == NULL)
+    {
+        state = fopen(".state_1", "w");
+        fprintf(state, "%ld", pos);
     }
-    else { /* pid!=0; parent process */
-        waitpid(pid,0,0); /* wait for child to exit */
+
+    fscanf(state, "%ld", &pos);
+    fclose(state);
+    state = fopen(".state_1", "w");
+
+    printf("state = %ld\n", pos);
+
+    sf = fopen("./data/5kD100T10.data", "r");
+    buffer stream = NULL, end = NULL;
+    stream = (buffer) calloc(1, sizeof(struct buffer_node));
+    // stream->itemset = (data) calloc(1, sizeof(struct data_node));
+    // stream->itemset->next = NULL;
+    stream->next = NULL;
+    end = stream;
+    printf("seek currently at %ld\n", ftell(sf));
+    fseek(sf, pos, SEEK_SET);
+    printf("seek now at %ld\n", ftell(sf));
+
+    while(transactions < BATCH && fscanf(sf, "%d", &sz) != EOF)
+    {
+        // printf("transactions = %d, sz = %d\n", transactions, sz);
+        data d = malloc((sz+2)*sizeof(int));
+        d[0] = 0;
+        d[1] = 0;
+        while(sz--)
+        {
+            data_type item;
+            fscanf(sf, "%d", &item);
+            d[d[1] + 2] = item;
+            d[1]++;
+        }
+
+        // d = sf_sort_data(d); // canonical sort of incoming trans
+        end->next = (buffer) calloc(1, sizeof(struct buffer_node));
+        end = end->next;
+        end->itemset = d;
+
+        end->freq = 0;
+        end->next = NULL;
+        transactions++;
     }
-    return 0;
+
+    printf("(ftid: %d, ltid: %lf); freq = %lf --> ", end->ftid, end->ltid, end->freq);
+    sf_print_data_node(end->itemset);
+
+    printf("seek now at %ld\n", ftell(sf));
+    fprintf(state, "%ld", ftell(sf)+1);
+    fclose(state);
+    fclose(sf);
+    end = stream;
 }

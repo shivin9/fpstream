@@ -21,3 +21,4 @@ bltree_gc
 *.sh
 BitArray/
 result*
+.state_*

@@ -11,12 +11,13 @@
 #include <limits.h>
 #include <omp.h>
 #include <math.h>
-#include<sys/types.h>
-#include<sys/uio.h>
-#include<fcntl.h>
+#include <fcntl.h>
 #include <unistd.h>    /* for fork */
+#include <sys/uio.h>
+#include <sys/wait.h> /* for wait */
+#include <sys/types.h>
+#include <sys/time.h>
 #include <sys/types.h> /* for pid_t */
-#include <sys/wait.h>  /* for wait */
 
 typedef struct timeval timeval;
 

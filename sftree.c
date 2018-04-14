@@ -17,6 +17,29 @@
 */
 #include "sftree.h"
 
+/* AUXILLARY FUNCTION */
+
+void color(char *color)
+{
+    if (!strcmp(color, "RED"))
+        printf(RED);
+    else if (!strcmp(color, "BLUE"))
+        printf(BLUE);
+    else if (!strcmp(color, "GREEN"))
+        printf(GREEN);
+    else if (!strcmp(color, "YELLOW"))
+        printf(YELLOW);
+    else if (!strcmp(color, "MAGENTA"))
+        printf(MAGENTA);
+    else if (!strcmp(color, "CYAN"))
+        printf(CYAN);
+}
+
+void reset()
+{
+    printf("\033[0m");
+}
+
 buffer sf_string2buffer(char* items)
 {
     int i = 0, t = 0, len = strlen(items) + 1, cnt = 0, sz, arr[DICT_SIZE], val;
@@ -64,7 +87,6 @@ buffer sf_string2buffer(char* items)
     return itemsets;
 }
 
-
 char* sf_get_trans(int rank)
 {
     FILE *fp;
@@ -73,7 +95,7 @@ char* sf_get_trans(int rank)
     char *fname = concat("result_", file);
 
     char *buffer = 0;
-    long length;
+    unsigned long length;
     FILE *f = fopen(fname, "rb");
 
     if (f)
@@ -92,7 +114,6 @@ char* sf_get_trans(int rank)
     return buffer;
 }
 
-
 double get_currtime()
 {
     gettimeofday(&global_timer, NULL);
@@ -100,6 +121,8 @@ double get_currtime()
     // printf("global time = %lf\n", global_timer.tv_sec-origin.tv_sec + global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0);
     return ((global_timer.tv_sec-origin.tv_sec) + (global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0))/60.0;
 }
+
+
 
 /* ASCENDING order here*/
 int sf_cmpfunc (const void * a, const void * b)
@@ -121,6 +144,7 @@ int sf_is_equal(data d1, data d2)
     return 1;
 }
 
+
 // Initialiazing an empty forest
 sforest sf_create_sforest() // seen
 {
@@ -132,6 +156,7 @@ sforest sf_create_sforest() // seen
     }
     return forest;
 }
+
 
 // Smart initialization of root node of a BL-tree
 sfnode sf_create_sfnode(data_type dat) // seen
@@ -1645,7 +1670,7 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
             }
             if(node->fptree != NULL)
             {
-                printf("\n****mining this FP-tree****\n");
+                // printf("\n****mining this FP-tree****\n");
                 // sf_print_tree(node->fptree->root);
                 // printf("****HEADER TABLE:****\n");
                 // sf_print_header_table(node->fptree->head_table);
@@ -1699,8 +1724,10 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern, int rank)
     int* collected = calloc(DICT_SIZE, sizeof(int));
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     // assert(tid*minsup > 0);
-    fprintf(stdout, "mining tree%d with pattern: %d, support: %lf, MINSUP = %lf, tid = %d\n",
+    color("BLUE");
+    fprintf(stdout, "MINING TREE %d WITH PATTERN: %d, SUPPORT: %lf, MINSUP = %lf, TID = %d\n",
             rank, pattern, tid*minsup, minsup, tid);
+    reset();
 
     for(idx = 0; idx < DICT_SIZE; idx++)
     {

@@ -44,8 +44,10 @@ int main(int argc, char* argv[])
         exit(-1);
     }
 
-    FILE *sf, *poisson; // files to read the data set and poisson values
-    int sz, cnt, tid = 1, pattern = 0, no_patterns = 0;
+    FILE *sf, *poisson, *state; // files to read the data set and poisson values.
+    int sz, cnt, tid = 1, pattern = 0, no_patterns = 0, transactions = 0;
+    long pos = 0;
+
     sf = fopen("intermediate", "w");
     fclose(sf);
     sf = fopen("output", "w");
@@ -103,6 +105,21 @@ int main(int argc, char* argv[])
         fprintf(stdout, "invalid file\n");
         exit(0);
     }
+
+    char file[33];
+    sprintf(file, "%d", RANK);
+    char *fname = concat(".state_", file);
+
+    state = fopen(fname, "r");
+    if (state == NULL)
+    {
+        state = fopen(".state_1", "w");
+        fprintf(state, "%ld", pos);
+    }
+    fscanf(state, "%ld", &pos);
+    fclose(state);
+    state = fopen(fname, "w");
+
     HSIZE = H_FRACTION*DICT_SIZE; // size of the hash table computed here
 
     fprintf(stdout, "\
@@ -114,22 +131,25 @@ int main(int argc, char* argv[])
             <DECAY>:            %lf\n\
             <EPS>:              %lf\n\
             <RATE_PARAMETER>:   %lf\n\
+            <RANK>:             %d\n\
             <CARRY>             %lf\n\
             <GAMMA>             %lf\n\
             <THETA>:            %lf\n\
             <TIME_MINE>:        %lf\n\
             (S/s)<SUP>:         %lf\n\
-            <LEAVE_LVL>:        %d\n",\
-            DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,\
-            DECAY, EPS, RATE_PARAMETER,\
-            CARRY, GAMMA, THETA, TIME_MINE, SUP,\
+            <LEAVE_LVL>:        %d\n",
+            DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,
+            DECAY, EPS, RATE_PARAMETER, RANK,
+            CARRY, GAMMA, THETA, TIME_MINE, SUP,
             LEAVE_LVL);
 
     srand(time(NULL));
     poisson = fopen("poisson.ignore", "r");
     if(poisson == NULL)
     {
+        color("RED");
         printf("Please create poisson.ignore!\n");
+        reset();
         exit(0);
     }
 
@@ -156,8 +176,9 @@ int main(int argc, char* argv[])
     // stream->itemset->next = NULL;
     stream->next = NULL;
     end = stream;
+    fseek(sf, pos, SEEK_SET);
 
-    while(fscanf(sf, "%d", &sz) != EOF)
+    while(transactions < BATCH || fscanf(sf, "%d", &sz) != EOF)
     {
         data d = malloc((sz+2)*sizeof(int));
         d[0] = 0;
@@ -172,21 +193,24 @@ int main(int argc, char* argv[])
         }
 
         d = sf_sort_data(d); // canonical sort of incoming trans
-        // sf_print_data_node(d);
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
         fscanf(poisson, "%lf", &delay_time);
         end->freq = delay_time / RATE_PARAMETER; /* this time is in milli-seconds, reusing the freq field to store delay_time*/
         end->next = NULL;
+        transactions++;
     }
 
+    fprintf(state, "%ld", ftell(sf) + 1);
+    fclose(state);
     fclose(sf);
     end = stream;
     stream = stream->next;
-    // sf_print_buffer(stream);
+
     // sf_delete_data_node(end->itemset); 
-    // deleting the head of itemset LL which was dummy.
+
+    /* deleting the head of itemset LL which was dummy. */
     free(end);
     /* Stream has been read */
 
@@ -217,17 +241,17 @@ int main(int argc, char* argv[])
         // sf_prune(forest, tid);
         // break;
         /* intermittent pruning */
-        if(tid%BATCH == 0)
-        {
-            // fprintf(stdout, "pruning at tid = %d\n", tid);
-            gettimeofday(&t3, NULL);
-            // sf_empty_buffers(forest, tid);
-            sf_prune(forest, tid);
-            gettimeofday(&t4, NULL);
-            elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
-            elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-            prune_time += elapsedTime;
-        }
+        // if(tid%BATCH == 0)
+        // {
+        //     // fprintf(stdout, "pruning at tid = %d\n", tid);
+        //     gettimeofday(&t3, NULL);
+        //     // sf_empty_buffers(forest, tid);
+        //     sf_prune(forest, tid);
+        //     gettimeofday(&t4, NULL);
+        //     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
+        //     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
+        //     prune_time += elapsedTime;
+        // }
         tid++;
     }
 
@@ -289,7 +313,8 @@ int main(int argc, char* argv[])
     // sf_print_sforest(forest);
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-    fprintf(stdout, "total time taken to empty/prune the buffers = %lf ms\n", elapsedTime);
+    fprintf(stdout, "TOTAL TIME TAKEN TO EMPTY/PRUNE THE BUFFERS IN TREE %d= %lf ms\
+                     AFTER TID = %d\n", RANK, elapsedTime, tid);
 
     gettimeofday(&t1, NULL);
     no_patterns = sf_mine_frequent_itemsets(forest, tid, -2, RANK); // mining for frequent patterns
@@ -297,8 +322,10 @@ int main(int argc, char* argv[])
 
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-    fprintf(stdout, "(%d freq. patterns) total time taken to mine the sf tree = %lf ms\n",\
-            no_patterns, elapsedTime);
+    color("GREEN");
+    fprintf(stdout, "(%d freq. patterns) TOTAL TIME TAKEN TO MINE BLTREE %d = %lf ms\n",\
+            no_patterns, RANK, elapsedTime);
+    reset();
 
     fflush(stdout);
     // to do final free
