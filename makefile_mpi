@@ -32,4 +32,4 @@ pattern_tree.o: pattern_tree.c
 	$(CC) -c $(FLAG) pattern_tree.c -lm
 
 clean:
-	rm -f bltree *.o *~ *.h.gch output intermediate
+	rm -f bltree *.o *~ *.h.gch output intermediate .state_* result_*

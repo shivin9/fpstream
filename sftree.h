@@ -75,7 +75,8 @@ int sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern
 int sf_mine_frequent_itemsets(sforest, int tid, int pattern, int rank);
 void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, bufferTable collected, int tid, double minsup);
 int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern, int tid, int rank);
-
+int sf_peel_tree_helper(sfnode node, int *collected, int end, int rank);
+int sf_peel_tree(sforest forest, int rank);
 
 /* PRINTING FUNCTIONS*/
 void sf_print_sfnode(sfnode);

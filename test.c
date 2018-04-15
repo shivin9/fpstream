@@ -17,15 +17,6 @@ double DECAY = 1.0, EPS = 0.0, THETA = 0.1, GAMMA = 2.0,
        H_FRACTION = 0.1, RATE_PARAMETER = 0.1, CARRY = 1.0,
        TIME_MINE = 1000.0;
 
-void sf_print_data_node(data d)
-{
-    int i;
-    for (i = 0; i < d[1]; i++)
-    {
-        printf("%d ", d[first(d) + i]);
-    }
-    printf("\n");
-}
 
 int main()
 {
@@ -37,7 +28,7 @@ int main()
     state = fopen(".state_1", "r");
     if (state == NULL)
     {
-        state = fopen("/state_1", "w");
+        state = fopen(".state_1", "w");
         fprintf(state, "%ld", pos);
     }
 
@@ -68,6 +59,8 @@ int main()
     fseek(sf, pos, SEEK_SET);
     printf("seek now at %ld\n", ftell(sf));
 
+    sforest forest = sf_create_sforest(); // initializing the forest and creating root nodes of all the trees.
+
     while (transactions < BATCH && fscanf(sf, "%d", &sz) != EOF)
     {
         // printf("transactions = %d, sz = %d\n", transactions, sz);
@@ -82,7 +75,10 @@ int main()
             d[1]++;
         }
 
-        // d = sf_sort_data(d); // canonical sort of incoming trans
+        d = sf_sort_data(d); // canonical sort of incoming trans
+        printf("inserting transaction: ");
+        sf_print_data_node(d);
+        sf_prefix_insert_itemset(forest, d, 1, transactions);
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
@@ -91,6 +87,7 @@ int main()
         end->next = NULL;
         transactions++;
     }
+    sf_peel_tree(forest, -1);
 
     printf("(ftid: %d, ltid: %lf); freq = %lf --> ", end->ftid, end->ltid, end->freq);
     sf_print_data_node(end->itemset);
