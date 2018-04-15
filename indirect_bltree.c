@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
                         // data d = sf_sort_data(trans[j].itemset); // canonical sort of incoming trans
                         sf_prefix_insert_itemset(forest, trans[j].itemset, trans[j].freq, batch_ready);
                     }
-                    MPI_SEND("processed", 10, MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+                    MPI_Send("processed", 10, MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
                     color("RED");
                     printf("Inserted %d itemsets in the main forest from slave %d!\n", item_count, i);
                 }
@@ -377,6 +377,7 @@ int main(int argc, char* argv[])
     {
         long pos = 0;
         int row_rank, row_size, pipe_idx;
+        MPI_Status status;
 
         MPI_Comm_split(MPI_COMM_WORLD, 1, world_rank, &MPI_MASTER);
 
@@ -392,11 +393,6 @@ int main(int argc, char* argv[])
         printf("cmd for process %d = %s", world_rank, cmd);
         reset();
 
-        struct timeval t1, t2, t3, t4;
-        double elapsedTime, sum = 0, totaltime = 0, prune_time = 0, insertionTime = 0, delay_time;
-        gettimeofday(&origin, NULL);
-        gettimeofday(&t1, NULL);
-
         int i, j, total_items, item_no = 0, fetched_items;
         printf("\n+++\nMINING ITEMS FROM SLAVE TREE %d with freq = %lf\n+++\n", world_rank, item_no*EPS);
         // sf = fopen(argv[world_rank], "r"); // input tells which tree to read from which file
@@ -406,8 +402,9 @@ int main(int argc, char* argv[])
         char *fname = concat(".state_", state_file);
         FILE *state = fopen(fname, "r");
 
+        child_status = -1, parent_status = 1;
+
         omp_set_num_threads(2);
-        child_status = 0, parent_status = 0;
         #pragma omp parallel
         {
             int threadId = omp_get_thread_num();
@@ -433,7 +430,9 @@ int main(int argc, char* argv[])
                     }
 
                     child_status = 1;
-                    printf("RANK = %d, pos = %ld, mined batch = %d", world_rank, pos, btch++);
+                    parent_status = 0;
+                    printf("parent_status = %d\n", parent_status);
+                    // printf("RANK = %d, pos = %ld, mined batch = %d\n", world_rank, pos, btch++);
 
                     state = fopen(fname, "r");
                     fscanf(state, "%ld", &pos);
@@ -451,7 +450,10 @@ int main(int argc, char* argv[])
                 // fscanf(state, "%ld", &pos);
                 while (1) /* execute the parent process till state != -1 */
                 {
-                    while(child_status == -1);
+                    while(child_status == -1)
+                    {
+                        printf("child = -1\n");
+                    }
                     if(child_status == 2)
                     {
                         color("GREEN");
@@ -474,7 +476,7 @@ int main(int argc, char* argv[])
                         // sf_delete_sforest(forest[world_rank]);
                         // forest[world_rank] = sf_create_sforest();
 
-                        // printf("size of file %ld sent by slave %d\n", size, world_rank);
+                        printf("size of file %ld sent by slave %d\n", size, world_rank);
                         color("YELLOW");
                         if (size < BATCH) /* size of file is atleast BATCH */
                         {
@@ -487,14 +489,16 @@ int main(int argc, char* argv[])
                         MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
                         MPI_Barrier(MPI_MASTER);
                         MPI_Recv(signal_from_master, 10000000, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
-                        if (!strcmp(signal_from_master, "processed"))
+                        if (strcmp(signal_from_master, "processed"))
                         {
-                            read
+                            printf("MASTER finished with processing the data I(%d) sent\n", world_rank);
+                            parent_status = 1;
+                            signal_from_master = "";
                         }
-                        parent_status = 1;
                     }
                 }
             }
+        }
     }
     fflush(stdout);
     // to do final free
