@@ -3,7 +3,7 @@
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100,\
     LEAVE_AS_BUFFER = 0, LEAVE_LVL = 3, BUFFER_SIZE = 100,\
-    RANK = 0, STREAMS = 0;
+    RANK = 1, STREAMS = 0;
 
 /* structures for conducting tests*/
 unsigned int MAX_BUFFER_SIZE[10], CNT_BUFFER_SIZE[10],\
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
     state = fopen(fname, "r");
     if (state == NULL)
     {
-        state = fopen(".state_1", "w");
+        state = fopen(fname, "w");
         fprintf(state, "%ld", pos);
     }
     fscanf(state, "%ld", &pos);
@@ -126,13 +126,13 @@ int main(int argc, char* argv[])
         fclose(state);
         exit(0);
     }
-
+    
     fclose(state);
     state = fopen(fname, "w");
 
     HSIZE = H_FRACTION*DICT_SIZE; // size of the hash table computed here
 
-    fprintf(stdout, "\
+    /* fprintf(stdout, "\
             The parameters are:-\n\
             <DICT_SIZE>:        %d\n\
             <HSIZE>:            %d\n\
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
             DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,
             DECAY, EPS, RATE_PARAMETER, RANK,
             CARRY, GAMMA, THETA, TIME_MINE, SUP,
-            LEAVE_LVL);
+            LEAVE_LVL); */
 
     srand(time(NULL));
     poisson = fopen("poisson.ignore", "r");
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
     end = stream;
     fseek(sf, pos, SEEK_SET);
 
-    while(transactions < BATCH || fscanf(sf, "%d", &sz) != EOF)
+    while(transactions < BATCH && (fscanf(sf, "%d", &sz) != EOF))
     {
         data d = malloc((sz+2)*sizeof(int));
         d[0] = 0;
@@ -210,6 +210,7 @@ int main(int argc, char* argv[])
         end->next = NULL;
         transactions++;
     }
+    // printf("transactions = %d\n", transactions);
 
     if (size == ftell(sf))
         fprintf(state, "%ld", -1L);
@@ -345,5 +346,5 @@ int main(int argc, char* argv[])
     // sf_delete_sforest(forest);
     // free(forest);
     // // sf_delete_data_node(sorted);
-    return 0;
+    return 1;
 }

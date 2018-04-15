@@ -37,7 +37,7 @@ int main()
     state = fopen(".state_1", "r");
     if (state == NULL)
     {
-        state = fopen(".state_1", "w");
+        state = fopen("/state_1", "w");
         fprintf(state, "%ld", pos);
     }
 
