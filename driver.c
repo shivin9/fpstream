@@ -327,8 +327,8 @@ int main(int argc, char* argv[])
     // sf_print_sforest(forest);
     elapsedTime = (t4.tv_sec - t3.tv_sec) * 1000.0;
     elapsedTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
-    fprintf(stdout, "TOTAL TIME TAKEN TO EMPTY/PRUNE THE BUFFERS IN TREE %d= %lf ms\
-                     AFTER TID = %d\n", RANK, elapsedTime, tid);
+    // fprintf(stdout, "TOTAL TIME TAKEN TO EMPTY/PRUNE THE BUFFERS IN TREE %d= %lf ms\
+    //                  AFTER TID = %d\n", RANK, elapsedTime, tid);
 
     gettimeofday(&t1, NULL);
     no_patterns = sf_mine_frequent_itemsets(forest, tid, -2, RANK); // mining for frequent patterns
