@@ -1,5 +1,6 @@
 #include "sfstream.h"
-#include<string.h>
+#include <string.h>
+#include <stdlib.h>
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100, RANK = 1,
     LEAVE_AS_BUFFER = 0, LEAVE_LVL = INT_MAX, BUFFER_SIZE = 100;
@@ -17,6 +18,72 @@ double DECAY = 1.0, EPS = 0.0, THETA = 0.1, GAMMA = 2.0,
        H_FRACTION = 0.1, RATE_PARAMETER = 0.1, CARRY = 1.0,
        TIME_MINE = 1000.0;
 
+void initialize_status_files(int rank)
+{
+    char state_file[33];
+    sprintf(state_file, "%d", rank);
+
+    char *child_status = concat(".child_status_", state_file);
+    FILE *child = fopen(child_status, "w");
+    fprintf(child, "%d", 0);
+
+    char *parent_status = concat(".parent_status_", state_file);
+    FILE *parent = fopen(parent_status, "w");
+
+    fprintf(parent, "%d", 1);
+    fclose(child);
+    fclose(parent);
+}
+
+int read_status(int rank, char *whose)
+{
+    int status = -1;
+    if (!strcmp(whose, "child"))
+    {
+        char state_file[33];
+        sprintf(state_file, "%d", rank);
+        char *child_status = concat(".child_status_", state_file);
+
+        FILE *child = fopen(child_status, "r");
+        fscanf(child, "%d", &status);
+        fclose(child);
+    }
+    else if (!strcmp(whose, "parent"))
+    {
+        char state_file[33];
+        sprintf(state_file, "%d", rank);
+        char *parent_status = concat(".parent_status_", state_file);
+
+        FILE *parent = fopen(parent_status, "r");
+        fscanf(parent, "%d", &status);
+        fclose(parent);
+    }
+    return status;
+}
+
+void write_status(int status, int rank, char *whose)
+{
+    if (!strcmp(whose, "child"))
+    {
+        char state_file[33];
+        sprintf(state_file, "%d", rank);
+        char *child_status = concat(".child_status_", state_file);
+
+        FILE *child = fopen(child_status, "w");
+        fprintf(child, "%d", status);
+        fclose(child);
+    }
+    else if (!strcmp(whose, "parent"))
+    {
+        char state_file[33];
+        sprintf(state_file, "%d", rank);
+        char *parent_status = concat(".parent_status_", state_file);
+
+        FILE *parent = fopen(parent_status, "w");
+        fprintf(parent, "%d", status);
+        fclose(parent);
+    }
+}
 
 int main()
 {
@@ -76,8 +143,8 @@ int main()
         }
 
         d = sf_sort_data(d); // canonical sort of incoming trans
-        printf("inserting transaction: ");
-        sf_print_data_node(d);
+        // printf("inserting transaction: ");
+        // sf_print_data_node(d);
         sf_prefix_insert_itemset(forest, d, 1, transactions);
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
@@ -100,7 +167,21 @@ int main()
     }
     else
         fprintf(state, "%ld", ftell(sf)+1);
+
     fclose(state);
     fclose(sf);
     end = stream;
+    initialize_status_files(RANK);
+    int child_status = read_status(RANK, "child");
+    int parent_status = read_status(RANK, "parent");
+
+    printf("child = %d, parent = %d\n", child_status, parent_status);
+
+    write_status(1, RANK, "child");
+    write_status(0, RANK, "parent");
+
+    child_status = read_status(RANK, "child");
+    parent_status =  read_status(RANK, "parent");
+
+    printf("child = %d, parent = %d\n", child_status, parent_status);
 }

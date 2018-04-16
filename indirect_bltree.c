@@ -97,6 +97,73 @@ char *build_command(int argc, char *argv[], int rank)
     return (char *)str_builder_peek(sb);
 }
 
+void initialize_status_files(int rank)
+{
+    char state_file[33];
+    sprintf(state_file, "%d", rank);
+
+    char *child_status = concat(".child_status_", state_file);
+    FILE *child = fopen(child_status, "w");
+    fprintf(child, "%d", 0);
+
+    char *parent_status = concat(".parent_status_", state_file);
+    FILE *parent = fopen(parent_status, "w");
+
+    fprintf(parent, "%d", 1);
+    fclose(child);
+    fclose(parent);
+}
+
+int read_status(int rank, char* whose)
+{
+    int status = -1;
+    if(!strcmp(whose, "child"))
+    {
+        char state_file[33];
+        sprintf(state_file, "%d", rank);
+        char *child_status = concat(".child_status_", state_file);
+
+        FILE *child = fopen(child_status, "r");
+        fscanf(child, "%d", &status);
+        fclose(child);
+    }
+    else if(!strcmp(whose, "parent"))
+    {
+        char state_file[33];
+        sprintf(state_file, "%d", rank);
+        char *parent_status = concat(".parent_status_", state_file);
+
+        FILE *parent = fopen(parent_status, "r");
+        fscanf(parent, "%d", &status);
+        fclose(parent);
+    }
+    return status;
+}
+
+void write_status(int status, int rank, char* whose)
+{
+    if (!strcmp(whose, "child"))
+    {
+        char state_file[33];
+        sprintf(state_file, "%d", rank);
+        char *child_status = concat(".child_status_", state_file);
+
+        FILE *child = fopen(child_status, "w");
+        fprintf(child, "%d", status);
+        fclose(child);
+    }
+    else if (!strcmp(whose, "parent"))
+    {
+        char state_file[33];
+        sprintf(state_file, "%d", rank);
+        char *parent_status = concat(".parent_status_", state_file);
+
+        FILE *parent = fopen(parent_status, "w");
+        fprintf(parent, "%d", status);
+        fclose(parent);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     if (argc == 1)
@@ -127,12 +194,6 @@ int main(int argc, char* argv[])
     fclose(sf);
     sf = fopen("result_0", "w");
     fclose(sf);
-    
-    
-    // sfstream(argv[1]);
-    // strcpy(OUT_FILE, argv[2]); // the name of the output file is being copied.
-    // sf = fopen(OUT_FILE, "w");
-    // fclose(sf);
     
     char *s, output;
     
@@ -373,7 +434,7 @@ int main(int argc, char* argv[])
     else if (world_rank > 0) // any tree
     {
         long pos = 0;
-        int row_rank, row_size, pipefd[2];
+        int row_rank, row_size;
 
         MPI_Comm_split(MPI_COMM_WORLD, 1, world_rank, &MPI_MASTER);
 
@@ -403,13 +464,12 @@ int main(int argc, char* argv[])
         char *fname = concat(".state_", state_file);
         FILE *state = fopen(fname, "r");
 
-        pipe(pipefd);
+        initialize_status_files(world_rank);
         pid_t pid = fork();
         /* execute the child process till the time all batches have not been consumed */
         if (pid == 0)
         {
-            close(pipefd[0]); /* close the reading end */
-            int status = 0;
+            int child_status = 0, parent_status = 1;
 
             if (state == NULL)
             {
@@ -425,12 +485,13 @@ int main(int argc, char* argv[])
             int btch = 0;
             while (pos != -1L)
             {
-                status = -1;
-                write(pipefd[1], &status, sizeof(status));
+                do
+                {
+                    parent_status = read_status(world_rank, "parent");
+                } while (parent_status == 0);
+                write_status(0, world_rank, "child");
                 system(cmd);
-
-                status = 1;
-                write(pipefd[1], &status, sizeof(status));
+                write_status(1, world_rank, "child");
 
                 state = fopen(fname, "r");
                 fscanf(state, "%ld", &pos);
@@ -438,55 +499,49 @@ int main(int argc, char* argv[])
                 printf("pos = %ld, mined batch = %d\n", pos, btch++);
             }
             printf("\n(+)(+)(+)ALL BATCHES HAVE BEEN MINED!!(+)(+)(+)\n");
-            status = 2;
-            write(pipefd[1], &status, sizeof(status));
+            write_status(2, world_rank, "child");
         }
         else
         {
-            int status, exit_status = 0;
-            close(pipefd[1]); /* close the writing end */
+            int child_status = 0, parent_status = 1;
             // fscanf(state, "%ld", &pos);
             while(1) /* execute the parent process till state != -1 */
             {
-                read(pipefd[0], &status, sizeof(status));
-                while(status != 1)
+                do
                 {
-                    read(pipefd[0], &status, sizeof(status));
-                    if (status == 2)
+                    child_status = read_status(world_rank, "child");
+                    if (child_status == 2)
                     {
                         color("GREEN");
                         printf("ALL BATCHES READ IN SLAVE %d\n", world_rank);
                         printf("slave %d sent a FIN signal\n", world_rank);
                         MPI_Send("fin", 4, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
-                        exit_status = 1;
                         reset();
                         break;
                         // exit(0);
                     }
-                }
-                if(exit_status)
-                    break;
+                } while (child_status == 0);
 
-                printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
+                write_status(0, world_rank, "parent") ;
+
+                printf("BATCH MINING COMPLETED IN SLAVE%d! PARENT WILL NOW SEND THE ITEMS TO MASTER\n", world_rank);
                 char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
                 unsigned long size = strlen(items) + 1;
-
-                // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
-                // sf_delete_sforest(forest[world_rank]);
-                // forest[world_rank] = sf_create_sforest();
-
                 printf("size of file %ld sent by slave %d\n", size, world_rank);
                 color("YELLOW");
                 if (size < BATCH) /* size of file is atleast BATCH */
                 {
                     printf("file = %s\n", items);
-                    break;
+                    // continue;
+                    // break;
                 }
                 reset();
                 
                 MPI_Barrier(MPI_MASTER);
                 MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
                 MPI_Barrier(MPI_MASTER);
+                // sleep(1);
+                write_status(1, world_rank, "parent");
             }
         }
 
