@@ -1,0 +1,29 @@
+1) Make the Any-FI executable using the command 'make driver=driver'. It will create an executable called 'bltree'
+2) Run 'bltree' as follows:-
+                            ./bltree <INPUT_filename><OUTPUT_filename>
+                                            -D<DICT_SIZE>
+                                            -B<BATCH_SIZE>
+                                            -d<DECAY>
+                                            -e<EPS>
+                                            -c<CARRY>
+                                            -t<THETA>
+                                            -T<TIME_MINE>
+                                            -g<GAMMA>
+                                            -(S/s)<SUP>
+                                            -m<min_sup_semifreq>
+                                            -M<min_sup_freq>
+                                            -L<LEAVE_LVL>
+                                            -B<BUFFER_SIZE>
+                                            -H<SIZEOF_HASH_TABLE>
+                                            -p<pattern>
+ eg.
+'./bltree ./data/0.1kD100T10.data temp.ignore -e0.005 -d1.0 -D100 -p2 -s0.01 -L4 -B10000 -r10 -t0.05 -b100 -H0.4'
+
+3) The pattern variable can take 3 values 0, 1 and 2.
+    0 => Print itemsets to file "intermediate" mined with frequency "MINSUP_SEMIFREQ"
+    1 => Print itemsets to file "output" mined with frequency "MINSUP_FREQ"
+    2 => Print itemsets to file <OUTPUT_filename> mined with frequency "SUP"
+
+4) To run, log and evaluate the results, run the script serialProf.sh as follows './serialProf.sh 10kD100T10 1.0 0.01 100 0.05 0.1 3 40 100'. See the file further details
+
+5) Results appear in the folder 'temp'

@@ -10,6 +10,7 @@ def main():
         vals = f.read()
 
     gnd_trth = args[2]
+    gnd = ""
     missing = open(gnd_trth[:-4] + "_missing.ignore", 'w')
     extra = open(gnd_trth[:-4] + "_extra.ignore", 'w')
 

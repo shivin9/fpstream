@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 {
     if(argc == 1)
     {
-        fprintf(stdout, "format is ./exe <INPUT_filename><OUTPUT_filename>\n\
+        fprintf(stdout, "format is ./bltree <INPUT_filename><OUTPUT_filename>\n\
                 -D<DICT_SIZE>\n\
                 -B<BATCH_SIZE>\n\
                 -d<DECAY>\n\
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
     }
 
     FILE *sf, *poisson; // files to read the data set and poisson values
-    int sz, cnt, tid = 1, pattern = 0, no_patterns = 0;
+    int sz, cnt, tid = 1, pattern = 2, no_patterns = 0;
     sf = fopen("intermediate", "w");
     fclose(sf);
     sf = fopen("output", "w");
@@ -110,6 +110,7 @@ int main(int argc, char* argv[])
             <HSIZE>:            %d\n\
             <BATCH_SIZE>:       %d\n\
             <BUFFER_SIZE>:      %d\n\
+            <PATTERN>:          %d\n\
             <DECAY>:            %lf\n\
             <EPS>:              %lf\n\
             <RATE_PARAMETER>:   %lf\n\
@@ -120,12 +121,19 @@ int main(int argc, char* argv[])
             (S/s)<SUP>:         %lf\n\
             <LEAVE_LVL>:        %d\n",\
             DICT_SIZE, HSIZE, BATCH, BUFFER_SIZE,\
-            DECAY, EPS, RATE_PARAMETER,\
+            pattern, DECAY, EPS, RATE_PARAMETER,\
             CARRY, GAMMA, THETA, TIME_MINE, SUP,\
             LEAVE_LVL);
 
     srand(time(NULL));
     poisson = fopen("poisson.ignore", "r");
+    if(poisson == NULL)
+    {
+        printf("Please create the poisson.ignore file as follows:-\n");
+        printf("gcc poisson.c -lm\n");
+        printf("./a.out > poisson.ignore\n");
+        exit(0);
+    }
 
     // long unsigned size;
     sforest forest = NULL;
