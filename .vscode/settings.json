@@ -1,5 +1,9 @@
 {
     "files.associations": {
-        "istream": "c"
-    }
+        "istream": "c",
+        "type_traits": "c",
+        "sfstream.h": "c",
+        "initializer_list": "c"
+    },
+    "C_Cpp.dimInactiveRegions": false
 }

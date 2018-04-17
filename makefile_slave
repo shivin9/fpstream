@@ -1,0 +1,33 @@
+CC=gcc
+PROF=-g -pg
+OPT=-Ofast
+FLAG=$(PROF)
+
+
+slave:	driver.o sfstream.o qstack.o sftree.o pattern_tree.o 
+	$(CC) $(FLAG) -o slave sfstream.o sftree.o qstack.o pattern_tree.o driver.o def.h -lm -fopenmp
+
+#driver: driver.o sftree.o qstack.o
+#	$(CC) $(FLAG) -o driver pattern_tree.o sftree.o qstack.o driver.o pattern_tree.h -lm
+
+driver.o: driver.c
+	$(CC) -c $(FLAG) driver.c -lm -fopenmp
+
+
+mpi_bltree.o: mpi_bltree.c
+	$(CC) -c $(FLAG) mpi_bltree.c -lm -fopenmp
+
+sftree.o: sftree.c
+	$(CC) -c $(FLAG) sftree.c -lm
+
+sfstream.o: sfstream.c
+	$(CC) -c $(FLAG) sfstream.c -lm
+
+qstack.o: qstack.c
+	$(CC) -c $(FLAG) qstack.c -lm
+
+pattern_tree.o: pattern_tree.c
+	$(CC) -c $(FLAG) pattern_tree.c -lm
+
+clean:
+	rm -f bltree *.o *~ *.h.gch output intermediate

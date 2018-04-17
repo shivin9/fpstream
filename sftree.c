@@ -1,22 +1,46 @@
 /*
-1. When deleting a child of a node, fix the child_list as well as the item_list
-2. When removing nodes, also fix the header table
-3. Header table is now not being recreated from scratch, it is being updated periodically
-    using the sf_update_header_table function
-4. But the tree is being constructed ie. next_similar and prev_similar pointers are being
-    given periodically just before pruning
-5. Decide whether a node can have both a buffer fptree along with prev. opened transactions
-    or only a fptree
-6. Header tables are ignorant of the data item present in the node
-7. Have -1 as the root node surely
-8. FPTrees have child as linked list but header table is still an array
-9. The header table is updated just before pruning the tree
-10. Implementing lazy buffer allocation
-11. If some node's buffer goes fully empty, don't delete the hbuffer field; we'll use ot later
-12. Need to take down buffered transactions in a bunch now
+    1. When deleting a child of a node, fix the child_list as well as the item_list
+    2. When removing nodes, also fix the header table
+    3. Header table is now not being recreated from scratch, it is being updated periodically
+        using the sf_update_header_table function
+    4. But the tree is being constructed ie. next_similar and prev_similar pointers are being
+        given periodically just before pruning
+    5. Decide whether a node can have both a buffer fptree along with prev. opened transactions
+        or only a fptree
+    6. Header tables are ignorant of the data item present in the node
+    7. Have -1 as the root node surely
+    8. FPTrees have child as linked list but header table is still an array
+    9. The header table is updated just before pruning the tree
+    10. Implementing lazy buffer allocation
+    11. If some node's buffer goes fully empty, don't delete the hbuffer field; we'll use ot later
+    12. Need to take down buffered transactions in a bunch now
 */
 #include "sftree.h"
 
+/* AUXILLARY FUNCTION */
+
+void color(char *color)
+{
+    if (!strcmp(color, "RED"))
+        printf(RED);
+    else if (!strcmp(color, "BLUE"))
+        printf(BLUE);
+    else if (!strcmp(color, "GREEN"))
+        printf(GREEN);
+    else if (!strcmp(color, "YELLOW"))
+        printf(YELLOW);
+    else if (!strcmp(color, "MAGENTA"))
+        printf(MAGENTA);
+    else if (!strcmp(color, "CYAN"))
+        printf(CYAN);
+}
+
+void reset()
+{
+    printf("\033[0m");
+}
+
+/* reads transaction format <len> <i1>, <i2>,...,<in> <freq> */
 buffer sf_string2buffer(char* items)
 {
     int i = 0, t = 0, len = strlen(items) + 1, cnt = 0, sz, arr[DICT_SIZE], val;
@@ -64,7 +88,6 @@ buffer sf_string2buffer(char* items)
     return itemsets;
 }
 
-
 char* sf_get_trans(int rank)
 {
     FILE *fp;
@@ -73,7 +96,7 @@ char* sf_get_trans(int rank)
     char *fname = concat("result_", file);
 
     char *buffer = 0;
-    long length;
+    unsigned long length;
     FILE *f = fopen(fname, "rb");
 
     if (f)
@@ -92,14 +115,15 @@ char* sf_get_trans(int rank)
     return buffer;
 }
 
+// double get_currtime()
+// {
+//     gettimeofday(&global_timer, NULL);
+//     // printf("origin time = %lf\n", origin.tv_sec+origin.tv_usec/1000000.0);
+//     // printf("global time = %lf\n", global_timer.tv_sec-origin.tv_sec + global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0);
+//     return ((global_timer.tv_sec-origin.tv_sec) + (global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0))/60.0;
+// }
 
-double get_currtime()
-{
-    gettimeofday(&global_timer, NULL);
-    // printf("origin time = %lf\n", origin.tv_sec+origin.tv_usec/1000000.0);
-    // printf("global time = %lf\n", global_timer.tv_sec-origin.tv_sec + global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0);
-    return ((global_timer.tv_sec-origin.tv_sec) + (global_timer.tv_usec/1000000.0-origin.tv_usec/1000000.0))/60.0;
-}
+
 
 /* ASCENDING order here*/
 int sf_cmpfunc (const void * a, const void * b)
@@ -121,6 +145,7 @@ int sf_is_equal(data d1, data d2)
     return 1;
 }
 
+
 // Initialiazing an empty forest
 sforest sf_create_sforest() // seen
 {
@@ -132,6 +157,7 @@ sforest sf_create_sforest() // seen
     }
     return forest;
 }
+
 
 // Smart initialization of root node of a BL-tree
 sfnode sf_create_sfnode(data_type dat) // seen
@@ -913,7 +939,7 @@ int sf_insert_itemset_helper(sfnode node, int root_data, int tid, double total_t
         /* this is to insert the transaction in the fptree*/
         if(current_node->fptree == NULL && (sf_get_height(current_node) >= LEAVE_LVL) /*some decision*/)
         {
-            printf("shouldn't print this!!\n\n");
+            // printf("shouldn't print this!!\n\n");
             /* this is because we dont want the children array in fp-tree nodes*/
             current_node->fptree = sf_create_fptree(DICT_SIZE + 1);
             current_node->fptree->root->data_item = current_node->data_item;
@@ -1428,6 +1454,7 @@ void sf_prefix_insert_itemset(sforest forest, data d, double freq, int tid)
     root->freq += freq;
 }
 
+
 /* Just mine f2 and insert the frequent items in f1. After merging, decay and prune the tree. */
 sforest sf_merge_tree(sforest f1, sforest f2, int tid)
 {
@@ -1436,11 +1463,16 @@ sforest sf_merge_tree(sforest f1, sforest f2, int tid)
 
     /* it will store FIs in file named results_{-1} */
     /* mining for frequent patterns with tid = 0 to get all items, frequent or not */
-    int no_patterns = sf_mine_frequent_itemsets(f2, 0, -2, -1); 
+    // color("RED");
+    // printf("\nin merge\n");
+    // reset();
+
+    int no_patterns = sf_peel_tree(f2, -1);
 
     /* now read the patterns from the file */
     char* trans_str = sf_get_trans(-1);
     buffer items = sf_string2buffer(trans_str);
+    sf_print_buffer(items);
     /* now do a prefix insertion */
     int item_count = items[0].ftid, i;
     for (i = 0; i < item_count; i++)
@@ -1457,7 +1489,7 @@ void sf_update_TTW(sfTTW sftw, sforest latest)
 {
     // printf("\n****** updating. Initially:- ******\n");
     // sf_print_TTW(sftw);
-    // printf("*************************************");
+    // printf("************************************");
 
     int current = 0;
     sforest temp = NULL, carry = NULL;
@@ -1467,25 +1499,44 @@ void sf_update_TTW(sfTTW sftw, sforest latest)
     
     while(1)
     {
-        // printf("in loop\n");
-        if(sftw[current].main == NULL)
+        // color("RED");
+        // printf("\nin loop\n");
+        // reset();
+        if (sftw[current].main == NULL)
         {
+            // color("RED");
+            // printf("\n IF?\n");
+            // reset();
+
             sftw[current].main = carry;
             break;            
         }
 
         else if(sftw[current].temp == NULL)
         {
+            // color("RED");
+            // printf("\n ELSE IF?\n");
+            // reset();
+
             sftw[current].temp = sftw[current].main;
             sftw[current].main = carry;
-            // assert(sftw[current-1].temp == NULL);
+            assert(sftw[current-1].temp == NULL);
             // printf("current = %d breaking", current);
             break;
         }
         
         else
         {
+            // color("RED");
+            // printf("merging trees\n");
+            // reset();
             temp = sf_merge_tree(sftw[current].main, sftw[current].temp, 0);
+
+            // color("GREEN");
+            // printf("\n AFTER MERGING\n");
+            // reset();
+
+            // temp = NULL;
             sftw[current].main = carry;
             sftw[current].temp = NULL;
             carry = temp;
@@ -1610,6 +1661,59 @@ int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, 
 }
 
 
+int sf_peel_tree_helper(sfnode node, int *collected, int end, int rank)
+{
+    if (node == NULL)
+        return 0;
+    // sf_print_sfnode(node);
+    // node->freq *= pow(DECAY, tid - node->ltid);
+    // assert(node->freq > 0);
+    int cnt = 0, i;
+
+    collected[++end] = node->data_item;
+    if (end >= 0)
+    {
+        // int i;
+        // printf("collected: ");
+        // for(i = 0; i < end + 1; i++)
+        //     printf("%d, ", collected[i]);
+        /*
+            collector has only the FIs from the FP-tree. They have to be concatenated with
+            the prefix coming from top
+        */
+        cnt += sf_print_patterns_to_file(collected, NULL, node->freq, end, -2, 0, rank);
+
+        // sf_delete_buffer(collect_node->bufferhead);
+
+        int idx;
+        sfnode this_child;
+        for (idx = 0; idx < last_index(node->data_item); idx++)
+        {
+            this_child = node->children[idx];
+            if (this_child)
+                cnt += sf_peel_tree_helper(this_child, collected, end, rank);
+        }
+    }
+    return cnt;
+}
+
+int sf_peel_tree(sforest forest, int rank)
+{
+    int cnt = 0, idx;
+    int *collected = calloc(DICT_SIZE, sizeof(int));
+    for (idx = 0; idx < DICT_SIZE; idx++)
+    {
+        sfnode root = forest[idx];
+        // printf("peeling tree. root = %d, freq = %lf\n", root->data_item, root->freq);
+        // sf_empty_tree(root, tid);
+        cnt += sf_peel_tree_helper(root, collected, -1, rank);
+        // sf_delete_sftree_structure(root) /* no need to delete the tree after mining it */
+        // forest[idx] = NULL;
+    }
+    free(collected);
+    return cnt;
+}
+
 int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int tid, int pattern, int rank)
 {
     if(node == NULL)
@@ -1634,20 +1738,16 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
         collected[++end] = node->data_item;
         if(end >= 0)
         {
+
             /* collector collects FIs from the FP-tree */
             bufferTable collector = calloc(1, sizeof(buffer_table));
+            
             /* there is an FPTree at this node*/
-            assert(node->fptree == NULL);
-            if(!(node->freq < FLT_MAX))
-            {
-                // printf("rank = %d, node->freq = %lf, pattern = %d, tid = %d, minsup = %lf,\
-                //         tid*minsup = %lf\n", rank, node->freq, pattern, tid, minsup, prod);
-                // sf_print_sfnode(node);
-            }
             if(node->fptree != NULL)
             {
-                printf("\n****mining this FP-tree****\n");
-                // sf_print_tree(node->fptree->root);
+                // printf("\n****mining this FP-tree****\n");
+                // sf_print_fptree(node->fptree->root);
+                //     // sf_print_tree(node->fptree->root);
                 // printf("****HEADER TABLE:****\n");
                 // sf_print_header_table(node->fptree->head_table);
 
@@ -1697,12 +1797,14 @@ int sf_mine_frequent_itemsets_helper(sfnode node, int* collected, int end, int t
 int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern, int rank)
 {
     int idx, cnt = 0;
-    int* collected = calloc(DICT_SIZE, sizeof(int));
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     // assert(tid*minsup > 0);
-    fprintf(stdout, "mining tree%d with pattern: %d, support: %lf, MINSUP = %lf, tid = %d\n",
+    color("BLUE");
+    fprintf(stdout, "MINING TREE %d WITH PATTERN: %d, SUPPORT: %lf, MINSUP = %lf, TID = %d\n",
             rank, pattern, tid*minsup, minsup, tid);
+    reset();
 
+    int* collected = calloc(DICT_SIZE, sizeof(int));
     for(idx = 0; idx < DICT_SIZE; idx++)
     {
         sfnode root = forest[idx];

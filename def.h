@@ -11,9 +11,13 @@
 #include <limits.h>
 #include <omp.h>
 #include <math.h>
-#include<sys/types.h>
-#include<sys/uio.h>
-#include<fcntl.h>
+#include <fcntl.h>
+#include <unistd.h>    /* for fork */
+#include <sys/uio.h>
+#include <sys/wait.h> /* for wait */
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/types.h> /* for pid_t */
 
 typedef struct timeval timeval;
 
@@ -35,6 +39,7 @@ extern double MINSUP_FREQ;
 extern int LEAVE_AS_BUFFER;
 extern char OUT_FILE[100];
 extern int LEAVE_LVL;
+extern int RANK;
 extern int BUFFER_SIZE;
 extern double GAMMA;
 extern double RATE_PARAMETER;
@@ -47,6 +52,14 @@ extern unsigned int STREAMS;
 extern timeval origin;
 extern timeval global_timer;
 #endif
+
+#define RED "\x1b[31m"
+#define GREEN "\x1b[32m"
+#define YELLOW "\x1b[33m"
+#define BLUE "\x1b[34m"
+#define MAGENTA "\x1b[35m"
+#define CYAN "\x1b[36m"
+#define RESET "\x1b[0m"
 
 #define max(a,b) ((a) > (b) ? a : b)
 #define min(a,b) ((a) < (b) ? a : b)
@@ -64,6 +77,9 @@ static int T1;
 static int T2;
 //static int item_ready;
 static int batch_ready;
+
+static int parent_status;
+static int child_status;
 
 ////////////////////////////////////////////////////////////////////////////////
 typedef int data_type; //the data type of individual items in the transaction

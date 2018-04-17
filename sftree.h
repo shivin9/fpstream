@@ -64,6 +64,8 @@ void sf_empty_tree(sfnode, int);
 /* MISCELLANEOUS FUNCTIONS*/
 data sf_array_to_datalist(int*, int);
 void sf_free_data_node(data);
+void color(char *color);
+void reset();
 
 
 /* MINING FUNCTIONS*/
@@ -73,7 +75,8 @@ int sf_mine_frequent_itemsets_helper(sfnode, int*, int end, int tid, int pattern
 int sf_mine_frequent_itemsets(sforest, int tid, int pattern, int rank);
 void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, bufferTable collected, int tid, double minsup);
 int sf_print_patterns_to_file(int* collected, buffer buff, double cnt, int end, int pattern, int tid, int rank);
-
+int sf_peel_tree_helper(sfnode node, int *collected, int end, int rank);
+int sf_peel_tree(sforest forest, int rank);
 
 /* PRINTING FUNCTIONS*/
 void sf_print_sfnode(sfnode);
@@ -87,8 +90,9 @@ void sf_print_header_table(header_table*);
 void sf_print_buffer_table(bufferTable*);
 void sf_print_buffer_node(struct buffer_node node);
 
-    /* PRUNING FUNCTIONS*/
-    data sf_reverse_data(data head);
+
+/* PRUNING FUNCTIONS*/
+data sf_reverse_data(data head);
 int sf_fp_prune(header_table*, int idx, int tid);
 void sf_fp_merge(fpnode parent, fpnode child, int tid);
 void sf_prune_buffer(sfnode, int);
