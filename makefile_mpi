@@ -4,7 +4,7 @@ OPT=-Ofast
 FLAG=$(PROF)
 
 bltree:	indirect_bltree.o sfstream.o qstack.o sftree.o pattern_tree.o str_builder.o
-	$(CC) $(FLAG) -o bltree sfstream.o sftree.o qstack.o pattern_tree.o str_builder.o indirect_bltree.o def.h -lm
+	$(CC) $(FLAG) -o bltree -fopenmp sfstream.o sftree.o qstack.o pattern_tree.o str_builder.o indirect_bltree.o def.h -lm
 
 # $(driver): $(driver).o sftree.o qstack.o
 # 	$(CC) $(FLAG) -o $(driver) pattern_tree.o sftree.o qstack.o $(driver).o pattern_tree.h -lm
@@ -14,7 +14,7 @@ bltree:	indirect_bltree.o sfstream.o qstack.o sftree.o pattern_tree.o str_builde
 
 
 indirect_bltree.o: indirect_bltree.c
-	$(CC) -c $(FLAG) indirect_bltree.c -lm -fopenmp
+	$(CC) -c $(FLAG) indirect_bltree.c -lm
 
 sftree.o: sftree.c
 	$(CC) -c $(FLAG) sftree.c -lm
