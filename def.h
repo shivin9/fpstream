@@ -78,9 +78,6 @@ static int T2;
 //static int item_ready;
 static int batch_ready;
 
-static int parent_status;
-static int child_status;
-
 ////////////////////////////////////////////////////////////////////////////////
 typedef int data_type; //the data type of individual items in the transaction
 typedef int* data; // data[0] has starting index 0->2; data[1] has length

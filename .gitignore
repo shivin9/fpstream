@@ -17,6 +17,7 @@ exe
 *.swp
 massif*
 bltree
+slave
 bltree_gc
 *.sh
 BitArray/
