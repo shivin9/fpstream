@@ -411,8 +411,22 @@ int main(int argc, char* argv[])
             close(parent_child_pipe[1]); /* close the writing end */
             int child_status = 0, parent_status = 1;
 
+
+            if (state == NULL)
+            {
+                state = fopen(fname, "w");
+                fprintf(state, "%ld", pos);
+            }
+            fscanf(state, "%ld", &pos);
+            fclose(state);
+            // pos = 0;
+            color("MAGENTA");
+            printf("pos = %ld, state = %s\n", pos, fname);
+            reset();
+            int btch = 0;
+
             /* execute the child process till the time all batches have not been consumed */
-            if (threadId == 0)
+            while (pos != -1L)
             {
                 while(parent_status != 1) /* wait for parent to get ready */
                 {
@@ -458,38 +472,32 @@ int main(int argc, char* argv[])
                         break;
                     }
 
-                parent_status = 0; /* I'm busy now! */
-                write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
+                    parent_status = 0; /* I'm busy now! */
+                    write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
 
-                printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
-                char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
-                unsigned long size = strlen(items) + 1;
+                    printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
+                    char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
+                    unsigned long size = strlen(items) + 1;
 
-                // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
-                // sf_delete_sforest(forest[world_rank]);
-                // forest[world_rank] = sf_create_sforest();
+                    // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
+                    // sf_delete_sforest(forest[world_rank]);
+                    // forest[world_rank] = sf_create_sforest();
 
-                        MPI_Barrier(MPI_MASTER);
-                        MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
-                        MPI_Barrier(MPI_MASTER);
-                        MPI_Recv(signal_from_master, 10000000, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
-                        if (strcmp(signal_from_master, "processed"))
-                        {
-                            printf("MASTER finished with processing the data I(%d) sent\n", world_rank);
-                            parent_status = 1;
-                            signal_from_master = "";
-                        }
+                    MPI_Barrier(MPI_MASTER);
+                    MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
+                    MPI_Barrier(MPI_MASTER);
+                    // MPI_Recv(signal_from_master, 10000000, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
+                    // if (strcmp(signal_from_master, "processed"))
+                    // {
+                    //     printf("MASTER finished with processing the data I(%d) sent\n", world_rank);
+                    //     parent_status = 1;
+                    //     signal_from_master = "";
+                    // }
                     }
-                }
-                reset();
-                
-                MPI_Barrier(MPI_MASTER);
-                MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
-                MPI_Barrier(MPI_MASTER);
 
                 parent_status = 1; /* I'm free now! */
                 write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
-
+                reset();
             }
         }
     }
