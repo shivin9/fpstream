@@ -124,7 +124,6 @@ char* sf_get_trans(int rank)
 // }
 
 
-
 /* ASCENDING order here*/
 int sf_cmpfunc (const void * a, const void * b)
 {

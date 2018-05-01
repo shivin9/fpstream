@@ -334,6 +334,24 @@ int main(int argc, char* argv[])
                 printf("\nALL SLAVES HAVE ENDED, MASTER QUITING. HAVE A GOOD DAY!\n");
                 reset();
                 MPI_Finalize();
+
+                color("RED");
+                printf("MASTER IS DONE...\n");
+                reset();
+
+                sf = fopen("result_0", "w");
+                fclose(sf);
+
+                for(i = 0; i < 64; i++)
+                {
+                    printf("mining tt-window %d\n", i);
+                    sf = fopen("result_0", "a");
+                    fprintf(sf, "\nResult of TT-window %d\n", i);
+                    fclose(sf);
+
+                    sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
+                }
+
                 break;
             }
 
@@ -347,11 +365,6 @@ int main(int argc, char* argv[])
             reset();
             // aux = get_fptree(ptree);
             item_no += total;
-
-            /* print itemsets mined after every batch */
-            sf = fopen("result_0", "a");
-            fprintf(sf, "\nAfter BATCH %d\n", batch_ready);
-            fclose(sf);
 
             /* mine the tree when needed. pattern = 2 => mine with SUP */
             printf("MINING MAIN TREE WITH FREQ = %lf\n\n", item_no * SUP);
@@ -371,6 +384,23 @@ int main(int argc, char* argv[])
             // free(temp);
             reset();
         } while (1);
+        
+        // color("RED");
+        // printf("MASTER IS DONE...\n");
+        // reset();
+
+        // sf = fopen("result_0", "w");
+        // fclose(sf);
+
+        // for(i = 0; i < 64; i++)
+        // {
+        //     printf("mining tt-window %d\n", i);
+        //     sf = fopen("result_0", "a");
+        //     fprintf(sf, "\nResult of TT-window %d\n", i);
+        //     fclose(sf);
+
+        //     sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
+        // }
     }
 
     else if (world_rank > 0) // any tree
