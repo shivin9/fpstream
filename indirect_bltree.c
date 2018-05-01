@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
             i = 1;
             total = 0;
             /* as processes exit, we need to adjust the counter */
-            while(i < world_size - exit_count) 
+            while(i < world_size) 
             {
                 item_count = 0;
                 // printf("receiving items from slave no. %d\n", i);
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
                         // data d = sf_sort_data(trans[j].itemset); // canonical sort of incoming trans
                         sf_prefix_insert_itemset(forest, trans[j].itemset, trans[j].freq, batch_ready);
                     }
-                    MPI_Send("processed", 10, MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+                    // MPI_Send("processed", 10, MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
                     color("RED");
                     printf("Inserted %d itemsets in the main forest from slave %d!\n", item_count, i);
                 }
@@ -408,15 +408,15 @@ int main(int argc, char* argv[])
         if (pid == 0)
         {
             close(child_parent_pipe[0]); /* close the reading end */
-            close(parent_child_pipe[1]); /* close the writing end */
+            // close(parent_child_pipe[1]); /* close the writing end */
             int child_status = 0, parent_status = 1;
-
 
             if (state == NULL)
             {
                 state = fopen(fname, "w");
                 fprintf(state, "%ld", pos);
             }
+
             fscanf(state, "%ld", &pos);
             fclose(state);
             // pos = 0;
@@ -428,10 +428,10 @@ int main(int argc, char* argv[])
             /* execute the child process till the time all batches have not been consumed */
             while (pos != -1L)
             {
-                while(parent_status != 1) /* wait for parent to get ready */
-                {
-                    read(parent_child_pipe[0], &parent_status, sizeof(parent_status));
-                }
+                // while(parent_status != 1) /* wait for parent to get ready */
+                // {
+                //     read(parent_child_pipe[0], &parent_status, sizeof(parent_status));
+                // }
                 child_status = -1;
                 write(child_parent_pipe[1], &child_status, sizeof(child_status));
                 system(cmd);
@@ -453,7 +453,7 @@ int main(int argc, char* argv[])
         {
             int child_status, parent_status, exit_status = 0;
             close(child_parent_pipe[1]); /* close the writing end */
-            close(parent_child_pipe[0]); /* close the writing end */
+            // close(parent_child_pipe[0]); /* close the reading end */
             // fscanf(state, "%ld", &pos);
             while(1) /* execute the parent process till state != -1 */
             {
@@ -469,34 +469,37 @@ int main(int argc, char* argv[])
                         MPI_Send("fin", 4, MPI_CHAR, 0, world_rank, MPI_COMM_WORLD); /* send the FIs in form of string */
                         // while(1);
                         reset();
+                        exit_status = 1;
                         break;
                     }
+                }
+                if(exit_status)
+                    break;
 
-                    parent_status = 0; /* I'm busy now! */
-                    write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
+                parent_status = 0; /* I'm busy now! */
+                // write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
 
-                    printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
-                    char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
-                    unsigned long size = strlen(items) + 1;
+                printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
+                char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
+                unsigned long size = strlen(items) + 1;
 
-                    // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
-                    // sf_delete_sforest(forest[world_rank]);
-                    // forest[world_rank] = sf_create_sforest();
+                // printf("testing sf_get_trans function which fetched %d items\n", fetched_items);
+                // sf_delete_sforest(forest[world_rank]);
+                // forest[world_rank] = sf_create_sforest();
 
-                    MPI_Barrier(MPI_MASTER);
-                    MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
-                    MPI_Barrier(MPI_MASTER);
-                    // MPI_Recv(signal_from_master, 10000000, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
-                    // if (strcmp(signal_from_master, "processed"))
-                    // {
-                    //     printf("MASTER finished with processing the data I(%d) sent\n", world_rank);
-                    //     parent_status = 1;
-                    //     signal_from_master = "";
-                    // }
-                    }
+                MPI_Barrier(MPI_MASTER);
+                MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
+                MPI_Barrier(MPI_MASTER);
+                // MPI_Recv(signal_from_master, 10000000, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
+                // if (strcmp(signal_from_master, "processed"))
+                // {
+                //     printf("MASTER finished with processing the data I(%d) sent\n", world_rank);
+                //     parent_status = 1;
+                //     signal_from_master = "";
+                // }
 
                 parent_status = 1; /* I'm free now! */
-                write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
+                // write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
                 reset();
             }
         }
