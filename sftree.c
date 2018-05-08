@@ -361,6 +361,20 @@ void sf_delete_sforest(sforest forest)
     return;
 }
 
+long unsigned sf_no_of_nodes_forest(sforest forest)
+{
+    if (forest == NULL)
+        return 0;
+
+    long unsigned size = 0;
+    int idx;
+    for (idx = 0; idx < DICT_SIZE; idx++)
+    {
+        size += sf_no_of_nodes(forest[idx]);
+    }
+    return size;
+}
+
 
 long unsigned sf_no_of_nodes(sfnode curr)
 {
@@ -378,8 +392,39 @@ long unsigned sf_no_of_nodes(sfnode curr)
     return sum;
 }
 
-
 /****************************************************************************/
+double sf_size_of_sforest(sforest forest) 
+{
+    if(forest == NULL)
+        return 0;
+
+    double size = 0;
+    int idx;
+    for (idx = 0; idx < DICT_SIZE; idx++) 
+    {
+        size += sf_size_of_tree(forest[idx]);
+    }
+    return size;
+}
+
+double sf_size_of_tree(sfnode curr) 
+{
+    if (curr == NULL)  return 0;
+    double size = sizeof(struct sf_node) + last_index(curr->data_item) * sizeof(curr->children) +
+                  (last_index(curr->data_item)+2) * sizeof(curr->data_item) + curr->bufferSize * sizeof(curr->hbuffer);
+    int i;
+
+    if (curr->children != NULL) 
+    {
+        for (i = 0; i < last_index(curr->data_item); i++)
+        {
+            size += sf_size_of_tree(curr->children[i]);
+        }
+    }
+    size = size / 1024.0;
+    return size;
+    
+}
 
 /* creates a new node and inserts it into current_node */
 void sf_create_and_insert_new_child(sfnode current_node, data_type d, int tid)

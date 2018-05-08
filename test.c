@@ -44,6 +44,9 @@ int main()
 
     printf("state = %ld\n", pos);
 
+    int *test = (int*) malloc(10*sizeof(int));
+    printf("sizeof test = %d\n", sizeof(test));
+
     sf = fopen("./data/5kD100T10.data", "r");
     fseek(sf, 0, SEEK_END);
     size = ftell(sf);
@@ -58,6 +61,7 @@ int main()
     printf("seek currently at %ld\n", ftell(sf));
     fseek(sf, pos, SEEK_SET);
     printf("seek now at %ld\n", ftell(sf));
+
 
     sforest forest = sf_create_sforest(); // initializing the forest and creating root nodes of all the trees.
 
