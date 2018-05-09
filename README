@@ -13,3 +13,6 @@ Itemset representation:
 {_,_,...} - First value is the starting index and the second value tells the length of the itemset. This way we can easily represent suffix projections without any sophisticated operations.
 
 TODO: check merging
+
+Memory and mining time for each window for different stream speeds
+memory of trees in slave

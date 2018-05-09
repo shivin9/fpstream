@@ -27,7 +27,7 @@ double DECAY = 1.0, EPS = 0.0, THETA = 0.1, GAMMA = 2.0,
        H_FRACTION = 0.1, RATE_PARAMETER = 0.1, CARRY = 1.0,
        TIME_MINE = 1000.0;
 
-timeval origin, global_timer;
+timeval origin, global_timer, t1, t2;
 
 buffer read_stream(FILE* sf, FILE* poisson, int *total_items)
 {
@@ -140,6 +140,7 @@ int main(int argc, char* argv[])
         item_ready, leavecnt = 1, tid = 1, pattern = 0, no_patterns = 0, curr_tree;
     
     int leave_as_buffer;
+    double elapsedTime, insertionTime;
 
     for (i = 3; i < argc; i++)
     {                /* traverse arguments */
@@ -296,11 +297,12 @@ int main(int argc, char* argv[])
                 /* receiving a string from the slaves */
                 MPI_Recv(items, 10000000, MPI_CHAR, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
                 // printf("%s\n", items);
-                if (!strcmp(items, "fin"))
+                if (!(items[0]-'0' >= 0 && items[0]-'9' <= 9))
                 {
                     printf("received fin from slave %d\n", i);
                     exit_count++;
                 }
+
                 else
                 {
                     /* converting the strings to a buffer array */
@@ -333,7 +335,6 @@ int main(int argc, char* argv[])
                 color("RED");
                 printf("\nALL SLAVES HAVE ENDED, MASTER QUITING. HAVE A GOOD DAY!\n");
                 reset();
-                MPI_Finalize();
 
                 color("RED");
                 printf("MASTER IS DONE...\n");
@@ -344,21 +345,41 @@ int main(int argc, char* argv[])
 
                 for(i = 0; i < 64; i++)
                 {
+                    if (tt_window[i].main == NULL)
+                    {
+                        printf("Total time taken to mine TT Window = %lf\n", insertionTime);
+                        break;
+                    }
                     printf("mining tt-window %d\n", i);
                     sf = fopen("result_0", "a");
                     fprintf(sf, "\nResult of TT-window %d\n", i);
                     fclose(sf);
+                    
 
+                    gettimeofday(&t1, NULL);
                     sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
+                    gettimeofday(&t2, NULL);
+
+                    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+                    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+                    insertionTime += elapsedTime;
+                    color("YELLOW");
+                    printf("Mining time for forest %d = %lfs\n", i, elapsedTime);
+                    printf("Size_forest[%d] = %lfKB\n", i, sf_size_of_sforest(tt_window[i].main));
+                    printf("number of nodes = %ld\n", sf_no_of_nodes_forest(tt_window[i].main));
+                    reset();
                 }
 
-                break;
+                // for(i = 0; i < world_size; i++)
+                //     MPI_Send("end", 4, MPI_CHAR, i, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
+
+                MPI_Abort(MPI_COMM_WORLD, 0);
+                // MPI_Finalize();
             }
+
 
             batch_ready++;
             /* this means that no itemsets were sent to master */
-            if (item_count == 0)
-                break;
 
             color("MAGENTA");
             printf("Inserted total %d itemsets in the main forest in batch = %d!\n", total, batch_ready);
@@ -407,9 +428,9 @@ int main(int argc, char* argv[])
     {
         long pos = 0;
         int row_rank, row_size, child_parent_pipe[2], parent_child_pipe[2];
-        
-        MPI_Comm_split(MPI_COMM_WORLD, 1, world_rank, &MPI_MASTER);
+        MPI_Status status;
 
+        MPI_Comm_split(MPI_COMM_WORLD, 1, world_rank, &MPI_MASTER);
         MPI_Comm_rank(MPI_MASTER, &row_rank);
         MPI_Comm_size(MPI_MASTER, &row_size);
          
@@ -496,13 +517,17 @@ int main(int argc, char* argv[])
                         color("GREEN");
                         printf("(*)(*)(*) ALL BATCHES READ IN SLAVE %d (*)(*)(*)\n", world_rank);
                         printf("slave %d sent a FIN signal\n", world_rank);
+
                         MPI_Send("fin", 4, MPI_CHAR, 0, world_rank, MPI_COMM_WORLD); /* send the FIs in form of string */
-                        // while(1);
                         reset();
                         exit_status = 1;
                         break;
                     }
+                }
 
+                if (exit_status)
+                    break;
+                
                 parent_status = 0; /* I'm busy now! */
                 // write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
 
@@ -517,24 +542,21 @@ int main(int argc, char* argv[])
                 MPI_Barrier(MPI_MASTER);
                 MPI_Send(items, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
                 MPI_Barrier(MPI_MASTER);
-                // MPI_Recv(signal_from_master, 10000000, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
-                // if (strcmp(signal_from_master, "processed"))
-                // {
-                //     printf("MASTER finished with processing the data I(%d) sent\n", world_rank);
-                //     parent_status = 1;
-                //     signal_from_master = "";
-                // }
 
                 parent_status = 1; /* I'm free now! */
                 // write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
                 reset();
             }
+            char *recv;
+            MPI_Status status;
+
+            while(1);
         }
     }
     fflush(stdout);
     // to do final free
     // sf_delete_sforest(forest);
     // free(forest);
-    // // sf_delete_data_node(sorted);
+    // sf_delete_data_node(sorted);
     return 0;
 }

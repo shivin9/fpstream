@@ -43,6 +43,7 @@ int sf_no_sfchildren(sfnode);
 int sf_no_fpchildren(fpnode);
 int sf_get_height(sfnode node);
 long unsigned sf_no_of_nodes(sfnode curr);
+long unsigned sf_no_of_nodes_forest(sforest forest);
 char *concat(const char *s1, const char *s2);
 char* sf_get_trans(int rank);
 buffer sf_string2buffer(char*);

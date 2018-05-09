@@ -44,6 +44,9 @@ int main()
 
     printf("state = %ld\n", pos);
 
+    int *test = (int*) malloc(10*sizeof(int));
+    printf("sizeof test = %d\n", sizeof(test));
+
     sf = fopen("./data/5kD100T10.data", "r");
     fseek(sf, 0, SEEK_END);
     size = ftell(sf);
@@ -59,7 +62,15 @@ int main()
     fseek(sf, pos, SEEK_SET);
     printf("seek now at %ld\n", ftell(sf));
 
+
     sforest forest = sf_create_sforest(); // initializing the forest and creating root nodes of all the trees.
+    char items[5] = "1 21";
+    // printf("items[0] = %c, 0=%c, 9=%d\n", items[0], '0'-'0', '9'-'0');
+    if (!(items[0]-'0' >= 0 && items[0]-'0' <= 9))
+    {
+        printf("received fin from slave %d\n", 0);
+        exit(0);
+    }
 
     while (transactions < BATCH && fscanf(sf, "%d", &sz) != EOF)
     {
@@ -76,9 +87,9 @@ int main()
         }
 
         d = sf_sort_data(d); // canonical sort of incoming trans
-        printf("inserting transaction: ");
-        sf_print_data_node(d);
-        sf_prefix_insert_itemset(forest, d, 1, transactions);
+        // printf("inserting transaction: ");
+        // sf_print_data_node(d);
+        // sf_prefix_insert_itemset(forest, d, 1, transactions);
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
