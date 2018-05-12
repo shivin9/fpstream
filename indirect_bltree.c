@@ -327,7 +327,6 @@ int main(int argc, char* argv[])
                 }
                 i++;
             }
-            // sf_peel_tree(forest, -1);
 
             // printf("exit_cnt = %d, world_size = %d\n", exit_count, world_size);
             if (exit_count == (world_size - 1))
@@ -355,7 +354,6 @@ int main(int argc, char* argv[])
                     fprintf(sf, "\nResult of TT-window %d\n", i);
                     fclose(sf);
                     
-
                     gettimeofday(&t1, NULL);
                     sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
                     gettimeofday(&t2, NULL);
@@ -370,16 +368,11 @@ int main(int argc, char* argv[])
                     reset();
                 }
 
-                // for(i = 0; i < world_size; i++)
-                //     MPI_Send("end", 4, MPI_CHAR, i, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
-
                 MPI_Abort(MPI_COMM_WORLD, 0);
                 // MPI_Finalize();
             }
 
-
             batch_ready++;
-            /* this means that no itemsets were sent to master */
 
             color("MAGENTA");
             printf("Inserted total %d itemsets in the main forest in batch = %d!\n", total, batch_ready);
@@ -554,9 +547,5 @@ int main(int argc, char* argv[])
         }
     }
     fflush(stdout);
-    // to do final free
-    // sf_delete_sforest(forest);
-    // free(forest);
-    // sf_delete_data_node(sorted);
     return 0;
 }

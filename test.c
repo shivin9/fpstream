@@ -1,5 +1,5 @@
 #include "sfstream.h"
-#include<string.h>
+#include <string.h>
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100, RANK = 1,
     LEAVE_AS_BUFFER = 0, LEAVE_LVL = INT_MAX, BUFFER_SIZE = 100;

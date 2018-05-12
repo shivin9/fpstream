@@ -1969,10 +1969,10 @@ fptree sf_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
     // printf("curr_head_table_node->cnt = %lf\n", curr_head_table_node->cnt);
     // printf("hpi = %d, %d, %lf\n", data_item, node->data_item, node->freq);
 
-    /* node is the link to successive sfnodes having data type 'data_item'*/
-    /* iterate through it and for each node in it, start from that node*/
-    /* and touch all nodes till the root*/
-    /* touched nodes are a means of identifying which nodes should be in coditional FP-tree*/
+    /* node is the link to successive sfnodes having data type 'data_item' */
+    /* iterate through it and for each node in it, start from that node */
+    /* and touch all nodes till the root */
+    /* touched nodes are a means of identifying which nodes should be in coditional FP-tree */
     double add;
     fpnode temp;
     while(node != NULL)
@@ -2020,13 +2020,6 @@ fptree sf_create_conditional_fp_tree(fptree tree, data_type data_item, double mi
 void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, bufferTable collected, int tid, double minsup)
 {
     if(tree == NULL)    return;
-
-    // if(till_now == NULL)
-    //     printf("\nentered new mine with till_now = NULL and sorted = %d\n", sorted->data_item);
-    // else if(sorted == NULL)
-    //     printf("\nentered new mine sorted = NULL\n");
-    // else
-    //     printf("\nentered new mine sorted = %d\n", sorted->data_item);
 
     header_table curr_header_node;
     int idx;
@@ -2084,8 +2077,8 @@ void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, 
 
     if(sorted == DICT_SIZE)    return;
 
-    //now check for supersets of this itemset by considering every next data item
-    //in the sorted list
+    // now check for supersets of this itemset by considering every next data item
+    // in the sorted list
     data_type curr_data = sorted;
     while(curr_data != DICT_SIZE)
     {
@@ -2104,32 +2097,9 @@ void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, 
         till_now[1]++;
         till_now[last(till_now)] = new_data;
 
-        // printf("appended %d to till_now\n", curr_data->data_item);
-        // printf("\nyolo %d cond_tree\n", curr_data->data_item);
-
-        // if(cond_tree != NULL)
-        //     sf_print_tree(cond_tree->root);
-
-        // else
-        //     printf("NULL tree\n");
-
-        // if(curr_data->next != NULL)
-        //     printf("going to mine %d\n", curr_data->next->data_item);
-        // else
-        //     printf("going to mine NULL\n");
-
         sf_fp_mine_frequent_itemsets(cond_tree, curr_data + 1, till_now, collected, tid, minsup);
         sf_delete_fptree(cond_tree);
-        // if(curr_data->next != NULL)
-        //     printf("finished mining %d\n", curr_data->next->data_item);
-        // else
-        //     printf("finished mining NULL\n");
-
-        // printf("deleted %d from till_now\n", curr_data->data_item);
-
-        //delete from back of till_now
-        // till_now[last(till_now)] = -1; // reset the last item
-        till_now[1]--;
+        till_now[1]--; // reset the last item
         curr_data++;
     }
 }
@@ -2315,7 +2285,7 @@ void sf_empty_buffers(sforest forest, int tid, double total_time)
         do
         {
             root = get(qstack);
-        }while(root == NULL);
+        } while(root == NULL);
 
         root_data = root->data_item;
         if(root->bufferSize > 0) /* push the buffered itemsets down*/
@@ -2587,7 +2557,7 @@ void sf_prune_buffer(sfnode curr, int tid)
     }
 }
 
-/* Decay the count of node in the header table and decrease some value from nodes in the bltree*/
+/* Decay the count of node in the header table and decrease some value from nodes in the bltree */
 void sf_prune_helper(sfnode node, int root_data, int tid)
 {
     // node->freq *= pow(DECAY, tid - node->ltid);
