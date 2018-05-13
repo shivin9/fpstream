@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 
-fp = open('./data/freq1M')
+fp = open('./data/freq100   k')
 vals = fp.read()
 vals = vals.split('\n')
 while vals[-1] == "":
@@ -130,3 +130,65 @@ plt.plot(vals)
 plt.plot(y_new)
 plt.title("a*b^(cx) + d")
 plt.show()
+
+
+import  numpy as np
+
+gnd = open("./tests/100kD100T10S40.gnd","r")
+
+trans = gnd.read()
+trans = trans.split("\n")
+
+for i in range(len(trans)):
+    trans[i] = trans[i].split(" ")
+
+lambdas = np.zeros(100)
+freqs = np.zeros(100, dtype='int')
+
+for i in range(len(trans)):   
+    if(len(trans[i]) == 2):
+        lambdas[int(trans[i][0])] = float(trans[i][-1][1:-1])/100.0
+    #trans[i] = trans[i][0:-1]
+    freqs[len(trans[i])] += 1
+
+test = open("./tests/100kD100T10.tab","r")
+trans = test.read()
+trans = trans.split("\n")
+
+for i in range(len(trans)):
+    trans[i] = trans[i].strip()
+    trans[i] = trans[i].split(" ")
+
+one_itemset = np.zeros(100, dtype='int')
+for i in range(len(trans)):
+    for j in trans[i][1:-1]:
+        one_itemset[int(j)] += 1
+
+
+c0, c1 = 0.41809927, 7.90258727 # 10k
+c0, c1 = 0.36478481, 5.11268154 # 1M
+c0, c1 = 0.39434229, 6.39996153 # 100k
+c0, c1 = 0.04542009, 0.04494176 # 100k exp
+
+def item_freq(x, c0=c0,c1=c1):
+    return c0/(c1+x)
+
+def item_freq(x, c0=c0,c1=c1):
+    return c0*np.exp(-c1*x)
+
+def freqs(list1):             
+    prod = 1.0      
+    for i in list1:
+        prod *= lambdas[i]
+    return prod*100.0
+
+def pattern_count(k, D, sigma=0.05, c0=c0, c1=c1):
+     ik = (c1/sigma)*(np.power(c0/c1, k) - sigma)
+     return np.power(ik,k)/np.power(factorial(k),2)
+
+def Ik(c1, c2, k, sigma=0.05):                    
+    return (c2/sigma)*(np.power(c1/c2, k) - sigma)
+
+def min1(a,b):                                    
+     inner = (1+np.exp(2*(a-b)))/2                        
+     return a - 0.5*np.log(inner)
