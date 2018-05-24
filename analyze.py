@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 
-fp = open('./data/freq100   k')
+fp = open('./data/freq100k')
 vals = fp.read()
 vals = vals.split('\n')
 while vals[-1] == "":
@@ -13,7 +13,7 @@ for i in range(len(vals)):
     vals[i] = int(vals[i][1])
 
 vals = np.array(vals)
-vals = vals / float(sum(vals))
+vals = vals / 98418.0
 
 
 def inv(x, a):
