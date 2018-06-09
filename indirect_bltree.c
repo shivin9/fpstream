@@ -302,6 +302,10 @@ int main(int argc, char* argv[])
                     printf("received fin from slave %d\n", i);
                     exit_count++;
                 }
+                else if (batch_ready == 98)
+                {
+                    exit_count = world_size - 1;
+                }
                 else
                 {
                     /* converting the strings to a buffer array */
@@ -310,8 +314,8 @@ int main(int argc, char* argv[])
                     item_count = trans[0].ftid; /* small hack to store the total number of itemsets */
                     total += item_count;
                     
-                    printf("master received %d items from %d, tag = %d, batch = %d\n",
-                        item_count, status.MPI_SOURCE, status.MPI_TAG, batch_ready);
+                    // printf("master received %d items from %d, tag = %d, batch = %d\n",
+                    //     item_count, status.MPI_SOURCE, status.MPI_TAG, batch_ready);
 
                     color("GREEN");
                     for (j = 0; j < item_count; j++)
@@ -322,11 +326,11 @@ int main(int argc, char* argv[])
                     }
                     // MPI_Send("processed", 10, MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
                     color("RED");
-                    printf("Inserted %d itemsets in the main forest from slave %d!\n", item_count, i);
+                    // printf("Inserted %d itemsets in the main forest from slave %d!\n", item_count, i);
                 }
                 i++;
             }
-            // sf_peel_tree(forest, -1);
+            printf("batch = %d\n", batch_ready);
 
             // printf("exit_cnt = %d, world_size = %d\n", exit_count, world_size);
             if (exit_count == (world_size - 1))
@@ -354,7 +358,6 @@ int main(int argc, char* argv[])
                     fprintf(sf, "\nResult of TT-window %d\n", i);
                     fclose(sf);
                     
-
                     gettimeofday(&t1, NULL);
                     sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
                     gettimeofday(&t2, NULL);
@@ -369,24 +372,20 @@ int main(int argc, char* argv[])
                     reset();
                 }
 
-                // for(i = 0; i < world_size; i++)
-                //     MPI_Send("end", 4, MPI_CHAR, i, 0, MPI_COMM_WORLD); /* send the FIs in form of string */
-
                 MPI_Abort(MPI_COMM_WORLD, 0);
                 // MPI_Finalize();
             }
 
             batch_ready++;
-            /* this means that no itemsets were sent to master */
 
-            color("MAGENTA");
-            printf("Inserted total %d itemsets in the main forest in batch = %d!\n", total, batch_ready);
-            reset();
+            // color("MAGENTA");
+            // printf("Inserted total %d itemsets in the main forest in batch = %d!\n", total, batch_ready);
+            // reset();
             // aux = get_fptree(ptree);
             item_no += total;
 
             /* mine the tree when needed. pattern = 2 => mine with SUP */
-            printf("MINING MAIN TREE WITH FREQ = %lf\n\n", item_no * SUP);
+            // printf("MINING MAIN TREE WITH FREQ = %lf\n\n", item_no * SUP);
 			// int mined_cnt = sf_mine_frequent_itemsets(forest, item_no, 2, world_rank);
             sf_update_TTW(tt_window, forest);
             // sf_print_TTW(tt_window);
@@ -404,28 +403,36 @@ int main(int argc, char* argv[])
             reset();
         } while (1);
         
-        // color("RED");
-        // printf("MASTER IS DONE...\n");
-        // reset();
+        color("RED");
+        printf("MASTER IS DONE...\n");
+        reset();
 
-        // sf = fopen("result_0", "w");
-        // fclose(sf);
+        sf = fopen("result_0", "w");
+        fclose(sf);
 
-        // for(i = 0; i < 64; i++)
-        // {
-        //     printf("mining tt-window %d\n", i);
-        //     sf = fopen("result_0", "a");
-        //     fprintf(sf, "\nResult of TT-window %d\n", i);
-        //     fclose(sf);
+        for(i = 0; i < 64; i++)
+        {
+            printf("mining tt-window %d\n", i);
+            sf = fopen("result_0", "a");
+            fprintf(sf, "\nResult of TT-window %d\n", i);
+            fclose(sf);
 
-        //     sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
-        // }
+            if (tt_window[i]) {
+                sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
+            }
+            
+            else {
+                break;
+            }
+            
+        }
     }
 
     else if (world_rank > 0) // any tree
     {
         long pos = 0;
         int row_rank, row_size, child_parent_pipe[2], parent_child_pipe[2];
+        MPI_Status status;
 
         MPI_Comm_split(MPI_COMM_WORLD, 1, world_rank, &MPI_MASTER);
         MPI_Comm_rank(MPI_MASTER, &row_rank);
@@ -514,20 +521,21 @@ int main(int argc, char* argv[])
                         color("GREEN");
                         printf("(*)(*)(*) ALL BATCHES READ IN SLAVE %d (*)(*)(*)\n", world_rank);
                         printf("slave %d sent a FIN signal\n", world_rank);
+
                         MPI_Send("fin", 4, MPI_CHAR, 0, world_rank, MPI_COMM_WORLD); /* send the FIs in form of string */
-                        // while(1);
                         reset();
                         exit_status = 1;
                         break;
                     }
                 }
-                if(exit_status)
-                    break;
 
+                if (exit_status)
+                    break;
+                
                 parent_status = 0; /* I'm busy now! */
                 // write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
 
-                printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
+                // printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
                 char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
                 unsigned long size = strlen(items) + 1;
 
@@ -550,9 +558,5 @@ int main(int argc, char* argv[])
         }
     }
     fflush(stdout);
-    // to do final free
-    // sf_delete_sforest(forest);
-    // free(forest);
-    // // sf_delete_data_node(sorted);
     return 0;
 }

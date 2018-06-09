@@ -1,5 +1,5 @@
 #include "sfstream.h"
-#include<string.h>
+#include <string.h>
 
 int BATCH = 1000, DICT_SIZE = 100, HSIZE = 100, RANK = 1,
     LEAVE_AS_BUFFER = 0, LEAVE_LVL = INT_MAX, BUFFER_SIZE = 100;
@@ -64,6 +64,13 @@ int main()
 
 
     sforest forest = sf_create_sforest(); // initializing the forest and creating root nodes of all the trees.
+    char items[5] = "1 21";
+    // printf("items[0] = %c, 0=%c, 9=%d\n", items[0], '0'-'0', '9'-'0');
+    if (!(items[0]-'0' >= 0 && items[0]-'0' <= 9))
+    {
+        printf("received fin from slave %d\n", 0);
+        exit(0);
+    }
 
     while (transactions < BATCH && fscanf(sf, "%d", &sz) != EOF)
     {
@@ -80,9 +87,9 @@ int main()
         }
 
         d = sf_sort_data(d); // canonical sort of incoming trans
-        printf("inserting transaction: ");
-        sf_print_data_node(d);
-        sf_prefix_insert_itemset(forest, d, 1, transactions);
+        // printf("inserting transaction: ");
+        // sf_print_data_node(d);
+        // sf_prefix_insert_itemset(forest, d, 1, transactions);
         end->next = (buffer) calloc(1, sizeof(struct buffer_node));
         end = end->next;
         end->itemset = d;
