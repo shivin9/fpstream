@@ -37,6 +37,10 @@ def plain_zipf(x, a, pow):
     return a / np.power(x, pow)
 
 
+def power(x, a, pow):
+    return a * np.power(x, pow)
+
+
 def plain_exp(x, a, b):
     return a * np.exp(-b * x)
 
@@ -128,7 +132,7 @@ y_new = inv_func(x, params[0], params[1])
 print params, r2(y_new, vals)
 plt.plot(vals)
 plt.plot(y_new)
-plt.title("a/(x+b)")
+plt.title("a*b^(c*x) (geometric)")
 plt.show()
 
 params, err = curve_fit(plain_exp, x_new, y)

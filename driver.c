@@ -337,8 +337,11 @@ int main(int argc, char* argv[])
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
     color("GREEN");
-    fprintf(stdout, "(%d freq. patterns) TOTAL TIME TAKEN TO MINE BLTREE %d = %lf ms\n",\
-            no_patterns, RANK, elapsedTime);
+    // fprintf(stdout, "(%d freq. patterns) TOTAL TIME TAKEN TO MINE BLTREE %d = %lf ms\n",\
+    //         no_patterns, RANK, elapsedTime);
+
+    printf("Size of slave forest[%d] = %lfKB\n", i, sf_size_of_sforest(forest));
+
     reset();
 
     fflush(stdout);

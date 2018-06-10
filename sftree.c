@@ -1844,8 +1844,8 @@ int sf_mine_frequent_itemsets(sforest forest, int tid, int pattern, int rank)
     double minsup = pattern > 0 ? (pattern == 2 ? SUP : MINSUP_FREQ) : MINSUP_SEMIFREQ;
     // assert(tid*minsup > 0);
     color("BLUE");
-    fprintf(stdout, "MINING TREE %d WITH PATTERN: %d, SUPPORT: %lf, MINSUP = %lf, TID = %d\n",
-            rank, pattern, tid*minsup, minsup, tid);
+    // fprintf(stdout, "MINING TREE %d WITH PATTERN: %d, SUPPORT: %lf, MINSUP = %lf, TID = %d\n",
+            // rank, pattern, tid*minsup, minsup, tid);
     reset();
 
     int* collected = calloc(DICT_SIZE, sizeof(int));

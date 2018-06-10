@@ -302,7 +302,10 @@ int main(int argc, char* argv[])
                     printf("received fin from slave %d\n", i);
                     exit_count++;
                 }
-
+                else if (batch_ready == 98)
+                {
+                    exit_count = world_size - 1;
+                }
                 else
                 {
                     /* converting the strings to a buffer array */
@@ -311,8 +314,8 @@ int main(int argc, char* argv[])
                     item_count = trans[0].ftid; /* small hack to store the total number of itemsets */
                     total += item_count;
                     
-                    printf("master received %d items from %d, tag = %d, batch = %d\n",
-                        item_count, status.MPI_SOURCE, status.MPI_TAG, batch_ready);
+                    // printf("master received %d items from %d, tag = %d, batch = %d\n",
+                    //     item_count, status.MPI_SOURCE, status.MPI_TAG, batch_ready);
 
                     color("GREEN");
                     for (j = 0; j < item_count; j++)
@@ -323,10 +326,11 @@ int main(int argc, char* argv[])
                     }
                     // MPI_Send("processed", 10, MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
                     color("RED");
-                    printf("Inserted %d itemsets in the main forest from slave %d!\n", item_count, i);
+                    // printf("Inserted %d itemsets in the main forest from slave %d!\n", item_count, i);
                 }
                 i++;
             }
+            printf("batch = %d\n", batch_ready);
 
             // printf("exit_cnt = %d, world_size = %d\n", exit_count, world_size);
             if (exit_count == (world_size - 1))
@@ -374,14 +378,14 @@ int main(int argc, char* argv[])
 
             batch_ready++;
 
-            color("MAGENTA");
-            printf("Inserted total %d itemsets in the main forest in batch = %d!\n", total, batch_ready);
-            reset();
+            // color("MAGENTA");
+            // printf("Inserted total %d itemsets in the main forest in batch = %d!\n", total, batch_ready);
+            // reset();
             // aux = get_fptree(ptree);
             item_no += total;
 
             /* mine the tree when needed. pattern = 2 => mine with SUP */
-            printf("MINING MAIN TREE WITH FREQ = %lf\n\n", item_no * SUP);
+            // printf("MINING MAIN TREE WITH FREQ = %lf\n\n", item_no * SUP);
 			// int mined_cnt = sf_mine_frequent_itemsets(forest, item_no, 2, world_rank);
             sf_update_TTW(tt_window, forest);
             // sf_print_TTW(tt_window);
@@ -399,22 +403,29 @@ int main(int argc, char* argv[])
             reset();
         } while (1);
         
-        // color("RED");
-        // printf("MASTER IS DONE...\n");
-        // reset();
+        color("RED");
+        printf("MASTER IS DONE...\n");
+        reset();
 
-        // sf = fopen("result_0", "w");
-        // fclose(sf);
+        sf = fopen("result_0", "w");
+        fclose(sf);
 
-        // for(i = 0; i < 64; i++)
-        // {
-        //     printf("mining tt-window %d\n", i);
-        //     sf = fopen("result_0", "a");
-        //     fprintf(sf, "\nResult of TT-window %d\n", i);
-        //     fclose(sf);
+        for(i = 0; i < 64; i++)
+        {
+            printf("mining tt-window %d\n", i);
+            sf = fopen("result_0", "a");
+            fprintf(sf, "\nResult of TT-window %d\n", i);
+            fclose(sf);
 
-        //     sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
-        // }
+            if (tt_window[i]) {
+                sf_mine_frequent_itemsets(tt_window[i].main, item_no, 2, world_rank);
+            }
+            
+            else {
+                break;
+            }
+            
+        }
     }
 
     else if (world_rank > 0) // any tree
@@ -524,7 +535,7 @@ int main(int argc, char* argv[])
                 parent_status = 0; /* I'm busy now! */
                 // write(parent_child_pipe[1], &parent_status, sizeof(parent_status));
 
-                printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
+                // printf("BATCH MINING COMPLETED IN SLAVE%d!\n", world_rank);
                 char* items = sf_get_trans(world_rank); /* read the mined transactions in string form */
                 unsigned long size = strlen(items) + 1;
 
