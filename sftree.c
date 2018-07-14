@@ -509,7 +509,6 @@ void sf_check_inf(sforest forest)
         }
     }
     delete_qstack(qstack);
-
 }
 
 /****************************************************************************/
@@ -1543,49 +1542,26 @@ void sf_update_TTW(sfTTW sftw, sforest latest)
     
     while(1)
     {
-        // color("RED");
-        // printf("\nin loop\n");
-        // reset();
         if (sftw[current].main == NULL)
         {
-            // color("RED");
-            // printf("\n IF?\n");
-            // reset();
-
             sftw[current].main = carry;
             break;            
         }
 
         else if(sftw[current].temp == NULL)
         {
-            // color("RED");
-            // printf("\n ELSE IF?\n");
-            // reset();
-
             sftw[current].temp = sftw[current].main;
             sftw[current].main = carry;
             assert(sftw[current-1].temp == NULL);
-            // printf("current = %d breaking", current);
             break;
         }
         
         else
         {
-            // color("RED");
-            // printf("merging trees\n");
-            // reset();
             temp = sf_merge_tree(sftw[current].main, sftw[current].temp, 0);
-
-            // color("GREEN");
-            // printf("\n AFTER MERGING\n");
-            // reset();
-
-            // temp = NULL;
             sftw[current].main = carry;
             sftw[current].temp = NULL;
             carry = temp;
-            // printf("current = %d\n", current);
-            // sf_print_TTW(sftw);
             current++;
         }
         // sf_print_TTW(sftw);
@@ -2104,6 +2080,31 @@ void sf_fp_mine_frequent_itemsets(fptree tree, data_type sorted, data till_now, 
     }
 }
 
+void sf_mine_ttw(sfTTW sftw)
+{
+    sforest collector = sf_create_sforest();
+
+    int t = 0;
+    while(t < 64)
+    {
+        if(sftw[t].main == NULL)
+            break;
+        int no_patterns = sf_peel_tree(sftw[t].main, -1);
+        /* now read the patterns from the file */
+        char *trans_str = sf_get_trans(-1);
+        buffer items = sf_string2buffer(trans_str);
+        // sf_print_buffer(items);
+        /* now do a prefix insertion */
+        int item_count = items[0].ftid, i;
+        for (i = 0; i < item_count; i++)
+        {
+            // sf_print_buffer_node(items[i]);
+            sf_prefix_insert_itemset(collector, items[i].itemset, items[i].freq, 0);
+        }
+    }
+    /* check this part */
+    sf_mine_frequent_itemsets(collector, 0, 2, -1);
+}
 
 /****************************************************************************/
 
@@ -2624,6 +2625,21 @@ void sf_prune(sforest forest, int tid)
     {
         sf_prune_helper(forest[i], forest[i]->data_item, tid);
     }
+}
+
+
+int sf_total_buffersize(sfnode node)
+{
+    if (node == NULL)
+    {
+        return 0;
+    }
+    int i, children_buff = 0;
+    for (i = 0; i < last_index(node->data_item); i++)
+    {
+        children_buff += sf_total_buffersize(node->children[i]);
+    }
+    return node->bufferSize + children_buff;
 }
 
 /****************************************************************************/

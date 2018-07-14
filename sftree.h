@@ -48,7 +48,7 @@ char *concat(const char *s1, const char *s2);
 char* sf_get_trans(int rank);
 buffer sf_string2buffer(char*);
 void sf_check_inf(sforest);
-
+int sf_total_buffersize(sfnode node);
 
 /* HEADER TABLE FUNCTIONS*/
 void sf_create_header_table_helper(fpnode, header_table *);

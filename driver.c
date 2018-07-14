@@ -252,6 +252,14 @@ int main(int argc, char* argv[])
         free(stream);
         stream = end;
 
+        if (tid%1000 == 0)
+        {
+            int i;
+            for(i = 0; i < DICT_SIZE; i++)
+                printf("%d ", sf_total_buffersize(forest[i]));
+            printf("\n********************\n\n");
+        }
+
         // sf_prune(forest, tid);
         // break;
         /* intermittent pruning */
@@ -318,10 +326,9 @@ int main(int argc, char* argv[])
     // fprintf(stdout, "avg. intermittent prune time = %lf ms\n", prune_time/(N/BATCH));
 
     // sf_print_sforest(forest);
-
     gettimeofday(&t3, NULL);
-    sf_prune(forest, tid); // final pruning before emptying the buffers
-    sf_empty_buffers(forest, tid, TIME_MINE);
+    // sf_prune(forest, tid); // final pruning before emptying the buffers
+    // sf_empty_buffers(forest, tid, TIME_MINE);
     gettimeofday(&t4, NULL);
 
     // sf_print_sforest(forest);

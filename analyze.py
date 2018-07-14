@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score as r2
 
-fp = open('./data/freq100k')
+fp = open('./data/freq1M')
 vals = fp.read()
 vals = vals.split('\n')
 while vals[-1] == "":
@@ -14,8 +14,8 @@ for i in range(len(vals)):
     vals[i] = int(vals[i][1])
 
 vals = np.array(vals)
-vals = vals / 98418.0
-
+# vals = vals / 98418.0
+vals = vals / 985043.0
 
 def inv(x, a):
     return a / x
@@ -102,13 +102,13 @@ x_new = np.linspace(x[0], x[-1], len(x))
 # y = expo_wt(y)
 # vals = expo_wt(vals)
 
-params, err = curve_fit(inv, x, y)
-y_new = inv(x, params[0])
-print params, r2(y_new, vals)
-plt.plot(vals)
-plt.plot(y_new)
-plt.title("a/x")
-plt.show()
+# params, err = curve_fit(inv, x, y)
+# y_new = inv(x, params[0])
+# print params, r2(y_new, vals)
+# plt.plot(vals)
+# plt.plot(y_new)
+# plt.title("a/x")
+# plt.show()
 
 params, err = curve_fit(geometric, x, y)
 # y_new = geometric(x, params[0], params[1], params[2])
@@ -116,7 +116,7 @@ y_new = geometric(x, params[0], params[1])
 print params, r2(y_new, vals)
 plt.plot(vals)
 plt.plot(y_new)
-plt.title("a*b^x")
+plt.title("a*b^x (geometric)")
 plt.show()
 
 # params, err = curve_fit(plain_zipf, x, y)
@@ -132,16 +132,16 @@ y_new = inv_func(x, params[0], params[1])
 print params, r2(y_new, vals)
 plt.plot(vals)
 plt.plot(y_new)
-plt.title("a*b^(c*x) (geometric)")
+plt.title("a*b^(c*x)")
 plt.show()
 
-params, err = curve_fit(plain_exp, x_new, y)
-y_new = plain_exp(x, params[0], params[1])
-print params, r2(y_new, vals)
-plt.plot(y)
-plt.plot(y_new)
-plt.title("a*e^bx")
-plt.show()
+# params, err = curve_fit(plain_exp, x_new, y)
+# y_new = plain_exp(x, params[0], params[1])
+# print params, r2(y_new, vals)
+# plt.plot(y)
+# plt.plot(y_new)
+# plt.title("a*e^bx")
+# plt.show()
 
 params, err = curve_fit(power_exp, x_new, y)
 y_new = power_exp(x, params[0], params[1], params[2])
@@ -151,13 +151,13 @@ plt.plot(y_new)
 plt.title("a*e^-b(x^pow)")
 plt.show()
 
-params, err = curve_fit(zipf, x, y)
-y_new = zipf(x, params[0], params[1], params[2])
-print params, r2(y_new, vals)
-plt.plot(vals)
-plt.plot(y_new)
-plt.title("a/(x+b)^pow")
-plt.show()
+# params, err = curve_fit(zipf, x, y)
+# y_new = zipf(x, params[0], params[1], params[2])
+# print params, r2(y_new, vals)
+# plt.plot(vals)
+# plt.plot(y_new)
+# plt.title("a/(x+b)^pow")
+# plt.show()
 
 
 # params, err = curve_fit(inv_func_new, x, y)
@@ -200,21 +200,21 @@ plt.show()
 # plt.title("a*b^(cx) + d")
 # plt.show()
 
-params, err = curve_fit(sum_exp, x, y)
-y_new = sum_exp(x, params[0], params[1], params[2], params[3])
-print params, r2(y_new, vals)
-plt.plot(vals)
-plt.plot(y_new)
-plt.title("sum exp")
-plt.show()
+# params, err = curve_fit(sum_exp, x, y)
+# y_new = sum_exp(x, params[0], params[1], params[2], params[3])
+# print params, r2(y_new, vals)
+# plt.plot(vals)
+# plt.plot(y_new)
+# plt.title("sum exp")
+# plt.show()
 
-params, err = curve_fit(forced_exp, x, y)
-y_new = forced_exp(x, params[0])
-print params, r2(y_new, vals)
-plt.plot(vals)
-plt.plot(y_new)
-plt.title("force exp")
-plt.show()
+# params, err = curve_fit(forced_exp, x, y)
+# y_new = forced_exp(x, params[0])
+# print params, r2(y_new, vals)
+# plt.plot(vals)
+# plt.plot(y_new)
+# plt.title("force exp")
+# plt.show()
 
 # import  numpy as np
 
